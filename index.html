@@ -401,6 +401,8 @@ let currentUser   = null;  // { docId, user, correo, dinero, ... }
 let moneyInterval = null;
 
 function showTab(name) {
+  console.log('[DEBUG] showTab llamado con:', name);
+  
   document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('tab-' + name);
   if (el) el.classList.add('active');
@@ -408,10 +410,12 @@ function showTab(name) {
   
   // Si es la pestaña de canje por link, procesar el cupón
   if (name === 'canjear-link') {
-    // Dar tiempo para que la pestaña se active y se renderice
+    console.log('[DEBUG] Pestaña de canje activada, procesando cupón en 200ms...');
+    // Dar tiempo para que la pestaña se active
     setTimeout(() => {
+      console.log('[DEBUG] Ejecutando procesarCuponPorLink...');
       procesarCuponPorLink();
-    }, 150);
+    }, 200);
   }
 }
 
@@ -730,9 +734,6 @@ async function actualizarContra() {
   }
 }
 
-/* ============================================================
-   CUPON RECARGA
-============================================================ */
 async function cuponRec() {
   if (!currentUser) { showMsg('cupon-msg', 'error', 'Debés estar logueado para usar cupones.'); return; }
 
@@ -767,6 +768,9 @@ async function cuponRec() {
 
     // Actualizar saldo del usuario
     await db.collection('cuentas').doc(currentUser.docId).update({ dinero: nuevoSaldo });
+
+    // ❌ NO desactivamos el cupón
+    // await db.collection('cupones').doc(cuponDoc.id).update({ activo: false });
 
     currentUser.dinero = nuevoSaldo;
     setMoneyDisplay(nuevoSaldo);
@@ -1562,18 +1566,23 @@ function mostrarResultadoLink(exitoso, codigo, mensaje) {
   }
 }
 
-// Función principal para procesar el cupón del link
+/* ============================================================
+   CANJE DE CUPONES POR LINK - NO DESACTIVA CUPÓN
+============================================================ */
 async function procesarCuponPorLink() {
   const codigo = getUrlParameter('codigo');
+  
+  console.log('[DEBUG] procesarCuponPorLink - Iniciando con código:', codigo);
   
   // Verificar que estamos en la pestaña correcta
   const tabElement = document.getElementById('tab-canjear-link');
   if (!tabElement || !tabElement.classList.contains('active')) {
-    return; // No estamos en la pestaña de canje, no hacer nada
+    console.log('[DEBUG] No estamos en pestaña de canje, saliendo');
+    return;
   }
   
   if (!codigo) {
-    // No hay código en el link, mostrar estado normal
+    console.log('[DEBUG] No hay código en URL');
     const statusElement = document.getElementById('link-cupon-status');
     if (statusElement) {
       statusElement.innerHTML = 'No se encontró ningún cupón para canjear.';
@@ -1589,29 +1598,36 @@ async function procesarCuponPorLink() {
   }
   
   const container = document.getElementById('cupon-display');
-  if (!container) return;
+  if (!container) {
+    console.error('[DEBUG] No se encontró cupon-display');
+    return;
+  }
   
   // Verificar si el usuario está logueado
   if (!currentUser) {
+    console.log('[DEBUG] Usuario no logueado');
     mostrarResultadoLink(false, codigo, 'Debés iniciar sesión para canjear este cupón.');
     return;
   }
   
+  console.log('[DEBUG] Usuario logueado:', currentUser.user);
+  
   try {
-    // Buscar el cupón en la base de datos
+    console.log('[DEBUG] Buscando cupón en Firebase:', codigo);
     const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
     
     if (snap.empty) {
-      // Cupón inválido/no existe
+      console.log('[DEBUG] Cupón NO encontrado');
       mostrarResultadoLink(false, codigo, 'Cupón inválido o no existe.');
       return;
     }
     
     const cuponDoc = snap.docs[0];
     const cuponData = cuponDoc.data();
+    console.log('[DEBUG] Cupón encontrado:', cuponData);
     
     if (!cuponData.activo) {
-      // Cupón desactivado/usado
+      console.log('[DEBUG] Cupón inactivo');
       mostrarResultadoLink(false, codigo, 'Este cupón ya fue utilizado o está desactivado.');
       return;
     }
@@ -1621,54 +1637,65 @@ async function procesarCuponPorLink() {
     const saldoActual = parseFloat(currentUser.dinero) || 0;
     const nuevoSaldo = saldoActual + monto;
     
+    console.log('[DEBUG] Procesando canje - Monto:', monto, 'Saldo anterior:', saldoActual, 'Nuevo saldo:', nuevoSaldo);
+    
     // Actualizar saldo del usuario
     await db.collection('cuentas').doc(currentUser.docId).update({ dinero: nuevoSaldo });
     
-    // Actualizar estado del cupón a inactivo
-    await db.collection('cupones').doc(cuponDoc.id).update({ activo: false });
+    // ❌ NO desactivamos el cupón - Comentado
+    // await db.collection('cupones').doc(cuponDoc.id).update({ activo: false });
+    console.log('[DEBUG] Cupón NO fue desactivado (se mantiene activo)');
     
     // Actualizar usuario actual
     currentUser.dinero = nuevoSaldo;
     setMoneyDisplay(nuevoSaldo);
     
     // Mostrar resultado exitoso
+    console.log('[DEBUG] Canje exitoso');
     mostrarResultadoLink(true, codigo, `¡+$${monto.toFixed(2)} acreditados! Nuevo saldo: $${nuevoSaldo.toFixed(2)}`);
     
   } catch(e) {
-    console.error('Error al procesar cupón por link:', e);
+    console.error('[DEBUG] Error en procesarCuponPorLink:', e);
     mostrarResultadoLink(false, codigo, 'Error al procesar el cupón. Intentá nuevamente.');
   }
 }
 
 /* ============================================================
-   INICIALIZACIÓN - VERSIÓN CORREGIDA
+   INICIALIZACIÓN MODIFICADA - Con espera para auto-login
 ============================================================ */
+let cuponInicialProcesado = false;
 
-// Función para inicializar la app
-async function inicializarApp() {
-  const loggedIn = await autoLogin();
-  const codigo = getUrlParameter('codigo');
-  
-  if (codigo) {
-    // Si hay código en la URL, mostrar la pestaña de canje
-    showTab('canjear-link');
-  } else {
-    // Si no hay código, mostrar inicio o donde estaba el usuario
-    if (!loggedIn) {
-      showTab('inicio');
-    } else {
-      showTab('inicio');
-    }
-  }
-}
-
-// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-  // Pequeño delay para asegurar que Firebase está listo
-  setTimeout(() => {
-    inicializarApp();
-  }, 200);
+  console.log('[DEBUG] DOM cargado, revisando URL...');
+  const codigo = getUrlParameter('codigo');
+  console.log('[DEBUG] Código en URL:', codigo);
+  
+  if (codigo && !cuponInicialProcesado) {
+    console.log('[DEBUG] Código encontrado, mostrando pestaña de canje');
+    cuponInicialProcesado = true;
+    
+    setTimeout(() => {
+      console.log('[DEBUG] Abriendo pestaña de canje...');
+      showTab('canjear-link');
+    }, 500);
+  }
 });
+
+/* ============================================================
+   INIT con autologin - Notificar cuando se complete
+============================================================ */
+(async function init() {
+  console.log('[DEBUG] Iniciando autoLogin...');
+  const loggedIn = await autoLogin();
+  console.log('[DEBUG] autoLogin completado, loggedIn:', loggedIn);
+  
+  if (!loggedIn) {
+    showTab('inicio');
+  } else {
+    showTab('inicio');
+    console.log('[DEBUG] Auto-login exitoso, el sistema procesará el cupón pendiente si existe');
+  }
+})();
 </script>
 <script src="./script.js"></script>
 </body>
