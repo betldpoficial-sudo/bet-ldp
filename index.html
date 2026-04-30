@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="./styles.css">
+
 </head>
 <body>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -131,28 +132,6 @@
       <p>Tu casino de confianza</p>
     </div>
     <div class="inicio-cards" id="cards1">
-      <div class="game-card">
-        <span class="icon">↕</span>
-        <div class="name">Mayor/Menor</div>
-        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
-      </div>
-      <div class="game-card">
-        <span class="icon">🕹️</span>
-        <div class="name">TA-TE-TI</div>
-        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
-      </div>
-      <div class="game-card">
-        <span class="icon">⚔️</span>
-        <div class="name">Duelo de Lineas</div>
-        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
-      </div>
-			<div class="game-card">
-				<span class="icon">🎰</span>
-				<div class="name">Slots</div>
-        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
-			</div>
-    </div>
-		<div class="inicio-cards" id="cards2" style="display:none;">
       <div class="game-card">
         <span class="icon">↕</span>
         <div class="name">Mayor/Menor</div>
@@ -400,25 +379,6 @@ const db = firebase.firestore();
 let currentUser   = null;  // { docId, user, correo, dinero, ... }
 let moneyInterval = null;
 
-function showTab(name) {
-  console.log('[DEBUG] showTab llamado con:', name);
-  
-  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('tab-' + name);
-  if (el) el.classList.add('active');
-  closeMenuAccount();
-  
-  // Si es la pestaña de canje por link, procesar el cupón
-  if (name === 'canjear-link') {
-    console.log('[DEBUG] Pestaña de canje activada, procesando cupón en 200ms...');
-    // Dar tiempo para que la pestaña se active
-    setTimeout(() => {
-      console.log('[DEBUG] Ejecutando procesarCuponPorLink...');
-      procesarCuponPorLink();
-    }, 200);
-  }
-}
-
 function toggleMenuAccount() {
   document.getElementById('menu-account').classList.toggle('open');
 }
@@ -505,8 +465,14 @@ async function login() {
     document.getElementById('menu-user-info').style.display = 'block';
     document.getElementById('btn-logout').style.display      = 'block';
     document.getElementById('btn-go-login').style.display    = 'none';
-		document.getElementById('cards1').style.display = 'none';
-		document.getElementById('cards2').style.display = 'flex';
+const cards1 = document.getElementById('cards1');
+if (cards1) {
+  cards1.style.display = 'none';
+  cards1.style.flexDirection = '';
+  cards1.style.flexWrap = '';
+  cards1.style.justifyContent = '';
+  cards1.style.gap = '';
+}
 
     setMoneyDisplay(data.dinero);
     startMoneyPolling();
@@ -583,8 +549,14 @@ function logout() {
   document.getElementById('menu-user-info').style.display = 'none';
   document.getElementById('btn-logout').style.display      = 'none';
   document.getElementById('btn-go-login').style.display    = 'block';
-	document.getElementById('cards1').style.display = 'flex';
-	document.getElementById('cards2').style.display = 'none';
+  const cards1 = document.getElementById('cards1');
+if (cards1) {
+  cards1.style.display = 'flex';
+  cards1.style.flexDirection = 'row';
+  cards1.style.flexWrap = 'wrap';
+  cards1.style.justifyContent = 'center';
+  cards1.style.gap = '20px';
+}
   closeMenuAccount();
   showTab('login');
 }
@@ -611,8 +583,6 @@ function logout() {
           document.getElementById('menu-user-info').style.display = 'block';
           document.getElementById('btn-logout').style.display = 'block';
           document.getElementById('btn-go-login').style.display = 'none';
-          document.getElementById('cards1').style.display = 'none';
-          document.getElementById('cards2').style.display = 'flex';
           
           setMoneyDisplay(data.dinero);
           startMoneyPolling();
@@ -1219,15 +1189,6 @@ function dueloBackToSelection() {
     const el = document.getElementById(id);
     if (el) { el.style.display = 'none'; el.textContent = ''; }
   }
-
-  // Parche para cerrar partida al cambiar de pestaña
-  const originalShowTab = window.showTab;
-  window.showTab = function(name) {
-    if (name !== 'tata' && tataState.active) {
-      tataCancelGame();
-    }
-    originalShowTab(name);
-  };
 	  /* ============================================================
      MAYOR o MENOR (integrado con saldo de BetLDP)
   ============================================================ */
@@ -1659,43 +1620,180 @@ async function procesarCuponPorLink() {
     mostrarResultadoLink(false, codigo, 'Error al procesar el cupón. Intentá nuevamente.');
   }
 }
-
 /* ============================================================
-   INICIALIZACIÓN MODIFICADA - Con espera para auto-login
+   SHOW TAB UNIFICADA - SIN DUPLICADOS
 ============================================================ */
-let cuponInicialProcesado = false;
+const originalShowTabGlobal = window.showTab;
 
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('[DEBUG] DOM cargado, revisando URL...');
-  const codigo = getUrlParameter('codigo');
-  console.log('[DEBUG] Código en URL:', codigo);
+window.showTab = function(name) {
+  console.log('[DEBUG] showTab llamado con:', name);
   
-  if (codigo && !cuponInicialProcesado) {
-    console.log('[DEBUG] Código encontrado, mostrando pestaña de canje');
-    cuponInicialProcesado = true;
+  // Ocultar todas las pestañas
+  document.querySelectorAll('.tab-section').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  
+  // Mostrar la pestaña seleccionada
+  const el = document.getElementById('tab-' + name);
+  if (el) {
+    el.classList.add('active');
+    el.style.display = 'block';
+    console.log('[DEBUG] Mostrando pestaña: tab-' + name);
+  }
+  
+  closeMenuAccount();
+  
+  // Manejar juegos activos
+  if (typeof tataState !== 'undefined' && tataState && name !== 'tata' && tataState.active) {
+    if (typeof tataCancelGame === 'function') tataCancelGame();
+  }
+  
+  if (typeof mmState !== 'undefined' && mmState && name !== 'mayormenor' && mmState.active) {
+    if (mmState.active && !mmState.gameOver && typeof currentUser !== 'undefined' && currentUser) {
+      currentUser.dinero += mmState.bet;
+      if (typeof setMoneyDisplay === 'function') setMoneyDisplay(currentUser.dinero);
+      db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+    }
+    mmState.active = false;
+    mmState.gameOver = true;
+  }
+  
+  // FIX PARA LA PESTAÑA DE INICIO
+  // Dentro de showTab, en la parte de 'inicio':
+if (name === 'inicio') {
+  setTimeout(() => {
+    const cards1 = document.getElementById('cards1');
     
+    if (currentUser) {
+      if (cards1) {
+        cards1.style.display = 'none';
+        cards1.style.justifyContent = '';
+      }
+    } else {
+      if (cards1) {
+        cards1.style.display = 'flex';
+        cards1.style.justifyContent = 'center';  // ← CENTRAR
+        cards1.style.flexWrap = 'wrap';
+        cards1.style.gap = '24px';
+        cards1.style.width = '100%';
+        cards1.style.padding = '20px';
+      }
+    }
+    
+    console.log('[DEBUG] Tarjetas centradas');
+  }, 50);
+}
+  
+  // Procesar cupón
+  if (name === 'canjear-link') {
     setTimeout(() => {
-      console.log('[DEBUG] Abriendo pestaña de canje...');
-      showTab('canjear-link');
-    }, 500);
+      if (typeof procesarCuponPorLink === 'function') procesarCuponPorLink();
+    }, 200);
   }
-});
+};
+// Función para centrar las tarjetas
+function centrarTarjetas() {
+  const cards1 = document.getElementById('cards1');
+  
+  if (cards1) {
+    cards1.style.justifyContent = 'center';
+    cards1.style.margin = '0 auto';
+    cards1.style.width = '100%';
+    cards1.style.padding = '20px';
+  }
+}
+
+// Ejecutar cuando se muestra la pestaña de inicio
+const centrarShowTab = window.showTab;
+window.showTab = function(name) {
+  centrarShowTab(name);
+  if (name === 'inicio') {
+    setTimeout(centrarTarjetas, 100);
+  }
+};
+
+// Ejecutar también al cargar la página
+document.addEventListener('DOMContentLoaded', centrarTarjetas);
 
 /* ============================================================
-   INIT con autologin - Notificar cuando se complete
+   INICIALIZACIÓN - VERSIÓN CORREGIDA
 ============================================================ */
-(async function init() {
-  console.log('[DEBUG] Iniciando autoLogin...');
+
+// Función para inicializar la app
+async function inicializarApp() {
   const loggedIn = await autoLogin();
-  console.log('[DEBUG] autoLogin completado, loggedIn:', loggedIn);
+  const codigo = getUrlParameter('codigo');
   
-  if (!loggedIn) {
-    showTab('inicio');
+  if (codigo) {
+    // Si hay código en la URL, mostrar la pestaña de canje
+    showTab('canjear-link');
   } else {
-    showTab('inicio');
-    console.log('[DEBUG] Auto-login exitoso, el sistema procesará el cupón pendiente si existe');
+    // Si no hay código, mostrar inicio o donde estaba el usuario
+    if (!loggedIn) {
+      showTab('inicio');
+    } else {
+      showTab('inicio');
+    }
   }
-})();
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  // Pequeño delay para asegurar que Firebase está listo
+  setTimeout(() => {
+    inicializarApp();
+  }, 200);
+});
+</script>
+<script>
+  // FUNCIÓN DE EMERGENCIA PARA FORZAR LAYOUT DE TARJETAS
+  function forzarLayoutTarjetas() {
+    const cards1 = document.getElementById('cards1');
+    if (!cards1) return;
+    
+    // Aplicar estilos directamente
+    cards1.style.display = 'flex';
+    cards1.style.flexDirection = 'row';
+    cards1.style.flexWrap = 'wrap';
+    cards1.style.justifyContent = 'center';
+    cards1.style.gap = '20px';
+    cards1.style.width = '100%';
+    cards1.style.maxWidth = '1200px';
+    cards1.style.margin = '0 auto';
+    
+    // Forzar estilos en cada tarjeta
+    const tarjetas = cards1.querySelectorAll('.game-card');
+    tarjetas.forEach(tarjeta => {
+      tarjeta.style.width = '180px';
+      tarjeta.style.flex = '0 0 auto';
+      tarjeta.style.minWidth = '160px';
+      tarjeta.style.margin = '0';
+      tarjeta.style.padding = '20px 15px';
+      tarjeta.style.backgroundColor = '#1a1a2e';
+      tarjeta.style.borderRadius = '16px';
+      tarjeta.style.border = '1px solid rgba(201,162,39,0.3)';
+      tarjeta.style.textAlign = 'center';
+    });
+    
+    console.log('[DEBUG] Layout forzado en', tarjetas.length, 'tarjetas');
+  }
+  
+  // Ejecutar al cambiar a la pestaña de inicio
+  const originalShowTab = window.showTab;
+  window.showTab = function(name) {
+    originalShowTab(name);
+    if (name === 'inicio') {
+      setTimeout(forzarLayoutTarjetas, 100);
+    }
+  };
+  
+  // Ejecutar también al cargar la página si ya está en inicio
+  setTimeout(() => {
+    if (document.getElementById('tab-inicio')?.classList.contains('active')) {
+      forzarLayoutTarjetas();
+    }
+  }, 500);
 </script>
 <script src="./script.js"></script>
 </body>

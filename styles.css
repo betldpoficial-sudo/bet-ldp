@@ -767,3 +767,94 @@
     letter-spacing: 2px !important;
   }
 }
+
+/* Asegurar que las pestañas activas se muestren */
+.tab-section {
+  display: none;
+}
+
+.tab-section.active {
+  display: block !important;
+}
+
+/* Sistema de pestañas - Versión corregida */
+.tab-section {
+  display: none !important;
+}
+
+.tab-section.active {
+  display: block !important;
+}
+
+/* Para móviles */
+@media (max-width: 768px) {
+  .tab-section.active {
+    display: block !important;
+  }
+}
+
+/* Asegurar que las tarjetas de juegos mantengan su layout */
+.inicio-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.game-card {
+  background: linear-gradient(135deg, var(--dark4) 0%, var(--dark5) 100%);
+  border: 1px solid rgba(201,162,39,0.2);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  width: 200px;
+  min-width: 160px;
+  flex: 1 1 auto;
+}
+
+/* Evitar que los bordes de otras secciones afecten a inicio */
+#tab-inicio.active .game-card {
+  border: 1px solid rgba(201,162,39,0.2) !important;
+}
+
+#tab-inicio.active .inicio-cards {
+  display: flex !important;
+}
+/* Reset global para cualquier estilo residual */
+.tab-section:not(#tab-canjear-link) .card {
+  border: none !important;
+  border-radius: 12px !important;
+}
+
+.tab-section:not(#tab-canjear-link) .card .cupon-display,
+.tab-section:not(#tab-canjear-link) [id*="cupon"] {
+  border: none !important;
+}
+
+
+
+
+
+/* Centrar las tarjetas de juegos */
+#tab-inicio .inicio-cards,
+#cards1 {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 24px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+}
+
+/* Asegurar que cada tarjeta tenga el mismo tamaño */
+#tab-inicio .game-card {
+  width: 180px !important;
+  min-width: 160px !important;
+  flex: 0 0 auto !important;
+  text-align: center !important;
+}
