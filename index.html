@@ -408,10 +408,10 @@ function showTab(name) {
   
   // Si es la pestaña de canje por link, procesar el cupón
   if (name === 'canjear-link') {
-    // Dar tiempo para que la pestaña se active
+    // Dar tiempo para que la pestaña se active y se renderice
     setTimeout(() => {
       procesarCuponPorLink();
-    }, 100);
+    }, 150);
   }
 }
 
@@ -1643,39 +1643,32 @@ async function procesarCuponPorLink() {
 /* ============================================================
    INICIALIZACIÓN - VERSIÓN CORREGIDA
 ============================================================ */
-document.addEventListener('DOMContentLoaded', function() {
-  const codigo = getUrlParameter('codigo');
-  if (codigo) {
-    // Pequeño delay para asegurar que todo está cargado
-    setTimeout(() => {
-      showTab('canjear-link');
-    }, 500);
-  }
-});
 
-/* ============================================================
-   INIT con autologin (MANTENER ESTE AL FINAL)
-============================================================ */
-(async function init() {
+// Función para inicializar la app
+async function inicializarApp() {
   const loggedIn = await autoLogin();
-  if (!loggedIn) {
-    showTab('inicio');
+  const codigo = getUrlParameter('codigo');
+  
+  if (codigo) {
+    // Si hay código en la URL, mostrar la pestaña de canje
+    showTab('canjear-link');
   } else {
-    showTab('inicio');
-  }
-})();
-
-  /* ============================================================
-     INIT con autologin
-  ============================================================ */
-  (async function init() {
-    const loggedIn = await autoLogin();
+    // Si no hay código, mostrar inicio o donde estaba el usuario
     if (!loggedIn) {
       showTab('inicio');
     } else {
       showTab('inicio');
     }
-  })();
+  }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  // Pequeño delay para asegurar que Firebase está listo
+  setTimeout(() => {
+    inicializarApp();
+  }, 200);
+});
 </script>
 <script src="./script.js"></script>
 </body>
