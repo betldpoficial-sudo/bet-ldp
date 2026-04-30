@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bet LDP — Tu casino de confianza</title>
+  <link rel="icon" type="image/png" href="./logo3.png">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<div class="particles" id="particles"></div>
+
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="showTab('inicio')">
+      <img src="./logo1.png" alt="Bet LDP" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <span style="display:none; font-family:'Cinzel',serif; font-size:18px; font-weight:900; color:var(--gold-light); letter-spacing:2px;">BET LDP</span>
+    </button>
+  </div>
+  
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+    <button class="btn-gold" onclick="showTab('recarga')">Recargar fondos</button>
+    <button class="btn-gold" onclick="showTab('canjear-link')">Canjear por Link</button>
+    <div class="nav-ornament"></div>
+    <button id="btn-account" onclick="toggleMenuAccount()">
+      <img src="./account.png" alt="Cuenta" onerror="this.outerHTML='<span style=\'font-size:18px;\'>👤</span>'">
+    </button>
+  </div>
+</nav>
+
+<div id="menu-account">
+  <div class="menu-user-info" id="menu-user-info" style="display:none">
+    <div class="mname" id="menu-uname">—</div>
+    <div class="memail" id="menu-uemail">—</div>
+  </div>
+  <button class="menu-item" onclick="showTab('inicio'); closeMenuAccount()">🏠 Inicio</button>
+  <button class="menu-item" onclick="showTab('recarga'); closeMenuAccount()">💰 Recargar fondos</button>
+  <div class="menu-divider"></div>
+  <button class="menu-item danger" id="btn-logout" onclick="logout()" style="display:none">🚪 Cerrar sesión</button>
+  <button class="menu-item" id="btn-go-login" onclick="showTab('login'); closeMenuAccount()">🔐 Iniciar sesión</button>
+</div>
+
+<div id="app">
+  <section class="tab-section" id="tab-login">
+    <h2 class="section-title">Sistema de Logueo</h2>
+    <div class="card">
+      <div class="card-inner">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
+        <button class="btn-primary" onclick="login()" id="btn-login-submit">Ingresar</button>
+      </div>
+      <div id="login-msg"></div>
+      <p class="hint-text">¿No te has creado una cuenta aún?</p>
+      <button class="btn-secondary" onclick="showTab('register')">Ir a crearme una cuenta</button>
+      <p class="hint-text" style="margin-top:18px;">¿Has olvidado tu contraseña?</p>
+      <button class="btn-secondary" onclick="showTab('recuperacion')">Ir a recuperar mi contraseña</button>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-register">
+    <h2 class="section-title">Sistema de Registro</h2>
+    <div class="card">
+      <div class="card-inner">
+        <label>Nombre completo</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre completo">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@correo.com">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
+        <button class="btn-primary" onclick="register()" id="btn-reg-submit">Crear cuenta</button>
+      </div>
+      <div id="reg-msg"></div>
+      <p class="hint-text">¿Ya tenés una cuenta creada?</p>
+      <button class="btn-secondary" onclick="showTab('login')">Ir a loguearme</button>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-recuperacion">
+    <h2 class="section-title">Recuperar Contraseña</h2>
+    <div class="card">
+      <div class="card-inner">
+        <label>Tu nombre</label>
+        <input type="text" id="rec-nombre" placeholder="Nombre completo" required>
+        <label>Correo electrónico vinculado</label>
+        <input type="email" id="rec-email" placeholder="tu@correo.com" required>
+        <button class="btn-primary" onclick="enviarCodigo()" id="btn-send-code">Enviar código de verificación</button>
+        <div id="rec-msg1"></div>
+      </div>
+  
+      <div id="rec-step2" style="display:none; margin-top:6px;">
+        <p class="hint-text" style="margin-bottom:10px;">Ingresá el código de 6 dígitos enviado a tu correo:</p>
+        <div class="code-inputs" id="code-inputs">
+          <input class="code-char" maxlength="1" data-idx="0" oninput="onCodeInput(this)" onkeydown="onCodeKeydown(event,this)">
+          <input class="code-char" maxlength="1" data-idx="1" oninput="onCodeInput(this)" onkeydown="onCodeKeydown(event,this)">
+          <input class="code-char" maxlength="1" data-idx="2" oninput="onCodeInput(this)" onkeydown="onCodeKeydown(event,this)">
+          <input class="code-char" maxlength="1" data-idx="3" oninput="onCodeInput(this)" onkeydown="onCodeKeydown(event,this)">
+          <input class="code-char" maxlength="1" data-idx="4" oninput="onCodeInput(this)" onkeydown="onCodeKeydown(event,this)">
+          <input class="code-char" maxlength="1" data-idx="5" oninput="onCodeInput(this)" onkeydown="onCodeKeydown(event,this)">
+        </div>
+        <button class="btn-primary" onclick="verificarCodigo()">Verificar código</button>
+        <div id="rec-msg2"></div>
+      </div>
+    </div>
+    <p class="hint-text"><button class="btn-secondary" onclick="showTab('login')" style="margin-top:0;">← Volver al login</button></p>
+  </section>
+  
+  <section class="tab-section" id="tab-new-pass">
+    <h2 class="section-title">Nueva Contraseña</h2>
+    <div class="card">
+      <label>Ingrese su nueva contraseña:</label>
+      <input type="password" id="new-pass-1" placeholder="Nueva contraseña" style="margin-bottom:14px;">
+      <label>Ingrese nuevamente su nueva contraseña:</label>
+      <input type="password" id="new-pass-2" placeholder="Confirmar contraseña">
+      <button class="btn-primary" onclick="actualizarContra()">Actualizar Contraseña</button>
+      <div id="new-pass-msg"></div>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-inicio">
+    <div class="inicio-hero">
+      <div class="coin-ring"><img style="max-width: 125px; height: 125px;"src="./logo3.png"></div>
+      <h1>BET LDP</h1>
+      <p>Tu casino de confianza</p>
+    </div>
+    <div class="inicio-cards" id="cards1">
+      <div class="game-card">
+        <span class="icon">↕</span>
+        <div class="name">Mayor/Menor</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🕹️</span>
+        <div class="name">TA-TE-TI</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">⚔️</span>
+        <div class="name">Duelo de Lineas</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
+      </div>
+			<div class="game-card">
+				<span class="icon">🎰</span>
+				<div class="name">Slots</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('login')">Jugar</button>
+			</div>
+    </div>
+		<div class="inicio-cards" id="cards2" style="display:none;">
+      <div class="game-card">
+        <span class="icon">↕</span>
+        <div class="name">Mayor/Menor</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('mayormenor')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🕹️</span>
+        <div class="name">TA-TE-TI</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('tata')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">⚔️</span>
+        <div class="name">Duelo de Lineas</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('duelo-lineas')">Jugar</button>
+      </div>
+			<div class="game-card">
+        <span class="icon">🎰</span>
+				<div class="name">Slots</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="showTab('slots')">Jugar</button>
+			</div>
+    </div>
+		<div class="inicio-cards">
+      <div class="game-card">
+        <span class="icon">🃏</span>
+				<div class="name">Blackjack</div>
+				<div class="badge">Próximamente</div>
+			</div>
+      <div class="game-card">
+        <span class="icon">🎡</span>
+        <div class="name">Ruleta</div>
+        <div class="badge">Próximamente</div>
+      </div>
+      <div class="game-card">
+        <span class="icon">🎲</span>
+        <div class="name">Dados</div>
+        <div class="badge">Próximamente</div>
+      </div>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-recarga">
+    <h1 class="section-title" style="font-size:22px;">Recargar dinero</h1>
+
+    <div class="card">
+      <div class="card-subtitle">Billetera virtual</div>
+      <p class="unavailable-badge">No disponible actualmente</p>
+    </div>
+
+    <div class="card">
+      <div class="card-subtitle">Tarjeta de Crédito / Débito</div>
+      <p class="unavailable-badge">No disponible actualmente</p>
+    </div>
+
+    <div class="card">
+      <div class="card-subtitle">Código de cupón</div>
+      <label>Ingrese el código:</label>
+      <input type="text" id="cupon-input" placeholder="XXXXXXXX" style="text-transform:uppercase; letter-spacing:3px;">
+      <button class="btn-primary" onclick="cuponRec()" id="btn-cupon">Recargar</button>
+      <div id="cupon-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">Enlace de canje</div>
+      <button class="btn-gold" onclick="showTab('canjear-link')">Canjear por Link</button>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-canjear-link" style="display:none;">
+    <h1 class="section-title" style="font-size:22px;">Canjear Cupón por Link</h1>
+  
+    <div id="link-cupon-container" style="display:flex; justify-content:center; align-items:center; min-height:300px;">
+      <div class="card" style="max-width:500px; width:100%; text-align:center; transition: all 0.3s ease;" id="cupon-result-card">
+        <h2 style="margin-bottom:15px;">Canjear un Cupón</h2>
+        <p id="link-cupon-status">Esperando cargar el cupón...</p>
+        <div id="cupon-display" style="margin-top:20px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-tata">
+    <h2 class="section-title">TA-TE-TI vs IA</h2>
+    <div id="tata-selection" class="card">
+      <div class="card-subtitle">Elegí dificultad y apuesta</div>
+      <label>Dificultad</label>
+      <select id="tata-diff" style="width:100%; padding:11px 14px; background:var(--dark5); border:1px solid rgba(201,162,39,0.2); border-radius:6px; color:var(--text); margin-bottom:14px;">
+        <option value="medium">🎲 Medio - 7.5% ganancia</option>
+        <option value="hard">🔥 Difícil - 15% ganancia</option>
+      </select>
+      <label>Tu apuesta ($)</label>
+      <input type="number" id="tata-bet" placeholder="Ingresa tu apuesta" min="1" step="0.01" style="width: 100%; padding: 11px 14px; background: var(--dark5); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; color: var(--text); font-family: 'Raleway', sans-serif; margin-bottom: 14px;">
+      <button class="btn-primary" onclick="tataStartGame()">Iniciar partida</button>
+      <div id="tata-msg-selection" class="alert" style="margin-top:14px;"></div>
+    </div>
+    <div id="tata-game-area" style="display:none;">
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span>🤖 IA (<span id="tata-diff-label">Medio</span>)</span>
+          <span>💰 Apuesta: $<span id="tata-bet-display">0</span></span>
+        </div>
+        <div style="margin-top:8px;">💵 Posible ganancia: +<span id="tata-win-percent">7.5</span>%</div>
+      </div>
+      <div class="card">
+        <div id="tata-board" class="tata-board"></div>
+        <button class="btn-secondary" style="margin-top:16px;" onclick="tataCancelGame()">Cancelar partida</button>
+        <div id="tata-game-msg" class="alert" style="margin-top:12px;"></div>
+      </div>
+    </div>
+    <div id="tata-result" class="card" style="display:none; text-align:center;">
+      <h3 id="tata-result-title">🎉 Ganaste</h3>
+      <div id="tata-result-detail" style="margin:12px 0;"></div>
+      <button class="btn-primary" onclick="tataBackToMenu()">Volver al menú</button>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-mayormenor">
+    <h2 class="section-title">Mayor o Menor</h2>
+    <div id="mm-selection" class="card">
+      <div class="card-subtitle">Adiviná si el próximo número será mayor o menor</div>
+      <label>Tu apuesta ($)</label>
+			<input type="number" id="mm-bet" placeholder="Ingresa tu apuesta" min="1" step="0.01" style="width: 100%; padding: 11px 14px; background: var(--dark5); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; color: var(--text); font-family: 'Raleway', sans-serif; margin-bottom: 14px;">
+      <button class="btn-primary" onclick="mmStartGame()" style="margin-top:18px;">Iniciar partida</button>
+      <div id="mm-msg-selection" class="alert" style="margin-top:14px;"></div>
+    </div>
+    <div id="mm-game-area" style="display:none;">
+      <div class="card" style="text-align:center; margin-bottom:12px;">
+        <div style="font-size:12px; color:var(--text-dim);">Apuesta actual</div>
+        <div style="font-size:20px; font-weight:700; color:var(--gold-light);">$<span id="mm-bet-display">0</span></div>
+      </div>
+      <div class="card">
+        <div id="mm-current-number" class="mm-number">5</div>
+        <div style="display:flex; gap:12px; margin:20px 0;">
+          <button class="btn-primary" onclick="mmGuess('mayor')" style="flex:1;">🔺 MAYOR</button>
+          <button class="btn-primary" onclick="mmGuess('menor')" style="flex:1;">🔻 MENOR</button>
+        </div>
+        <div id="mm-result" style="font-size:16px; text-align:center; min-height:50px;"></div>
+        <button class="btn-secondary" style="margin-top:12px;" onclick="mmEndGame()">Abandonar partida</button>
+      </div>
+    </div>
+
+    <div id="mm-result-final" class="card" style="display:none; text-align:center;">
+      <h3 id="mm-final-title">🎉 Resultado</h3>
+      <div id="mm-final-detail" style="margin:16px 0;"></div>
+      <button class="btn-primary" onclick="mmBackToMenu()">Volver al menú</button>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-duelo-lineas">
+    <h2 class="section-title">Duelo de Líneas</h2>
+    <div id="duelo-selection-screen" class="card" style="display:block;">
+      <p style="text-align: center; font-size: 13px; color: var(--text-dim); margin-bottom: 18px;">Selecciona la dificultad y tu apuesta</p>
+      
+      <label>Dificultad</label>
+      <select id="duelo-difficulty-select" style="width: 100%; padding: 11px 14px; background: var(--dark5); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; color: var(--text); font-family: 'Raleway', sans-serif; margin-bottom: 14px; cursor: pointer;">
+        <option value="easy">🟢 Fácil (15 vidas, 7x7) - 7.5% de ganancia</option>
+        <option value="normal">🟡 Medio (10 vidas, 7x7) - 15% de ganancia</option>
+        <option value="hard">🔴 Difícil (10 vidas, 10x10) - 22.5% de ganancia</option>
+      </select>
+      
+      <label>Tu Apuesta ($)</label>
+      <input type="number" id="duelo-bet-input" placeholder="Ingresa tu apuesta" min="1" step="0.01" style="width: 100%; padding: 11px 14px; background: var(--dark5); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; color: var(--text); font-family: 'Raleway', sans-serif; margin-bottom: 14px;">
+      
+      <button class="btn-primary" onclick="dueloStartGame()">Iniciar Partida</button>
+      <div id="duelo-selection-msg" class="alert" style="margin-top: 14px;"></div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="duelo-game-screen" class="card" style="display:none;">
+      <h3 class="card-subtitle">Partida en curso</h3>
+      <div style="width: 100%; padding: 12px 14px; background: rgba(201,162,39,0.12); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; text-align: center; margin-bottom: 12px;">
+        <div style="font-size: 12px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;">Vidas Restantes</div>
+        <div id="duelo-lives-count" style="font-size: 22px; color: var(--gold-light); font-weight: 700;">20</div>
+      </div>
+      <div style="width: 100%; padding: 12px 14px; background: rgba(201,162,39,0.12); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; text-align: center; margin-bottom: 12px;">
+        <div style="font-size: 12px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;">Tu Apuesta</div>
+        <div id="duelo-bet-display" style="font-size: 18px; color: var(--gold-light); font-weight: 700;">$0.00</div>
+      </div>
+      <div id="duelo-game-grid" class="game-grid" style="margin: 12px 0; display: grid; gap: 6px; justify-content: center;"></div>
+      <button class="btn-secondary" style="width: 100%; margin-top: 12px; color: var(--red);" onclick="dueloEndGame()">Abandonar Partida</button>
+      <div id="duelo-game-msg" class="alert" style="margin-top: 12px;"></div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="duelo-game-over-screen" class="card" style="display:none;">
+      <h2 class="section-title" id="duelo-game-over-title" style="margin-top: 0;">¡Perdiste! ☠️</h2>
+      <div id="duelo-game-over-result" style="text-align: center; padding: 20px; margin: 18px 0; background: rgba(201,162,39,0.1); border: 1px solid rgba(201,162,39,0.2); border-radius: 8px;">
+        <div id="duelo-result-text" style="font-size: 14px; color: var(--text-dim);"></div>
+      </div>
+      <button class="btn-primary" onclick="dueloBackToSelection()">Volver atrás</button>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-slots">
+    <h2 class="section-title">🎰 MÁQUINA TRAGAMONEDAS 🎰</h2>  
+    <div id="slots-selection" class="card">
+      <div class="card-subtitle">Elegí tu apuesta y girá los rodillos</div>
+      <label>Tu apuesta ($)</label>
+      <div style="display:flex; gap:10px; margin-bottom:20px;">
+      	<input type="number" id="slots-custom-bet" placeholder="Ingresa tu apuesta" min="1" step="0.01" style="width: 100%; padding: 11px 14px; background: var(--dark5); border: 1px solid rgba(201,162,39,0.2); border-radius: 6px; color: var(--text); font-family: 'Raleway', sans-serif; margin-bottom: 14px;">
+        <button class="btn-secondary" onclick="slotsSetCustomBet()" style="flex:1;">Aplicar</button>
+      </div>
+      <button class="btn-primary" onclick="slotsStartGame()">🎲 JUGAR 🎲</button>
+      <div id="slots-msg-selection" class="alert" style="margin-top:14px;"></div>
+    </div>
+
+    <div id="slots-game-area" style="display:none;">
+      <div class="card" style="text-align:center;">
+        <div class="reels" id="slots-reels">
+          <div class="slot-reel" id="slot-reel1">🍒</div>
+          <div class="slot-reel" id="slot-reel2">🍒</div>
+          <div class="slot-reel" id="slot-reel3">🍒</div>
+        </div>
+        <div style="margin:20px 0;">
+          <button class="btn-primary" id="slots-spin-btn" onclick="slotsSpin()" style="font-size:16px;">🎲 GIRAR 🎲</button>
+          <button class="btn-secondary" style="margin-left:10px;" onclick="slotsEndGame()">Abandonar</button>
+        </div>
+        <div id="slots-game-msg" class="alert" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div id="slots-result" class="card" style="display:none; text-align:center;">
+      <h3 id="slots-result-title">🎉 Resultado</h3>
+      <div id="slots-result-detail" style="margin:16px 0;"></div>
+      <button class="btn-primary" onclick="slotsBackToMenu()">Volver al menú</button>
+    </div>
+  </section>
+</div>
+
+<script>
+	function generarCodigo() {
+  let codigo = "";
+  for (let i = 0; i < 6; i++) {
+    codigo += Math.floor(Math.random() * 9) + 1;
+  }
+  return codigo;
+}
+const firebaseConfig = {
+  apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+  authDomain: "tuesa-oficial.firebaseapp.com",
+  projectId: "tuesa-oficial",
+  storageBucket: "tuesa-oficial.firebasestorage.app",
+  messagingSenderId: "447951557213",
+  appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let currentUser   = null;  // { docId, user, correo, dinero, ... }
+let moneyInterval = null;
+
+function showTab(name) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('tab-' + name);
+  if (el) el.classList.add('active');
+  closeMenuAccount();
+  
+  // Si es la pestaña de canje por link, procesar el cupón
+  if (name === 'canjear-link') {
+    // Dar tiempo para que la pestaña se active
+    setTimeout(() => {
+      procesarCuponPorLink();
+    }, 100);
+  }
+}
+
+function toggleMenuAccount() {
+  document.getElementById('menu-account').classList.toggle('open');
+}
+function closeMenuAccount() {
+  document.getElementById('menu-account').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#menu-account') && !e.target.closest('#btn-account')) closeMenuAccount();
+});
+
+function setMoneyDisplay(amount) {
+  const el = document.getElementById('money-display');
+  el.textContent = '$' + parseFloat(amount).toFixed(2);
+  el.style.opacity = '1';
+}
+
+async function fetchMoney() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('cuentas').doc(currentUser.docId).get();
+    if (snap.exists) {
+      const d = snap.data();
+      currentUser.dinero = d.dinero;
+      setMoneyDisplay(d.dinero);
+    }
+  } catch(e) { console.warn('fetchMoney error', e); }
+}
+
+function startMoneyPolling() {
+  if (moneyInterval) clearInterval(moneyInterval);
+  moneyInterval = setInterval(fetchMoney, 120000);
+}
+
+function showMsg(containerId, type, text) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.className = 'alert ' + type;
+  el.textContent = text;
+  el.style.display = 'block';
+}
+function clearMsg(containerId) {
+  const el = document.getElementById(containerId);
+  if (el) { el.style.display = 'none'; el.textContent = ''; el.className = 'alert'; }
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  clearMsg('login-msg');
+
+  if (!email || !pass) { showMsg('login-msg', 'error', 'Completá todos los campos.'); return; }
+
+  const btn = document.getElementById('btn-login-submit');
+  btn.innerHTML = '<span class="spinner"></span>Ingresando...';
+  btn.disabled = true;
+
+  try {
+    const snap = await db.collection('cuentas').where('correo', '==', email).get();
+    if (snap.empty) {
+      showMsg('login-msg', 'error', 'No existe ninguna cuenta con ese correo.');
+      btn.innerHTML = 'Ingresar'; btn.disabled = false; return;
+    }
+
+    const doc = snap.docs[0];
+    const data = doc.data();
+
+    if (data.clave !== pass) {
+      showMsg('login-msg', 'error', 'Contraseña incorrecta.');
+      btn.innerHTML = 'Ingresar'; btn.disabled = false; return;
+    }
+
+        // Login exitoso
+    currentUser = { docId: doc.id, ...data };
+    
+    // 👇 AGREGAR ESTA LÍNEA para guardar en localStorage
+    localStorage.setItem('betldp_user_id', doc.id);
+    localStorage.setItem('betldp_user_email', data.correo);
+    
+    showMsg('login-msg', 'success', '¡Bienvenido/a, ' + data.user + '!');
+
+    // Actualizar menú
+    document.getElementById('menu-uname').textContent  = data.user;
+    document.getElementById('menu-uemail').textContent = data.correo;
+    document.getElementById('menu-user-info').style.display = 'block';
+    document.getElementById('btn-logout').style.display      = 'block';
+    document.getElementById('btn-go-login').style.display    = 'none';
+		document.getElementById('cards1').style.display = 'none';
+		document.getElementById('cards2').style.display = 'flex';
+
+    setMoneyDisplay(data.dinero);
+    startMoneyPolling();
+
+    setTimeout(() => showTab('inicio'), 900);
+  } catch(e) {
+    showMsg('login-msg', 'error', 'Error de conexión. Intentá nuevamente.');
+    console.error(e);
+  } finally {
+    btn.innerHTML = 'Ingresar'; btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   REGISTER
+============================================================ */
+async function register() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  clearMsg('reg-msg');
+
+  if (!name || !email || !pass) { showMsg('reg-msg', 'error', 'Completá todos los campos.'); return; }
+  if (pass.length < 6)          { showMsg('reg-msg', 'error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+
+  const btn = document.getElementById('btn-reg-submit');
+  btn.innerHTML = '<span class="spinner"></span>Creando cuenta...';
+  btn.disabled = true;
+
+  try {
+    // Verificar correo duplicado
+    const check = await db.collection('cuentas').where('correo', '==', email).get();
+    if (!check.empty) {
+      showMsg('reg-msg', 'error', 'Ya existe una cuenta con ese correo. Usá otro.');
+      btn.innerHTML = 'Crear cuenta'; btn.disabled = false; return;
+    }
+
+    // Crear documento
+    await db.collection('cuentas').add({
+      clave:      pass,
+      correo:     email,
+      dinero:     0,
+      user:       name,
+      verificado: false
+    });
+
+    showMsg('reg-msg', 'success', '¡Cuenta creada! Serás redirigido al login...');
+    setTimeout(() => {
+      clearMsg('reg-msg');
+      document.getElementById('reg-name').value  = '';
+      document.getElementById('reg-email').value = '';
+      document.getElementById('reg-pass').value  = '';
+      showTab('login');
+    }, 1800);
+  } catch(e) {
+    showMsg('reg-msg', 'error', 'Error al crear la cuenta. Intentá nuevamente.');
+    console.error(e);
+  } finally {
+    btn.innerHTML = 'Crear cuenta'; btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+function logout() {
+  currentUser = null;
+  
+  localStorage.removeItem('betldp_user_id');
+  localStorage.removeItem('betldp_user_email');
+  
+  if (moneyInterval) { clearInterval(moneyInterval); moneyInterval = null; }
+  document.getElementById('money-display').style.opacity = '0';
+  document.getElementById('menu-user-info').style.display = 'none';
+  document.getElementById('btn-logout').style.display      = 'none';
+  document.getElementById('btn-go-login').style.display    = 'block';
+	document.getElementById('cards1').style.display = 'flex';
+	document.getElementById('cards2').style.display = 'none';
+  closeMenuAccount();
+  showTab('login');
+}
+
+  /* ============================================================
+     AUTOLOGIN con localStorage
+  ============================================================ */
+  async function autoLogin() {
+    const savedUserId = localStorage.getItem('betldp_user_id');
+    const savedEmail = localStorage.getItem('betldp_user_email');
+    
+    if (!savedUserId || !savedEmail) return false;
+    
+    try {
+      const doc = await db.collection('cuentas').doc(savedUserId).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.correo === savedEmail) {
+          currentUser = { docId: doc.id, ...data };
+          
+          // Actualizar UI
+          document.getElementById('menu-uname').textContent = data.user;
+          document.getElementById('menu-uemail').textContent = data.correo;
+          document.getElementById('menu-user-info').style.display = 'block';
+          document.getElementById('btn-logout').style.display = 'block';
+          document.getElementById('btn-go-login').style.display = 'none';
+          document.getElementById('cards1').style.display = 'none';
+          document.getElementById('cards2').style.display = 'flex';
+          
+          setMoneyDisplay(data.dinero);
+          startMoneyPolling();
+          
+          return true;
+        }
+      }
+    } catch(e) {
+      console.warn('AutoLogin error:', e);
+    }
+    return false;
+  }
+
+/* ============================================================
+   RECUPERACION — EmailJS
+============================================================ */
+(function(){ emailjs.init({ publicKey: "TSm2szahK3vNCAvH7" }); })();
+
+let codigoEnviado = '';
+let emailRecuperacion = '';
+
+async function enviarCodigo() {
+  const nombre = document.getElementById('rec-nombre').value.trim();
+  const email  = document.getElementById('rec-email').value.trim();
+  clearMsg('rec-msg1');
+
+  if (!nombre || !email) { showMsg('rec-msg1', 'error', 'Completá nombre y correo.'); return; }
+
+  const btn = document.getElementById('btn-send-code');
+  btn.innerHTML = '<span class="spinner"></span>Enviando...';
+  btn.disabled = true;
+
+  // Verificar que exista la cuenta
+  try {
+    const snap = await db.collection('cuentas').where('correo', '==', email).get();
+    if (snap.empty) {
+      showMsg('rec-msg1', 'error', 'No existe ninguna cuenta con ese correo.');
+      btn.innerHTML = 'Enviar código de verificación'; btn.disabled = false; return;
+    }
+  } catch(e) {
+    showMsg('rec-msg1', 'error', 'Error de conexión.'); btn.innerHTML = 'Enviar código de verificación'; btn.disabled = false; return;
+  }
+
+  codigoEnviado      = Math.floor(100000 + Math.random() * 900000).toString();
+  emailRecuperacion  = email;
+
+  try {
+    await emailjs.send("service_jwbttvy", "template_meurz27", {
+      nombre: nombre,
+      email:  email,
+      codigo: codigoEnviado
+    });
+    showMsg('rec-msg1', 'success', 'Código enviado. Revisá tu bandeja de entrada.');
+    document.getElementById('rec-step2').style.display = 'block';
+  } catch(e) {
+    showMsg('rec-msg1', 'error', 'Error al enviar el correo. Verificá tu configuración de EmailJS.');
+    console.error(e);
+  } finally {
+    btn.innerHTML = 'Enviar código de verificación'; btn.disabled = false;
+  }
+}
+
+function verificarCodigo() {
+  const chars  = document.querySelectorAll('.code-char');
+  const ingresado = Array.from(chars).map(c => c.value).join('');
+  clearMsg('rec-msg2');
+
+  if (ingresado.length < 6) { showMsg('rec-msg2', 'error', 'Ingresá el código completo de 6 dígitos.'); return; }
+
+  if (ingresado === codigoEnviado) {
+    showMsg('rec-msg2', 'success', '¡Código correcto! Redirigiendo...');
+    setTimeout(() => showTab('new-pass'), 900);
+  } else {
+    showMsg('rec-msg2', 'error', 'Código incorrecto. Verificá e intentá de nuevo.');
+    chars.forEach(c => { c.style.borderColor = 'var(--red)'; c.value = ''; });
+    chars[0].focus();
+    setTimeout(() => chars.forEach(c => c.style.borderColor = ''), 1200);
+  }
+}
+
+// Code input auto-advance
+function onCodeInput(el) {
+  if (el.value.length === 1) {
+    const next = document.querySelector(`.code-char[data-idx="${parseInt(el.dataset.idx)+1}"]`);
+    if (next) next.focus();
+  }
+}
+function onCodeKeydown(e, el) {
+  if (e.key === 'Backspace' && el.value === '') {
+    const prev = document.querySelector(`.code-char[data-idx="${parseInt(el.dataset.idx)-1}"]`);
+    if (prev) { prev.value = ''; prev.focus(); }
+  }
+}
+
+/* ============================================================
+   NUEVA CONTRASEÑA
+============================================================ */
+async function actualizarContra() {
+  const p1 = document.getElementById('new-pass-1').value;
+  const p2 = document.getElementById('new-pass-2').value;
+  clearMsg('new-pass-msg');
+
+  if (!p1 || !p2)    { showMsg('new-pass-msg', 'error', 'Completá ambos campos.'); return; }
+  if (p1 !== p2)     { showMsg('new-pass-msg', 'error', 'Las contraseñas no coinciden.'); return; }
+  if (p1.length < 6) { showMsg('new-pass-msg', 'error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+  if (!emailRecuperacion) { showMsg('new-pass-msg', 'error', 'Sesión expirada. Volvé al login.'); return; }
+
+  try {
+    const snap = await db.collection('cuentas').where('correo', '==', emailRecuperacion).get();
+    if (snap.empty) { showMsg('new-pass-msg', 'error', 'Cuenta no encontrada.'); return; }
+
+    await db.collection('cuentas').doc(snap.docs[0].id).update({ clave: p1 });
+    showMsg('new-pass-msg', 'success', '¡Contraseña actualizada! Podés ingresar con tu nueva clave.');
+    emailRecuperacion = ''; codigoEnviado = '';
+    setTimeout(() => showTab('login'), 1500);
+  } catch(e) {
+    showMsg('new-pass-msg', 'error', 'Error al actualizar. Intentá nuevamente.');
+    console.error(e);
+  }
+}
+
+/* ============================================================
+   CUPON RECARGA
+============================================================ */
+async function cuponRec() {
+  if (!currentUser) { showMsg('cupon-msg', 'error', 'Debés estar logueado para usar cupones.'); return; }
+
+  const codigo = document.getElementById('cupon-input').value.trim().toUpperCase();
+  clearMsg('cupon-msg');
+
+  if (!codigo) { showMsg('cupon-msg', 'error', 'Ingresá un código de cupón.'); return; }
+
+  const btn = document.getElementById('btn-cupon');
+  btn.innerHTML = '<span class="spinner"></span>Verificando...';
+  btn.disabled = true;
+
+  try {
+    const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
+
+    if (snap.empty) {
+      showMsg('cupon-msg', 'error', 'Código inválido. No existe ese cupón.');
+      btn.innerHTML = 'Recargar'; btn.disabled = false; return;
+    }
+
+    const cuponDoc  = snap.docs[0];
+    const cuponData = cuponDoc.data();
+
+    if (!cuponData.activo) {
+      showMsg('cupon-msg', 'error', 'Este cupón ya fue utilizado o está desactivado.');
+      btn.innerHTML = 'Recargar'; btn.disabled = false; return;
+    }
+
+    const monto       = parseFloat(cuponData.ingreso) || 0;
+    const saldoActual = parseFloat(currentUser.dinero) || 0;
+    const nuevoSaldo  = saldoActual + monto;
+
+    // Actualizar saldo del usuario
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: nuevoSaldo });
+
+    currentUser.dinero = nuevoSaldo;
+    setMoneyDisplay(nuevoSaldo);
+    document.getElementById('cupon-input').value = '';
+    showMsg('cupon-msg', 'success', `¡+$${monto.toFixed(2)} acreditados! Tu nuevo saldo: $${nuevoSaldo.toFixed(2)}`);
+  } catch(e) {
+    showMsg('cupon-msg', 'error', 'Error al procesar el cupón. Intentá nuevamente.');
+    console.error(e);
+  } finally {
+    btn.innerHTML = 'Recargar'; btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   DINERO (polling helper — también exportable desde script1.js)
+============================================================ */
+async function dinero() { await fetchMoney(); }
+
+/* ============================================================
+   DUELO DE LINEAS GAME
+============================================================ */
+let dueloGameState = {
+  selectedSquare: null,
+  lives: 20,
+  gridSize: 7,
+  difficulty: 'easy',
+  bet: 0,
+  maxLives: 20,
+  payoutPercentage: 7.5
+};
+
+function dueloStartGame() {
+  if (!currentUser) {
+    showMsg('duelo-selection-msg', 'error', 'Debés estar logueado para jugar.');
+    return;
+  }
+
+  const difficulty = document.getElementById('duelo-difficulty-select').value;
+  const betAmount = parseFloat(document.getElementById('duelo-bet-input').value);
+  clearMsg('duelo-selection-msg');
+
+  if (!betAmount || betAmount <= 0) {
+    showMsg('duelo-selection-msg', 'error', 'Ingresa una apuesta válida.');
+    return;
+  }
+
+  if (betAmount > currentUser.dinero) {
+    showMsg('duelo-selection-msg', 'error', 'No tenés saldo suficiente para esa apuesta.');
+    return;
+  }
+
+  // Configurar juego
+  switch(difficulty) {
+    case 'easy':
+      dueloGameState.maxLives = 15;
+      dueloGameState.gridSize = 7;
+      dueloGameState.payoutPercentage = 7.5;
+      break;
+    case 'normal':
+      dueloGameState.maxLives = 10;
+      dueloGameState.gridSize = 7;
+      dueloGameState.payoutPercentage = 15;
+      break;
+    case 'hard':
+      dueloGameState.maxLives = 10;
+      dueloGameState.gridSize = 10;
+      dueloGameState.payoutPercentage = 22.5;
+      break;
+  }
+
+  dueloGameState.difficulty = difficulty;
+  dueloGameState.bet = betAmount;
+  dueloGameState.lives = dueloGameState.maxLives;
+
+  // Restar apuesta del saldo
+  currentUser.dinero -= betAmount;
+  setMoneyDisplay(currentUser.dinero);
+
+  // Mostrar pantalla de juego
+  document.getElementById('duelo-selection-screen').style.display = 'none';
+  document.getElementById('duelo-game-over-screen').style.display = 'none';
+  document.getElementById('duelo-game-screen').style.display = 'block';
+
+  // Inicializar tablero
+  dueloSetupGame();
+}
+
+function dueloSetupGame() {
+  const grid = document.getElementById('duelo-game-grid');
+  const gridSize = dueloGameState.gridSize;
+  
+  // Ajustar tamaño de cuadrados según el tamaño del tablero
+  let squareSize = '40px';
+  if (gridSize === 10) {
+    squareSize = '32px';
+  } else if (gridSize === 7) {
+    squareSize = '38px';
+  }
+  
+  grid.style.gridTemplateColumns = `repeat(${gridSize}, ${squareSize})`;
+  grid.innerHTML = '';
+  
+  dueloGameState.selectedSquare = Math.floor(Math.random() * gridSize * gridSize);
+  dueloGameState.lives = dueloGameState.maxLives;
+  
+  document.getElementById('duelo-lives-count').textContent = dueloGameState.lives;
+  document.getElementById('duelo-bet-display').textContent = '$' + dueloGameState.bet.toFixed(2);
+  
+  for (let i = 0; i < gridSize * gridSize; i++) {
+    const square = document.createElement('div');
+    square.style.width = squareSize;
+    square.style.height = squareSize;
+    square.style.backgroundColor = 'rgba(201,162,39,0.2)';
+    square.style.border = '1px solid rgba(201,162,39,0.3)';
+    square.style.borderRadius = '6px';
+    square.style.cursor = 'pointer';
+    square.style.display = 'flex';
+    square.style.alignItems = 'center';
+    square.style.justifyContent = 'center';
+    square.style.fontWeight = 'bold';
+    square.style.color = 'var(--text)';
+    square.style.transition = 'background-color 0.3s';
+    
+    square.addEventListener('click', () => dueloCheckSquare(i, gridSize));
+    square.addEventListener('mouseover', () => {
+      if (square.style.backgroundColor === 'rgba(201,162,39,0.2)') {
+        square.style.backgroundColor = 'rgba(201,162,39,0.3)';
+      }
+    });
+    square.addEventListener('mouseout', () => {
+      if (square.style.backgroundColor === 'rgba(201,162,39,0.3)') {
+        square.style.backgroundColor = 'rgba(201,162,39,0.2)';
+      }
+    });
+    
+    grid.appendChild(square);
+  }
+}
+
+function dueloCheckSquare(index, gridSize) {
+  if (dueloGameState.lives <= 0) return;
+
+  const selectedRow = Math.floor(dueloGameState.selectedSquare / gridSize);
+  const selectedCol = dueloGameState.selectedSquare % gridSize;
+  const clickedRow = Math.floor(index / gridSize);
+  const clickedCol = index % gridSize;
+  const squares = document.querySelectorAll('#duelo-game-grid div');
+  const clickedSquare = squares[index];
+
+  if (index === dueloGameState.selectedSquare) {
+    // ¡Ganó!
+    clickedSquare.style.backgroundColor = '#27ae60';
+    clickedSquare.textContent = '✓';
+    dueloHandleWin();
+  } else {
+    // Perdió una vida
+    dueloGameState.lives--;
+    document.getElementById('duelo-lives-count').textContent = dueloGameState.lives;
+
+    if (clickedCol === selectedCol) {
+      clickedSquare.style.backgroundColor = '#f39c12';
+      clickedSquare.style.border = '2px solid #f39c12';
+    } else if (clickedRow === selectedRow) {
+      clickedSquare.style.backgroundColor = '#3498db';
+      clickedSquare.style.border = '2px solid #3498db';
+    } else {
+      clickedSquare.style.backgroundColor = '#34495e';
+      clickedSquare.style.border = '2px solid #34495e';
+    }
+
+    if (dueloGameState.lives <= 0) {
+      setTimeout(() => dueloEndGame(false), 800);
+    }
+  }
+}
+
+function dueloHandleWin() {
+  const payout = dueloGameState.bet * (dueloGameState.payoutPercentage / 100);
+  const totalWinnings = dueloGameState.bet + payout;
+
+  // Agregar ganancias
+  currentUser.dinero += totalWinnings;
+  setMoneyDisplay(currentUser.dinero);
+
+  // Actualizar en Firebase
+  db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+
+  setTimeout(() => {
+    document.getElementById('duelo-game-screen').style.display = 'none';
+    document.getElementById('duelo-game-over-screen').style.display = 'block';
+    document.getElementById('duelo-game-over-title').textContent = '¡Ganaste! 🎉';
+    document.getElementById('duelo-result-text').innerHTML = `
+      <div style="margin-bottom: 10px; font-size: 16px; font-weight: 700; color: var(--gold-light);">¡VICTORIA!</div>
+      <div style="margin-bottom: 8px;">Apuesta: $${dueloGameState.bet.toFixed(2)}</div>
+      <div style="margin-bottom: 8px;">Ganancia (${dueloGameState.payoutPercentage}%): +$${payout.toFixed(2)}</div>
+      <div style="font-size: 18px; font-weight: 700; color: var(--gold-light); margin-top: 12px;">Total: +$${totalWinnings.toFixed(2)}</div>
+    `;
+  }, 1200);
+}
+
+function dueloEndGame(won = false) {
+  if (won) return; // Ya se maneja en dueloHandleWin
+
+  // Pérdida
+  document.getElementById('duelo-game-screen').style.display = 'none';
+  document.getElementById('duelo-game-over-screen').style.display = 'block';
+  document.getElementById('duelo-game-over-title').textContent = '¡Perdiste! ☠️';
+  document.getElementById('duelo-result-text').innerHTML = `
+    <div style="margin-bottom: 10px; font-size: 16px; font-weight: 700; color: var(--red);">DERROTA</div>
+    <div>Apuesta perdida: $${dueloGameState.bet.toFixed(2)}</div>
+    <div style="margin-top: 12px; font-size: 13px; color: var(--text-dim);">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+  `;
+
+  // Actualizar en Firebase
+  db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+}
+
+function dueloBackToSelection() {
+  document.getElementById('duelo-game-over-screen').style.display = 'none';
+  document.getElementById('duelo-game-screen').style.display = 'none';
+  document.getElementById('duelo-selection-screen').style.display = 'block';
+  document.getElementById('duelo-bet-input').value = '';
+}
+
+/* ============================================================
+   PARTICLES GENERATOR
+============================================================ */
+(function generateParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.setProperty('--dur',   (7 + Math.random() * 8) + 's');
+    p.style.setProperty('--delay', (Math.random() * 10)    + 's');
+    p.style.setProperty('--drift', ((Math.random() - 0.5) * 60) + 'px');
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    container.appendChild(p);
+  }
+})();
+
+  /* ============================================================
+     TA-TE-TI vs IA (con apuestas)
+  ============================================================ */
+  let tataState = {
+    active: false,
+    board: Array(9).fill(null),
+    difficulty: 'medium',
+    bet: 0,
+    playerSymbol: 'X',
+    aiSymbol: 'O',
+    gameOver: false,
+    winner: null,
+    payoutPercent: 7.5
+  };
+
+  function tataStartGame() {
+    if (!currentUser) { showTataMsg('selection', 'error', 'Debés iniciar sesión.'); return; }
+    const diff = document.getElementById('tata-diff').value;
+    const bet = parseFloat(document.getElementById('tata-bet').value);
+    if (!bet || bet <= 0) { showTataMsg('selection', 'error', 'Apuesta válida requerida.'); return; }
+    if (bet > currentUser.dinero) { showTataMsg('selection', 'error', 'Saldo insuficiente.'); return; }
+
+    tataState.difficulty = diff;
+    tataState.bet = bet;
+    tataState.payoutPercent = diff === 'medium' ? 7.5 : 15;
+    tataState.board = Array(9).fill(null);
+    tataState.gameOver = false;
+    tataState.winner = null;
+    tataState.active = true;
+
+    currentUser.dinero -= bet;
+    setMoneyDisplay(currentUser.dinero);
+    db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+
+    document.getElementById('tata-selection').style.display = 'none';
+    document.getElementById('tata-game-area').style.display = 'block';
+    document.getElementById('tata-result').style.display = 'none';
+    document.getElementById('tata-diff-label').innerText = diff === 'medium' ? 'Medio' : 'Difícil';
+    document.getElementById('tata-bet-display').innerText = bet.toFixed(2);
+    document.getElementById('tata-win-percent').innerText = tataState.payoutPercent;
+    renderTataBoard();
+    clearTataMsg('game');
+  }
+
+  function renderTataBoard() {
+    const container = document.getElementById('tata-board');
+    container.innerHTML = '';
+    container.className = 'tata-board';
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'tata-cell';
+      cell.textContent = tataState.board[i] || '';
+      if (!tataState.gameOver && tataState.board[i] === null && tataState.active && tataState.winner === null) {
+        cell.style.cursor = 'pointer';
+        cell.onclick = () => tataPlayerMove(i);
+      } else {
+        cell.style.cursor = 'default';
+      }
+      container.appendChild(cell);
+    }
+  }
+
+  async function tataPlayerMove(index) {
+    if (!tataState.active || tataState.gameOver || tataState.board[index] !== null) return;
+    tataState.board[index] = tataState.playerSymbol;
+    renderTataBoard();
+    const winner = tataCheckWinnerOnBoard(tataState.board);
+    if (winner) {
+      tataHandleGameOver(winner);
+      return;
+    }
+    if (tataState.board.every(cell => cell !== null)) {
+      tataHandleGameOver('draw');
+      return;
+    }
+    setTimeout(() => tataAIMove(), 200);
+  }
+
+  function tataAIMove() {
+    if (!tataState.active || tataState.gameOver) return;
+    let move = -1;
+    if (tataState.difficulty === 'hard') {
+      move = tataGetBestMove();
+    } else {
+      if (Math.random() < 0.6) move = tataGetBestMove();
+      else move = tataGetRandomEmpty();
+    }
+    if (move === -1) move = tataGetRandomEmpty();
+    if (move !== -1) {
+      tataState.board[move] = tataState.aiSymbol;
+      renderTataBoard();
+      const winner = tataCheckWinnerOnBoard(tataState.board);
+      if (winner) {
+        tataHandleGameOver(winner);
+        return;
+      }
+      if (tataState.board.every(cell => cell !== null)) {
+        tataHandleGameOver('draw');
+        return;
+      }
+    }
+  }
+
+  function tataGetBestMove() {
+    for (let i = 0; i < 9; i++) {
+      if (tataState.board[i] === null) {
+        tataState.board[i] = tataState.aiSymbol;
+        if (tataCheckWinnerOnBoard(tataState.board)) {
+          tataState.board[i] = null;
+          return i;
+        }
+        tataState.board[i] = null;
+      }
+    }
+    for (let i = 0; i < 9; i++) {
+      if (tataState.board[i] === null) {
+        tataState.board[i] = tataState.playerSymbol;
+        if (tataCheckWinnerOnBoard(tataState.board)) {
+          tataState.board[i] = null;
+          return i;
+        }
+        tataState.board[i] = null;
+      }
+    }
+    return tataGetRandomEmpty();
+  }
+
+  function tataGetRandomEmpty() {
+    const empty = tataState.board.reduce((arr, cell, idx) => { if (cell === null) arr.push(idx); return arr; }, []);
+    if (empty.length === 0) return -1;
+    return empty[Math.floor(Math.random() * empty.length)];
+  }
+
+  function tataCheckWinnerOnBoard(board) {
+    const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for (let line of lines) {
+      const [a,b,c] = line;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+    }
+    return null;
+  }
+
+  function tataHandleGameOver(winner) {
+    tataState.gameOver = true;
+    tataState.active = false;
+    let prize = 0;
+    if (winner === tataState.playerSymbol) {
+      prize = tataState.bet * (tataState.payoutPercent / 100);
+      const total = tataState.bet + prize;
+      currentUser.dinero += total;
+      setMoneyDisplay(currentUser.dinero);
+      db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+    } else if (winner === tataState.aiSymbol) {
+      prize = 0;
+    } else {
+      currentUser.dinero += tataState.bet;
+      setMoneyDisplay(currentUser.dinero);
+      db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+    }
+    document.getElementById('tata-game-area').style.display = 'none';
+    document.getElementById('tata-result').style.display = 'block';
+    const titleEl = document.getElementById('tata-result-title');
+    const detailEl = document.getElementById('tata-result-detail');
+    if (winner === tataState.playerSymbol) {
+      titleEl.innerHTML = '🎉 ¡VICTORIA! 🎉';
+      detailEl.innerHTML = `Ganaste +$${prize.toFixed(2)}<br>Total recibido: $${(tataState.bet + prize).toFixed(2)}`;
+    } else if (winner === tataState.aiSymbol) {
+      titleEl.innerHTML = '💀 Derrota 💀';
+      detailEl.innerHTML = `Perdiste tu apuesta: $${tataState.bet.toFixed(2)}`;
+    } else {
+      titleEl.innerHTML = '🤝 Empate 🤝';
+      detailEl.innerHTML = `Se te devolvió tu apuesta: $${tataState.bet.toFixed(2)}`;
+    }
+  }
+
+  function tataCancelGame() {
+    if (tataState.active && !tataState.gameOver) {
+      currentUser.dinero += tataState.bet;
+      setMoneyDisplay(currentUser.dinero);
+      db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+    }
+    tataBackToMenu();
+  }
+
+  function tataBackToMenu() {
+    tataState.active = false;
+    document.getElementById('tata-selection').style.display = 'block';
+    document.getElementById('tata-game-area').style.display = 'none';
+    document.getElementById('tata-result').style.display = 'none';
+    document.getElementById('tata-bet').value = '';
+    clearTataMsg('selection');
+  }
+
+  function showTataMsg(area, type, text) {
+    const id = area === 'selection' ? 'tata-msg-selection' : 'tata-game-msg';
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'alert ' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  function clearTataMsg(area) {
+    const id = area === 'selection' ? 'tata-msg-selection' : 'tata-game-msg';
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  }
+
+  // Parche para cerrar partida al cambiar de pestaña
+  const originalShowTab = window.showTab;
+  window.showTab = function(name) {
+    if (name !== 'tata' && tataState.active) {
+      tataCancelGame();
+    }
+    originalShowTab(name);
+  };
+	  /* ============================================================
+     MAYOR o MENOR (integrado con saldo de BetLDP)
+  ============================================================ */
+  let mmState = {
+    active: false,
+    bet: 0,
+    currentNumber: 5,
+    gameOver: false
+  };
+
+  function mmStartGame() {
+    if (!currentUser) { showMmMsg('selection', 'error', 'Debés iniciar sesión.'); return; }
+    const bet = parseFloat(document.getElementById('mm-bet').value);
+    if (!bet || bet <= 0) { showMmMsg('selection', 'error', 'Apuesta válida requerida.'); return; }
+    if (bet > currentUser.dinero) { showMmMsg('selection', 'error', 'Saldo insuficiente.'); return; }
+
+    mmState.bet = bet;
+    mmState.currentNumber = Math.floor(Math.random() * 10) + 1;
+    mmState.active = true;
+    mmState.gameOver = false;
+
+    currentUser.dinero -= bet;
+    setMoneyDisplay(currentUser.dinero);
+    db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+
+    document.getElementById('mm-selection').style.display = 'none';
+    document.getElementById('mm-game-area').style.display = 'block';
+    document.getElementById('mm-result-final').style.display = 'none';
+    document.getElementById('mm-bet-display').innerText = bet.toFixed(2);
+    document.getElementById('mm-current-number').innerText = mmState.currentNumber;
+    document.getElementById('mm-result').innerHTML = '';
+    clearMmMsg('game');
+  }
+
+  function mmGuess(choice) {
+    if (!mmState.active || mmState.gameOver) return;
+
+    let newNumber;
+    do {
+      newNumber = Math.floor(Math.random() * 10) + 1;
+    } while (newNumber === mmState.currentNumber);
+
+    const numberDisplay = document.getElementById('mm-current-number');
+    numberDisplay.style.transform = 'scale(1.2)';
+    
+    setTimeout(() => {
+      numberDisplay.innerText = newNumber;
+      numberDisplay.style.transform = 'scale(1)';
+    }, 150);
+
+    let won = false;
+    if ((choice === 'mayor' && newNumber > mmState.currentNumber) || 
+        (choice === 'menor' && newNumber < mmState.currentNumber)) {
+      won = true;
+    }
+
+    mmState.currentNumber = newNumber;
+
+    if (won) {
+      const winAmount = mmState.bet * 2;
+      mmState.bet = winAmount;
+      document.getElementById('mm-result').innerHTML = `<span style="color:#2ecc71;">✅ ¡Acertaste! Sigues jugando. Apostaste: $${winAmount.toFixed(2)}</span>`;
+    } else {
+      mmState.gameOver = true;
+      mmState.active = false;
+      document.getElementById('mm-result').innerHTML = `<span style="color:#e74c3c;">❌ ¡Perdiste! El número era diferente.</span>`;
+      setTimeout(() => mmShowFinalResult(false), 1000);
+    }
+  }
+
+  function mmShowFinalResult(won) {
+    document.getElementById('mm-game-area').style.display = 'none';
+    document.getElementById('mm-result-final').style.display = 'block';
+    
+    if (!won) {
+      document.getElementById('mm-final-title').innerHTML = '💀 Derrota 💀';
+      document.getElementById('mm-final-detail').innerHTML = `Perdiste tu apuesta original: $${mmState.bet.toFixed(2)}`;
+    } else {
+      // Caso de victoria (solo se llama desde mmEndGame si se retiró)
+    }
+  }
+
+  function mmEndGame() {
+    if (!mmState.active) return;
+    
+    const totalWin = mmState.bet;
+    currentUser.dinero += totalWin;
+    setMoneyDisplay(currentUser.dinero);
+    db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+
+    mmState.active = false;
+    mmState.gameOver = true;
+
+    document.getElementById('mm-game-area').style.display = 'none';
+    document.getElementById('mm-result-final').style.display = 'block';
+    document.getElementById('mm-final-title').innerHTML = '🎉 ¡Te retiraste con ganancias! 🎉';
+    document.getElementById('mm-final-detail').innerHTML = `Ganaste $${totalWin.toFixed(2)}<br>Total retirado: $${totalWin.toFixed(2)}`;
+  }
+
+  function mmBackToMenu() {
+    mmState.active = false;
+    document.getElementById('mm-selection').style.display = 'block';
+    document.getElementById('mm-game-area').style.display = 'none';
+    document.getElementById('mm-result-final').style.display = 'none';
+    document.getElementById('mm-bet').value = '';
+    clearMmMsg('selection');
+    clearMmMsg('game');
+  }
+
+  function showMmMsg(area, type, text) {
+    const id = area === 'selection' ? 'mm-msg-selection' : 'mm-game-msg';
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'alert ' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  function clearMmMsg(area) {
+    const id = area === 'selection' ? 'mm-msg-selection' : 'mm-game-msg';
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  }
+
+  // Extender el parche de pestañas para Mayor/Menor
+  const originalShowTab2 = window.showTab;
+  window.showTab = function(name) {
+    if (name !== 'mayormenor' && mmState.active) {
+      if (mmState.active && !mmState.gameOver) {
+        currentUser.dinero += mmState.bet;
+        setMoneyDisplay(currentUser.dinero);
+        db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+      }
+      mmState.active = false;
+      mmState.gameOver = true;
+    }
+    if (name !== 'tata' && tataState.active) {
+      tataCancelGame();
+    }
+    originalShowTab2(name);
+  };
+	  /* ============================================================
+     SLOTS (Tragamonedas)
+  ============================================================ */
+  let slotsState = {
+    active: false,
+    bet: 10,
+    isSpinning: false
+  };
+  
+  const slotsSymbols = ['🍒', '🍋', '🍊', '💎', '7️⃣'];
+  const slotsPayouts = { '🍒': 3, '🍋': 5, '🍊': 8, '💎': 20, '7️⃣': 50 };
+  const slotsNames = { '🍒': 'CEREZAS', '🍋': 'LIMONES', '🍊': 'NARANJAS', '💎': 'DIAMANTES', '7️⃣': 'SIETES' };
+
+  function slotsSetBet(amount) { slotsState.bet = amount; showSlotsMsg('selection', 'info', `Apuesta: $${amount}`); }
+  function slotsSetCustomBet() {
+    const custom = parseFloat(document.getElementById('slots-custom-bet').value);
+    if (custom && custom > 0) { slotsState.bet = custom; showSlotsMsg('selection', 'info', `Apuesta: $${custom}`); }
+    else showSlotsMsg('selection', 'error', 'Monto inválido');
+  }
+
+  function slotsStartGame() {
+    if (!currentUser) { showSlotsMsg('selection', 'error', 'Debés iniciar sesión.'); return; }
+    if (slotsState.bet > currentUser.dinero) { showSlotsMsg('selection', 'error', 'Saldo insuficiente.'); return; }
+    
+    slotsState.active = true;
+    slotsState.isSpinning = false;
+    
+    document.getElementById('slots-selection').style.display = 'none';
+    document.getElementById('slots-game-area').style.display = 'block';
+    document.getElementById('slots-result').style.display = 'none';
+    clearSlotsMsg('game');
+  }
+
+  async function slotsSpin() {
+    if (slotsState.isSpinning) { showSlotsMsg('game', 'error', '¡Espera a que termine el giro!'); return; }
+    if (!slotsState.active) return;
+    if (slotsState.bet > currentUser.dinero) { showSlotsMsg('game', 'error', 'Saldo insuficiente.'); slotsEndGame(); return; }
+    
+    slotsState.isSpinning = true;
+    const spinBtn = document.getElementById('slots-spin-btn');
+    spinBtn.disabled = true;
+    spinBtn.innerHTML = '<span class="spinner"></span> GIRANDO...';
+    
+    currentUser.dinero -= slotsState.bet;
+    setMoneyDisplay(currentUser.dinero);
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+    
+    const reels = [
+      document.getElementById('slot-reel1'),
+      document.getElementById('slot-reel2'),
+      document.getElementById('slot-reel3')
+    ];
+    
+    reels.forEach(reel => reel.classList.add('spinning'));
+    
+    setTimeout(async () => {
+      const results = [];
+      for (let i = 0; i < 3; i++) results.push(slotsSymbols[Math.floor(Math.random() * slotsSymbols.length)]);
+      
+      for (let i = 0; i < 3; i++) {
+        reels[i].classList.remove('spinning');
+        reels[i].textContent = results[i];
+      }
+      
+      let winAmount = 0;
+      let winMessage = '';
+      
+      if (results[0] === results[1] && results[1] === results[2]) {
+        winAmount = slotsState.bet * slotsPayouts[results[0]];
+        winMessage = `🎉 ¡TRES ${slotsNames[results[0]]}! GANASTE $${winAmount.toFixed(2)}! 🎉`;
+        reels.forEach(reel => reel.classList.add('win-glow'));
+        setTimeout(() => reels.forEach(reel => reel.classList.remove('win-glow')), 1500);
+      } else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
+        winAmount = slotsState.bet * 1.5;
+        winMessage = `🎉 ¡DOS IGUALES! GANASTE $${winAmount.toFixed(2)}! 🎉`;
+        reels[1].classList.add('win-glow');
+        setTimeout(() => reels[1].classList.remove('win-glow'), 1000);
+      } else {
+        winMessage = `😢 Perdiste $${slotsState.bet.toFixed(2)}`;
+      }
+      
+      if (winAmount > 0) {
+        currentUser.dinero += winAmount;
+        setMoneyDisplay(currentUser.dinero);
+        await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+        showSlotsMsg('game', 'success', winMessage);
+      } else {
+        showSlotsMsg('game', 'error', winMessage);
+      }
+      
+      slotsState.isSpinning = false;
+      spinBtn.disabled = false;
+      spinBtn.innerHTML = '🎲 GIRAR 🎲';
+    }, 600);
+  }
+  
+  function slotsEndGame() {
+    if (!slotsState.active) return;
+    slotsState.active = false;
+    document.getElementById('slots-game-area').style.display = 'none';
+    document.getElementById('slots-selection').style.display = 'block';
+    clearSlotsMsg('game');
+  }
+  
+  function slotsBackToMenu() {
+    slotsEndGame();
+    document.getElementById('slots-result').style.display = 'none';
+  }
+  
+  function showSlotsMsg(area, type, text) {
+    const id = area === 'selection' ? 'slots-msg-selection' : 'slots-game-msg';
+    const el = document.getElementById(id);
+    if (el) { el.className = 'alert ' + type; el.textContent = text; el.style.display = 'block'; setTimeout(() => { if (el) el.style.display = 'none'; }, 3000); }
+  }
+  
+  function clearSlotsMsg(area) {
+    const id = area === 'selection' ? 'slots-msg-selection' : 'slots-game-msg';
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  }
+
+/* ============================================================
+   CANJE DE CUPONES POR LINK - VERSIÓN CORREGIDA
+============================================================ */
+
+// Función para obtener parámetros de la URL (solo UNA vez)
+function getUrlParameter(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+// Función para resetear el estado visual de la tarjeta
+function resetCardDisplay() {
+  const card = document.getElementById('cupon-result-card');
+  const container = document.getElementById('cupon-display');
+  const statusElement = document.getElementById('link-cupon-status');
+  
+  if (card) {
+    card.style.border = '';
+    card.style.borderRadius = '';
+  }
+  
+  if (container) {
+    container.innerHTML = '';
+  }
+  
+  if (statusElement) {
+    statusElement.style.display = 'block';
+    statusElement.innerHTML = 'Esperando cargar el cupón...';
+    statusElement.style.color = '';
+  }
+}
+
+// Función para mostrar el resultado del canje por link
+function mostrarResultadoLink(exitoso, codigo, mensaje) {
+  const container = document.getElementById('cupon-display');
+  const card = document.getElementById('cupon-result-card');
+  const statusElement = document.getElementById('link-cupon-status');
+  
+  if (!container || !card) return;
+  
+  if (exitoso) {
+    // Borde verde y texto verde
+    card.style.border = '3px solid #4CAF50';
+    card.style.borderRadius = '10px';
+    container.innerHTML = `
+      <div style="padding:20px; text-align:center;">
+        <div style="font-size:32px; font-weight:bold; color:#4CAF50; text-transform:uppercase; letter-spacing:3px; margin-bottom:15px;">
+          ${codigo}
+        </div>
+        <div style="color:#4CAF50; margin-top:10px;">
+          ✓ ${mensaje}
+        </div>
+      </div>
+    `;
+  } else {
+    // Borde rojo y texto rojo
+    card.style.border = '3px solid #f44336';
+    card.style.borderRadius = '10px';
+    container.innerHTML = `
+      <div style="padding:20px; text-align:center;">
+        <div style="font-size:32px; font-weight:bold; color:#f44336; text-transform:uppercase; letter-spacing:3px; margin-bottom:15px;">
+          ${codigo}
+        </div>
+        <div style="color:#f44336; margin-top:10px;">
+          ✗ ${mensaje}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Ocultar el mensaje de estado si existe
+  if (statusElement) {
+    statusElement.style.display = 'none';
+  }
+}
+
+// Función principal para procesar el cupón del link
+async function procesarCuponPorLink() {
+  const codigo = getUrlParameter('codigo');
+  
+  // Verificar que estamos en la pestaña correcta
+  const tabElement = document.getElementById('tab-canjear-link');
+  if (!tabElement || !tabElement.classList.contains('active')) {
+    return; // No estamos en la pestaña de canje, no hacer nada
+  }
+  
+  if (!codigo) {
+    // No hay código en el link, mostrar estado normal
+    const statusElement = document.getElementById('link-cupon-status');
+    if (statusElement) {
+      statusElement.innerHTML = 'No se encontró ningún cupón para canjear.';
+      statusElement.style.color = '#666';
+    }
+    return;
+  }
+  
+  // Limpiar el mensaje de espera
+  const statusElement = document.getElementById('link-cupon-status');
+  if (statusElement) {
+    statusElement.style.display = 'none';
+  }
+  
+  const container = document.getElementById('cupon-display');
+  if (!container) return;
+  
+  // Verificar si el usuario está logueado
+  if (!currentUser) {
+    mostrarResultadoLink(false, codigo, 'Debés iniciar sesión para canjear este cupón.');
+    return;
+  }
+  
+  try {
+    // Buscar el cupón en la base de datos
+    const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
+    
+    if (snap.empty) {
+      // Cupón inválido/no existe
+      mostrarResultadoLink(false, codigo, 'Cupón inválido o no existe.');
+      return;
+    }
+    
+    const cuponDoc = snap.docs[0];
+    const cuponData = cuponDoc.data();
+    
+    if (!cuponData.activo) {
+      // Cupón desactivado/usado
+      mostrarResultadoLink(false, codigo, 'Este cupón ya fue utilizado o está desactivado.');
+      return;
+    }
+    
+    // Cupón válido - proceder con el canje
+    const monto = parseFloat(cuponData.ingreso) || 0;
+    const saldoActual = parseFloat(currentUser.dinero) || 0;
+    const nuevoSaldo = saldoActual + monto;
+    
+    // Actualizar saldo del usuario
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: nuevoSaldo });
+    
+    // Actualizar estado del cupón a inactivo
+    await db.collection('cupones').doc(cuponDoc.id).update({ activo: false });
+    
+    // Actualizar usuario actual
+    currentUser.dinero = nuevoSaldo;
+    setMoneyDisplay(nuevoSaldo);
+    
+    // Mostrar resultado exitoso
+    mostrarResultadoLink(true, codigo, `¡+$${monto.toFixed(2)} acreditados! Nuevo saldo: $${nuevoSaldo.toFixed(2)}`);
+    
+  } catch(e) {
+    console.error('Error al procesar cupón por link:', e);
+    mostrarResultadoLink(false, codigo, 'Error al procesar el cupón. Intentá nuevamente.');
+  }
+}
+
+/* ============================================================
+   INICIALIZACIÓN - VERSIÓN CORREGIDA
+============================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  const codigo = getUrlParameter('codigo');
+  if (codigo) {
+    // Pequeño delay para asegurar que todo está cargado
+    setTimeout(() => {
+      showTab('canjear-link');
+    }, 500);
+  }
+});
+
+/* ============================================================
+   INIT con autologin (MANTENER ESTE AL FINAL)
+============================================================ */
+(async function init() {
+  const loggedIn = await autoLogin();
+  if (!loggedIn) {
+    showTab('inicio');
+  } else {
+    showTab('inicio');
+  }
+})();
+
+  /* ============================================================
+     INIT con autologin
+  ============================================================ */
+  (async function init() {
+    const loggedIn = await autoLogin();
+    if (!loggedIn) {
+      showTab('inicio');
+    } else {
+      showTab('inicio');
+    }
+  })();
+</script>
+<script src="./script.js"></script>
+</body>
+</html>
