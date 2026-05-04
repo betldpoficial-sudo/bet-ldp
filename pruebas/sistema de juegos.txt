@@ -1,0 +1,7 @@
+Creemos lo siguiente:
+Un recuadro tamaño de una tipo pantalla, es decir que sea un poco mas chico que la pantalla del usuario, como esos juegos online que encontras, que la pantalla es mas chiquita pero con un boton la podes agrandar, bueno quiero hacer eso.
+
+Que el boton sea: "./maximizar.png" y este abajo a la derecha del recuadro .
+
+¿Para que sirve esta ventana/recuadro?
+Se definira que archivo .html se mostrara, como si fuese una pagina adentro de otra.

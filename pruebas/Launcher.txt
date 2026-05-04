@@ -1,0 +1,168 @@
+Creemos un HTML de Launcher para mis juegos de casino.
+Datos:
+Los scripts estan en: "./script1.js" - Hasta ahora solo estan las funciones de la pestaña "recuperacion" asi que tu crea todas las demas funciones.
+Estetico: {
+    - Que sea oscuro con detalles dorados.
+    - Crea animaciones para hacerlo mas estetico y llamativo.
+}
+
+Contenido:
+Barra de Navegacion (superior): {
+    - A la izquierda, estara mi logo - Ubicacion: ./logo1.png
+    - A la derecha, estara un boton y logo a la vez (es decir que es un boton y de contenido tiene una imagen) - Funcion: Abre el menu "menu-account" - Ubicacion de la imagen: ./account.png
+    - A la izquierda del boton/logo ("account.png"), habra un boton: {
+        Texto: "Recargar fondos"
+        Color del Relleno: "Dorado"
+        Funcion: El usuario es llevado a la pestaña: "recarga"
+    }
+}
+Pagina (centro): {
+Configuracion de la Pestaña: "login"
+Titulo (h2): "Sistema de Logueo"
+Recuadro: {
+    Recuadro: {
+        Texto (p): "Ingrese su correo electronico vinculado a Bet LDP"
+        Input: [aqui el usuario ingresa su correo electroico]
+        Texto (p): "Ingrese su contraseña"
+        Input: [aqui el usuario ingresa su contraseña]
+        Boton: {
+            Texto: "Ingresar"
+            Funcion: Ejecuta: login()
+        }
+    }
+    Texto (p): "¿No te has creado una cuenta aun?"
+    Boton: {Texto: "Ir a crearme una cuenta" - Funcion: El usuario es llevado a la pestaña: "register"}
+    Texto (p): "¿Has olvidado tu contraseña?"
+    Boton: {Texto: "Ir a recuperar mi contraseña" - Funcion: El usuario es llevado a la pestaña: "recuperacion"}
+}
+Configuracion de la Pestaña: "recuperacion"
+Utiliza de plantilla este codigo mio, la configuracion esta funcional, solo ponele estilo y cargalo en esta pestaña. Si el usuario coloca el codigo correctamente, que sea llevado a la pestaña "new-pass", si lo coloca mal, que de error.
+Codigo: "
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<form id="formulario">
+  <input type="text" name="nombre" placeholder="Nombre" required>
+  <input type="email" name="email" placeholder="Email" required>
+  <button type="submit">Enviar código</button>
+</form>
+
+<br>
+
+<input type="text" id="inputCodigo" placeholder="Ingresá el código">
+<button onclick="verificarCodigo()">Verificar</button>
+</body>
+</html>
+"
+
+Configuracion de la Pestaña: "new-pass"
+Titulo (h2): "Nueva contraseña"
+Recuadro: {
+    Texto (p): Ingrese su nueva contraseña:
+    INPUT
+    Texto (p): Ingrese su nuevamente su nueva contraseña:
+    INPUT
+    Boton: {"Texto: "Actualizar Contraseña" - Funcion: actualizarContra()}
+}
+Configuracion de la Pestaña: "register"
+Titulo (h2): "Sistema de Registro"
+Recuadro: {
+    Recuadro: {
+        Texto (p): "Ingrese su nombre completo"
+        Input: [aqui el usuario ingresa su nombre completo]
+        Texto (p): "Ingrese su correo electronico"
+        Input: [aqui el usuario ingresa su correo electroico]
+        Texto (p): "Ingrese su contraseña"
+        Input: [aqui el usuario ingresa su contraseña]
+        Boton: {
+            Texto: "Crear cuenta"
+            Funcion: Ejecuta: register()
+        }
+    }
+    Texto (p): "¿Ya tienes una cuenta creada?"
+    Boton: {Texto: "Ir a loguearme" - Funcion: El usuario es llevado a la pestaña: "login"}
+}
+Configuracion de la Pestaña: "inicio"
+Configuracion de la Pestaña: "recarga"
+Titulo (h1): "Recargar dinero"
+Recuadro: {
+    Titulo (h2): "Recargar mediante billetera virtual"
+    Texto (p) (color: rojo + letra negrita): "No disponible actualmente..."
+}
+Recuadro: {
+    Titulo (h2): "Recargar mediante tarjeta de Credito/Debito"
+    Texto (p) (color: rojo + letra negrita): "No disponible actualmente..."
+}
+Recuadro: {
+    Titulo (h2): "Recargar mediante codigo de cupon"
+    Texto (p): "Ingrese el codigo:"
+    INPUT:
+    Boton: {Texto: "Recargar" - Funcion: Ejecuta la funcion "cuponRec()"}
+}
+}
+
+Informacion sobre las funciones:
+Las funciones "login()", "register()", "cuponRec()" y "dinero()" son las que funcionan con la base de datos.
+La base de datos es una Firebase ya configurada y abierta:
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+  authDomain: "tuesa-oficial.firebaseapp.com",
+  projectId: "tuesa-oficial",
+  storageBucket: "tuesa-oficial.firebasestorage.app",
+  messagingSenderId: "447951557213",
+  appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+Configuracion de la funcion: "register()"
+1. Se recolectan los campos de la pestaña "register" los cuales el usuario completo con sus datos.
+2. Se confirma el acceso a: Base de Datos > cuentas >
+3. Se completa el siguiente formato:
+"
+clave: [lo completado en el 3er campo]
+correo: [lo completado en el 2do campo]
+dinero: 0
+user: [lo completado en el 1er campo]
+verificado: false
+"
+4.1. Se verifica que no haya ninguna cuenta con el mismo correo electroico.
+4.2. Si hay otra cuenta con ese correo, se le pide que utilice otro.
+4.3. Si no hay una cuenta con ese correo, se sigue al siguiente punto.
+5. El formato completado se envia a: Base de Datos > cuentas > [ID aleatoria] > [formato]
+6. El usuario es llevado a la pestala Login.
+
+Configuracion de la funcion: "login()"
+1. Se recolectan los campos de la pestaña "login" los cuales el usuario completo con sus datos.
+2.1. Se busca alguna cuenta con esas credenciales (los puntos [2.2.] y [2.3.] lo explican).
+2.2. Si no se encuentra ninguna cuenta con ese correo, se marca error.
+2.3. Si se encuentra una cuenta con ese correo, se verifica que la contraseña sea la misma. Si no es la misma, marca error, pero si marca que es la misma el usuario sera logueado con esa cuenta.
+
+Configuracion de la funcion: "dinero()"
+1.1. Cuendo pasan una de estas dos cosas, es cuando se realiza lo de los puntos [2.] y [3.].
+1.2. Cuando el usuario se loguea exitosamente.
+1.3. Cada 2 minutos despues de que el usuario se haya logueado.
+2. Se busca el documento en la base de datos donde esta la Informacion de este usuario, para luego entrar y buscar el numero que hay en el campo que dice: "dinero:".
+3. Se copia ese numero.
+4. Se completa el formato: "$[numero]" y se pone en en la barra de Navegacion al lado del boton de Recargar. 
+
+Configuracion de la funcion: "cuponRec()"
+1. Se recolecta el codigo puesto en el campo de la pestaña: "recarga".
+2. Se verifica el acceso a: Base de Datos > cupones
+3.1. Se verifica que en Base de Datos > cupones > ID de algun documento > cupon > [este el cupon ingresado].
+3.2. Si no hay ningun documento con ese codigo, marcara error.
+3.3. Si se encuntra un documento con ese codigo, se buscara en ese mismo documento que el campo "activo" este en "true".
+3.4. Si no esta en "true" marcara error.
+3.5. Si si esta en "true", se hara la suma de: [saldo actual del usuario] + [Base de Datos > cupones > [el mismo documento donde estaba el cupon introducido] > ingreso > [numero que se le suma al usuario]] = nuevo saldo.
+3.6. Ese nuevo saldo se pondra en la barra de navegacion y se actualizara en el documentode su usuario.

@@ -1,0 +1,46 @@
+Juego de Mayor o Menor:
+1.1. Al cargar el modelo, que se carguen las pestañas que son:
+* "Bienvenida" (la que carga al abrir el modelo).
+* "Inicio"
+* "Local"
+* "PL"
+* "Visitante"
+1.2. Recuerda que al cambiar de pestaña, se borra el contenido anterior.
+
+Configuracion de la pestaña: "Bienvenida"
+Se mostrara el siguiente texto:
+"
+====================================
+Bienvenido a Mayor/Menor!!!
+====================================
+¿Como se juega?
+Para jugar la maquina o vos (dependiendo el modo), se eligira un numero, para luego el rival tiene que adivinar tu numero (o al reves dependiedo el modo). El usuario que tiene que adivinar, dira numeros y el rival tendra que decir si es mayor o menor.
+
+¿Listo para jugar?
+Boton:{"Si" - Para ir a Inicio}
+"
+
+Configuracion de la pestaña: "Inicio"
+Se mostrara el siguiente texto:
+"
+====================================
+MAYOR/MENOR
+====================================
+Elige una de las siguiente opciones:
+------------------------------------
+1. Ser quien adivina el numero.
+2. Ser quien elige el numero.
+Escribe tu eleccion: [aqui el usaurio podra escribir]
+"
+Si elige la opcion 1, sera llevado a la pestaña: "PV"
+Si elige la opcion 2, sera llevado a la pestaña: "Visitante"
+Si elige introduce otra cosa, se borrara lo que introdujo el usaurio para que vuelva a elegir.
+
+Configuracion de la pestaña: "Local"
+Este es el juego (tu te encargas al 100%)
+
+Configuracion de la pestaña: "PL"
+Se escribira: "Elige tu numero: " [aqui el usaurioeligue su numero del 1 al 100]
+
+Configuracion de la pestaña: "Visitante"
+Este es el juego (tu te encargas al 100%)

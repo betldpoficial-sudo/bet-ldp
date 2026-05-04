@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bet LDP — Tutorial interactivo</title>
+  <link rel="icon" type="image/png" href="./logo3.png">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    /* ========== TUTORIAL MESSAGE SYSTEM - VERSIÓN CUERPO COMPLETO ========== */
+    .tutorial-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      justify-content: flex-start;
+      pointer-events: none;
+    }
+    
+    .tutorial-card {
+      max-width: 680px;
+      width: auto;
+      min-width: 320px;
+      background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 100%);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.2);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+      overflow: hidden;
+      animation: slideUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      font-family: 'Raleway', sans-serif;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(60px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .tutorial-inner {
+      display: flex;
+      gap: 0;
+      padding: 0;
+    }
+    
+    /* Lado izquierdo: personaje de cuerpo completo */
+    .tutorial-character {
+      flex-shrink: 0;
+      width: 180px;
+      background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,0,0,0.3));
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px 0 0 28px;
+    }
+    
+    .tutorial-character img {
+      width: 100%;
+      height: auto;
+      max-height: 280px;
+      object-fit: contain;
+      object-position: bottom center;
+      display: block;
+      filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
+      transition: transform 0.3s ease;
+    }
+    
+    .tutorial-character:hover img {
+      transform: scale(1.02);
+    }
+    
+    /* Lado derecho: contenido del mensaje */
+    .tutorial-content {
+      flex: 1;
+      padding: 20px 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      background: rgba(20, 20, 40, 0.7);
+      backdrop-filter: blur(4px);
+    }
+    
+    .tutorial-name {
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 1.25rem;
+      color: #ffd700;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,215,0,0.3);
+      padding-bottom: 8px;
+    }
+    
+    .tutorial-name span {
+      font-size: 0.75rem;
+      background: rgba(255,215,0,0.2);
+      padding: 4px 12px;
+      border-radius: 30px;
+      color: #ffd700;
+      font-family: 'Raleway', sans-serif;
+      letter-spacing: normal;
+    }
+    
+    .tutorial-text {
+      color: #f0f0f0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .tutorial-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    
+    .tutorial-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 40px;
+      font-weight: bold;
+      font-family: 'Raleway', sans-serif;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .tutorial-btn-skip {
+      background: rgba(255,255,255,0.08);
+      color: #cccccc;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    
+    .tutorial-btn-skip:hover {
+      background: rgba(255,100,100,0.25);
+      color: #fff;
+      border-color: #ff6b6b;
+      transform: scale(1.02);
+    }
+    
+    .tutorial-btn-next {
+      background: linear-gradient(135deg, #ffd700, #f5a623);
+      color: #1a1a2e;
+      border: none;
+      box-shadow: 0 4px 12px rgba(255,215,0,0.3);
+    }
+    
+    .tutorial-btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(255,215,0,0.5);
+    }
+    
+    /* Resaltados para tutorial */
+    .tutorial-highlight {
+      position: relative;
+      transition: all 0.2s ease;
+      z-index: 9999;
+    }
+    
+    .tutorial-highlight-active {
+      animation: tutorialPulse 0.8s ease-in-out infinite;
+      box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.7), 0 0 0 10px rgba(255, 215, 0, 0.2);
+      border-radius: 12px;
+      background-color: rgba(255, 215, 0, 0.1);
+      transition: all 0.2s;
+    }
+    
+    @keyframes tutorialPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 14px rgba(255, 215, 0, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+      }
+    }
+    
+    /* Responsive: en móvil se ajusta */
+    @media (max-width: 600px) {
+      .tutorial-container {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+      }
+      .tutorial-card {
+        min-width: auto;
+        max-width: 100%;
+      }
+      .tutorial-character {
+        width: 110px;
+      }
+      .tutorial-character img {
+        max-height: 200px;
+      }
+      .tutorial-content {
+        padding: 14px 16px;
+      }
+      .tutorial-name {
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+      .tutorial-text {
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+      }
+      .tutorial-btn {
+        padding: 6px 16px;
+        font-size: 0.75rem;
+      }
+    }
+    
+    /* Media para pantallas medianas */
+    @media (min-width: 601px) and (max-width: 900px) {
+      .tutorial-character {
+        width: 150px;
+      }
+      .tutorial-character img {
+        max-height: 240px;
+      }
+    }
+    
+    /* Estilos originales necesarios */
+    .resaltable {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    #navbar-balance {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 6px 15px;
+      border-radius: 40px;
+      margin-right: 15px;
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #ffd700;
+    }
+    
+    /* Botón cuenta destacado */
+    #btn-account {
+      transition: all 0.2s;
+    }
+  </style>
+</head>
+<body>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<div class="particles" id="particles"></div>
+
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="showTab('inicio')">
+      <img src="./logo1.png" alt="Bet LDP">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <div id="navbar-balance"><span>💰</span> $<span id="user-balance-display">0.00</span></div>
+    <button id="btn-account" onclick="toggleMenuAccount()">
+      <img src="./account.png" alt="Cuenta" onerror="this.outerHTML='<span style=\'font-size:18px;\'>👤</span>'">
+    </button>
+  </div>
+</nav>
+
+<div id="menu-account">
+  <div class="menu-user-info" id="menu-user-info" style="display:none">
+    <div class="mname" id="menu-uname">—</div>
+    <div class="memail" id="menu-uemail">—</div>
+  </div>
+  <button class="menu-item" onclick="showTab('inicio'); closeMenuAccount()">🏠 Inicio</button>
+  <div class="menu-divider"></div>
+  <button class="menu-item" id="btn-go-register" onclick="showTab('register'); closeMenuAccount()">🔐 Registrarme</button>
+  <button class="menu-item" style="display:none" id="btn-go-recarga" onclick="showTab('recarga'); closeMenuAccount()">💸 Recargar dinero</button>
+  <button class="menu-item" id="btn-logout" onclick="logout()">❌ Saltar Tutorial</button>
+</div>
+
+<div id="app">
+  <section class="tab-section" id="tab-register">
+    <h2 class="section-title">Sistema de Registro</h2>
+    <div class="card">
+      <div class="card-inner">
+        <label>Nombre completo</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre completo">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@correo.com">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
+        <button class="btn-primary" onclick="register()" id="btn-reg-submit">Crear cuenta</button>
+      </div>
+      <div id="reg-msg"></div>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-inicio">
+    <div class="inicio-hero">
+      <div class="coin-ring"><img style="max-width:125px;" src="./logo3.png"></div>
+      <h1>BET LDP</h1>
+      <p>Tu casino de confianza</p>
+    </div>
+    <div class="inicio-cards" id="cards1">
+      <div class="game-card"><span class="icon">↕</span><div class="name">Mayor/Menor</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+      <div class="game-card"><span class="icon">🕹️</span><div class="name">TA-TE-TI</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+      <div class="game-card"><span class="icon">⚔️</span><div class="name">Duelo de Lineas</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+      <div class="game-card"><span class="icon">🎰</span><div class="name">Slots</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+    </div>
+    <div class="inicio-cards">
+      <div class="game-card"><span class="icon">🃏</span><div class="name">Blackjack</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+      <div class="game-card"><span class="icon">🎡</span><div class="name">Ruleta</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+      <div class="game-card"><span class="icon">🎲</span><div class="name">Dados</div><button class="btn-gold" onclick="gameNotAvailable()">Jugar</button></div>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-recarga">
+    <h1 class="section-title">Recargar dinero</h1>
+    <div class="card" style="background: rgba(255,215,0,0.1); border-left:4px solid #ffd700;">
+      <div class="card-subtitle">ℹ️ Modo Tutorial</div>
+      <p style="color:#ffd700;">El saldo es ficticio y se perderá al recargar la página.</p>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">Código de cupón</div>
+      <label>Ingrese el código:</label>
+      <input type="text" id="cupon-input" placeholder="XXXXXXXX" style="text-transform:uppercase;">
+      <button class="btn-primary" onclick="cuponRec()" id="btn-cupon">Recargar</button>
+      <div id="cupon-msg"></div>
+    </div>
+  </section>
+</div>
+
+<!-- TUTORIAL MESSAGE SYSTEM - CUERPO COMPLETO -->
+<div id="tutorial-root" class="tutorial-container"></div>
+
+<script>
+// ======================== TUTORIAL ENGINE - VERSIÓN FULL BODY ========================
+const firebaseConfig = {
+  apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+  authDomain: "tuesa-oficial.firebaseapp.com",
+  projectId: "tuesa-oficial",
+  storageBucket: "tuesa-oficial.firebasestorage.app",
+  messagingSenderId: "447951557213",
+  appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentBalance = 0;
+let tutorialStep = 0;
+let tutorialActive = true;
+let currentCharacter = { name: "Akane", img: "./personajes/Akane.png" };
+
+// Personajes disponibles (imágenes de cuerpo completo)
+const characters = [
+  { name: "Akane", img: "./personajes/Akane.png" },
+  { name: "Hikari", img: "./personajes/Hikari.png" },
+  { name: "Kaori", img: "./personajes/Kaori.png" }
+];
+
+function initCharacter() {
+  const randomIndex = Math.floor(Math.random() * characters.length);
+  currentCharacter = characters[randomIndex];
+}
+
+// Sistema de resaltado
+let highlightElements = { active: false, elements: [], className: 'tutorial-highlight-active' };
+
+function clearHighlights() {
+  if (highlightElements.active) {
+    highlightElements.elements.forEach(el => {
+      if (el) {
+        el.classList.remove('tutorial-highlight-active');
+        el.classList.remove('tutorial-highlight');
+      }
+    });
+    highlightElements.elements = [];
+    highlightElements.active = false;
+  }
+}
+
+function addHighlight(element) {
+  if (!element) return;
+  clearHighlights();
+  element.classList.add('tutorial-highlight', 'tutorial-highlight-active');
+  highlightElements.elements = [element];
+  highlightElements.active = true;
+}
+
+function addHighlights(elementsArray) {
+  clearHighlights();
+  elementsArray.forEach(el => {
+    if (el) {
+      el.classList.add('tutorial-highlight', 'tutorial-highlight-active');
+      highlightElements.elements.push(el);
+    }
+  });
+  highlightElements.active = true;
+}
+
+// Renderizar mensaje con personaje de cuerpo completo
+function renderTutorialMessage(text, showNext = true, showSkip = true, customButtons = null) {
+  const container = document.getElementById('tutorial-root');
+  if (!container) return;
+  if (!tutorialActive) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  const nextBtnHtml = showNext ? `<button class="tutorial-btn tutorial-btn-next" id="tutorial-next-btn">Siguiente ➡</button>` : '';
+  const skipBtnHtml = showSkip ? `<button class="tutorial-btn tutorial-btn-skip" id="tutorial-skip-btn">Saltar Tutorial</button>` : '';
+  let buttonsHtml = customButtons ? customButtons : (nextBtnHtml + skipBtnHtml);
+  
+  container.innerHTML = `
+    <div class="tutorial-card">
+      <div class="tutorial-inner">
+        <div class="tutorial-character">
+          <img src="${currentCharacter.img}" alt="${currentCharacter.name}" onerror="this.src='./logo3.png'">
+        </div>
+        <div class="tutorial-content">
+          <div class="tutorial-name">
+            ✦ ${currentCharacter.name} ✦ <span>Guía de Casino</span>
+          </div>
+          <div class="tutorial-text">${text}</div>
+          <div class="tutorial-buttons">
+            ${buttonsHtml}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  if (showNext && document.getElementById('tutorial-next-btn')) {
+    document.getElementById('tutorial-next-btn').onclick = () => nextTutorialStep();
+  }
+  if (showSkip && document.getElementById('tutorial-skip-btn')) {
+    document.getElementById('tutorial-skip-btn').onclick = () => {
+      tutorialActive = false;
+      clearHighlights();
+      document.getElementById('tutorial-root').innerHTML = '';
+      localStorage.setItem('tutorial', 'false');
+      logout();
+    };
+  }
+}
+
+// Pasos del tutorial
+const tutorialSteps = [
+  {
+    text: `✨ ¡Holis!!! Bienvenid@ a BetLDP. Soy ${currentCharacter.name}, y te ayudaré a crear tu cuenta y después aprender a canjear un código. Así luego te dejo libre para que puedas canjear y jugar tranquilo... Si no necesitas mi ayuda, arriba a la derecha hay un botón, tócalo y después toca "Saltar Tutorial". ✨`,
+    action: () => { showTab('inicio'); clearHighlights(); },
+    nextStep: 1
+  },
+  {
+    text: `📝 Lo primero que vamos a hacer es crearte una cuenta. Para eso, vas a completar estos datos...`,
+    action: () => {
+      showTab('register');
+      setTimeout(() => {
+        const nameInput = document.getElementById('reg-name');
+        const emailInput = document.getElementById('reg-email');
+        const passInput = document.getElementById('reg-pass');
+        addHighlights([nameInput, emailInput, passInput].filter(i => i));
+      }, 150);
+    },
+    nextStep: 2,
+    waitFor: 'registerFieldsFilled'
+  },
+  {
+    text: `🎯 ¡Muy bien! Ahora dale click a este botoncito para crear tu cuenta.`,
+    action: () => { addHighlight(document.getElementById('btn-reg-submit')); },
+    nextStep: 3,
+    waitFor: 'registerButtonClick'
+  },
+  {
+    text: `🔥 ¡MUY BIEN!!! Ahora le darás click al botón de arriba a la derecha (el de la cuenta) y luego a "Recargar dinero"...`,
+    action: () => { addHighlight(document.getElementById('btn-account')); },
+    nextStep: 4,
+    waitFor: 'goToRecargaTab'
+  },
+  {
+    text: `🎁 ¡EXCELENTE! Ahora fíjate más abajo: encontrarás un campo para poner tu código. Vos ahí pon: <strong style="color:#ffd700;">"Bienvenida664"</strong> y después dale click al botón de debajo...`,
+    action: () => {
+      showTab('recarga');
+      setTimeout(() => {
+        const cuponInput = document.getElementById('cupon-input');
+        const cuponBtn = document.getElementById('btn-cupon');
+        addHighlights([cuponInput, cuponBtn].filter(i => i));
+      }, 200);
+    },
+    nextStep: 5,
+    waitFor: 'cuponSuccess'
+  },
+  {
+    text: `🏆 ¡EXCELENTE CAMPEÓN/A! Ahora ya estás list@ para jugar de verdad. Presiona el botón de abajo para finalizar el tutorial y empezar a ganar.`,
+    action: () => { clearHighlights(); },
+    nextStep: 6,
+    waitFor: false,
+    specialButton: true
+  }
+];
+
+let currentStepIndex = 0;
+let waitingForEvent = false;
+let eventListenerAttached = false;
+
+function nextTutorialStep() {
+  if (!tutorialActive) return;
+  if (currentStepIndex >= tutorialSteps.length - 1) {
+    if (tutorialSteps[currentStepIndex] && tutorialSteps[currentStepIndex].specialButton) {
+      renderTutorialMessage(tutorialSteps[currentStepIndex].text, false, true, 
+        `<button class="tutorial-btn tutorial-btn-next" id="tutorial-finish-btn">🎮 Finalizar Tutorial</button>
+         <button class="tutorial-btn tutorial-btn-skip" id="tutorial-skip-end">❌ Saltar</button>`);
+      document.getElementById('tutorial-finish-btn')?.addEventListener('click', () => logout());
+      document.getElementById('tutorial-skip-end')?.addEventListener('click', () => {
+        tutorialActive = false;
+        document.getElementById('tutorial-root').innerHTML = '';
+        logout();
+      });
+      return;
+    }
+    if (currentStepIndex >= tutorialSteps.length - 1 && !tutorialSteps[currentStepIndex].specialButton) {
+      tutorialActive = false;
+      document.getElementById('tutorial-root').innerHTML = '';
+      return;
+    }
+  }
+  
+  if (waitingForEvent) return;
+  
+  if (currentStepIndex + 1 < tutorialSteps.length) {
+    currentStepIndex++;
+    const step = tutorialSteps[currentStepIndex];
+    clearHighlights();
+    if (step.action) step.action();
+    renderTutorialMessage(step.text, !step.waitFor && !step.specialButton, true, 
+      step.specialButton ? `<button class="tutorial-btn tutorial-btn-next" id="tutorial-next-custom">Siguiente ➡</button><button class="tutorial-btn tutorial-btn-skip">Saltar</button>` : null);
+    
+    if (step.specialButton && document.getElementById('tutorial-next-custom')) {
+      document.getElementById('tutorial-next-custom').onclick = () => nextTutorialStep();
+      document.querySelector('#tutorial-root .tutorial-btn-skip')?.addEventListener('click', () => {
+        tutorialActive = false;
+        document.getElementById('tutorial-root').innerHTML = '';
+        logout();
+      });
+    }
+    
+    if (step.waitFor) {
+      waitingForEvent = true;
+      if (!eventListenerAttached) attachEventListeners();
+    } else {
+      waitingForEvent = false;
+    }
+  }
+}
+
+function attachEventListeners() {
+  if (eventListenerAttached) return;
+  eventListenerAttached = true;
+  
+  function checkRegisterFields() {
+    if (!tutorialActive) return;
+    if (waitingForEvent && tutorialSteps[currentStepIndex]?.waitFor === 'registerFieldsFilled') {
+      const name = document.getElementById('reg-name')?.value.trim();
+      const email = document.getElementById('reg-email')?.value.trim();
+      const pass = document.getElementById('reg-pass')?.value;
+      if (name && email && pass && pass.length >= 6) {
+        waitingForEvent = false;
+        nextTutorialStep();
+      }
+    }
+  }
+  
+  const originalRegister = window.register;
+  window.register = async function() {
+    if (originalRegister) await originalRegister.apply(this, arguments);
+    if (tutorialActive && waitingForEvent && tutorialSteps[currentStepIndex]?.waitFor === 'registerButtonClick') {
+      waitingForEvent = false;
+      nextTutorialStep();
+    }
+  };
+  
+  const originalShowTab = window.showTab;
+  window.showTab = function(tabName) {
+    if (originalShowTab) originalShowTab(tabName);
+    if (tutorialActive && waitingForEvent && tutorialSteps[currentStepIndex]?.waitFor === 'goToRecargaTab' && tabName === 'recarga') {
+      waitingForEvent = false;
+      nextTutorialStep();
+    }
+  };
+  
+  const originalCuponRec = window.cuponRec;
+  window.cuponRec = async function() {
+    const result = await originalCuponRec.apply(this, arguments);
+    if (tutorialActive && waitingForEvent && tutorialSteps[currentStepIndex]?.waitFor === 'cuponSuccess') {
+      if (currentBalance > 0) {
+        waitingForEvent = false;
+        nextTutorialStep();
+      }
+    }
+    return result;
+  };
+  
+  ['reg-name', 'reg-email', 'reg-pass'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', checkRegisterFields);
+  });
+}
+
+// Funciones del sistema
+function updateBalanceDisplay() {
+  const balanceSpan = document.getElementById('user-balance-display');
+  if (balanceSpan) balanceSpan.textContent = currentBalance.toFixed(2);
+}
+
+async function register() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if (!name || !email || !pass) { alert('Completá todos los campos.'); return; }
+  if (pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres.'); return; }
+  const btn = document.getElementById('btn-reg-submit');
+  btn.innerHTML = 'Creando...';
+  btn.disabled = true;
+  try {
+    const check = await db.collection('cuentas').where('correo', '==', email).get();
+    if (!check.empty) { alert('Ya existe una cuenta.'); btn.innerHTML = 'Crear cuenta'; btn.disabled=false; return; }
+    await db.collection('cuentas').add({ clave: pass, correo: email, dinero: 0, user: name, verificado: false });
+    localStorage.setItem('usuarioActual', JSON.stringify({ docId: 'temp', nombre: name, correo: email, dinero: 0 }));
+    currentBalance = 0;
+    updateBalanceDisplay();
+    alert('¡Cuenta creada exitosamente!');
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-pass').value = '';
+    document.getElementById('btn-go-register').style.display = 'none';
+    document.getElementById('btn-go-recarga').style.display = 'block';
+    showTab('inicio');
+  } catch(e) { alert('Error al crear la cuenta.'); console.error(e); }
+  finally { btn.innerHTML = 'Crear cuenta'; btn.disabled = false; }
+}
+
+async function cuponRec() {
+  const codigo = document.getElementById('cupon-input').value.trim().toUpperCase();
+  if (!codigo) { showMsg('cupon-msg', 'error', 'Ingresá un código.'); return; }
+  const btn = document.getElementById('btn-cupon');
+  btn.innerHTML = 'Verificando...';
+  btn.disabled = true;
+  try {
+    const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
+    if (snap.empty) { showMsg('cupon-msg', 'error', 'Código inválido.'); btn.innerHTML='Recargar'; btn.disabled=false; return; }
+    const cuponData = snap.docs[0].data();
+    if (!cuponData.activo) { showMsg('cupon-msg', 'error', 'Cupón usado.'); btn.innerHTML='Recargar'; btn.disabled=false; return; }
+    const monto = parseFloat(cuponData.ingreso) || 0;
+    currentBalance += monto;
+    updateBalanceDisplay();
+    document.getElementById('cupon-input').value = '';
+    showMsg('cupon-msg', 'success', `🎉 ¡+$${monto.toFixed(2)} acreditados! Saldo: $${currentBalance.toFixed(2)}`);
+  } catch(e) { showMsg('cupon-msg', 'error', 'Error.'); }
+  finally { btn.innerHTML = 'Recargar'; btn.disabled = false; }
+}
+
+function showMsg(elementId, type, message) {
+  const msgDiv = document.getElementById(elementId);
+  if (msgDiv) { msgDiv.innerHTML = `<div class="msg-${type}">${message}</div>`; setTimeout(() => { if(msgDiv) msgDiv.innerHTML=''; }, 4000); }
+}
+function gameNotAvailable() { alert('Este juego no está disponible en la versión de tutorial.'); }
+function toggleMenuAccount() { document.getElementById('menu-account').classList.toggle('open'); }
+function closeMenuAccount() { document.getElementById('menu-account').classList.remove('open'); }
+function logout() { localStorage.setItem('tutorial', 'false'); location.replace('./index.html'); }
+
+window.showTab = function(name) {
+  document.querySelectorAll('.tab-section').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  const el = document.getElementById('tab-'+name);
+  if (el) { el.classList.add('active'); el.style.display = 'block'; }
+  closeMenuAccount();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  currentBalance = 0;
+  updateBalanceDisplay();
+  initCharacter();
+  tutorialActive = true;
+  currentStepIndex = 0;
+  const firstStep = tutorialSteps[0];
+  firstStep.action();
+  renderTutorialMessage(firstStep.text, true, true);
+  attachEventListeners();
+});
+</script>
+<script src="./script-tuto.js"></script>
+</body>
+</html>

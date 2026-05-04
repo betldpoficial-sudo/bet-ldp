@@ -1,0 +1,26 @@
+-- Creemos un sistema de mensajes para el tutorial --
+¿En que se basa este sistema?
+Se cargara asi: {
+    - A la izquierda estara la foto de la personaje.
+    - Desde donde termina la parte de la foto, habra un texto, ahi estaran las indicaciones.
+}
+
+Variables de personajes: {
+    |===========================|======================|
+    | FOTO                      | NOMNRE DEL PERSONAJE |
+    |===========================|======================|
+    | "./personajes/Akane.png"  | Akane                |
+    | "./personajes/Hikari.png" | Hikari               |
+    | "./personajes/Kaori.png"  | Kaori                |
+    |===========================|======================|
+}
+
+Textos: {
+    - Se carga el Texto: "Holis!!! Bienvenid@ a BetLDP. Soy [nombre de la personajeque toco], y te ayudare a crear tu cuenta y despues aprender a canjear un codigo asi despues e dejo libre y puedes canjear y jugar tranquilo... Si no necesitas mi ayuda arriba a la derecha hay un boton , tocalo y despues toca "Saltar Tutorial"..."
+    - Cuando el usuario haya tocodo el boton: "Siguiente" = Se cargara el Texto: "Lo primero que vamos a hacer es crearte una cuenta, para eso, Vas a completar estos datos..." (Se resaltaran los campos de la pestaña: "register")
+    - Cuando el usuario haya compeltado los tres campos de la pestaña: "register" = "Muy bien, ahora dale click a este botoncito!!!" Se dejara de resaltar los campos y se resaltara el boton.
+    - Cuando el usuario haya dado click en el boton = Se sacara el resaltado del boton y se cargara el Texto: "MUY BIEN!!! Ahora en le daras click al boton de arriba a la derecha!..." (Se resaltara el boton de Cuenta que esta arriba a la derecha en la NavBar).
+    - Cuando el usuario este en la pestaña: "recarga" = Se sacara el resaltado al boton de Cuenta y se lo pondra al campo y al boton de la pestaña: "recarga" y despues se cargara el Texto: "EXCELENTE!!!, ahora fijate mas abajo que encontraras un campo para poner tu codigo, vos ahi pon: "Bienvenida664" y despues dale click al boton de debajo..."
+    - Cuando se haya aceptado el dinero = Se cargara el Texto: "EXCELENTE Campeon/a, ahora ya estas list@ para jugar denserio..."
+    - Cuando el usuario le de click al boton que hay abajo del texto se ejecutara la funcion: "logout()".
+}

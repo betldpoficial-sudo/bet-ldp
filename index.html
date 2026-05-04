@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="./styles.css">
-
 </head>
 <body>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1715,6 +1714,20 @@ window.showTab = function(name) {
 
 // Ejecutar también al cargar la página
 document.addEventListener('DOMContentLoaded', centrarTarjetas);
+// Sistema de tutorial - verificación al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si existe el registro del tutorial en localStorage
+    let tutorialStatus = localStorage.getItem('tutorial');
+    
+    // Si nunca ha entrado (tutorialStatus es null) O tutorial es "true"
+    if (tutorialStatus === null || tutorialStatus === 'true') {
+        // Guardar en localStorage que ya ha visto el tutorial
+        localStorage.setItem('tutorial', 'false');
+        // Redirigir al tutorial
+        window.location.href = './tutorial.html';
+    }
+    // Si tutorial = "false", continúa normalmente en el index
+});
 
 /* ============================================================
    INICIALIZACIÓN - VERSIÓN CORREGIDA
