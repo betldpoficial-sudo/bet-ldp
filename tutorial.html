@@ -663,18 +663,8 @@ async function cuponRec() {
   const btn = document.getElementById('btn-cupon');
   btn.innerHTML = 'Verificando...';
   btn.disabled = true;
-  try {
-    const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
-    if (snap.empty) { showMsg('cupon-msg', 'error', 'Código inválido.'); btn.innerHTML='Recargar'; btn.disabled=false; return; }
-    const cuponData = snap.docs[0].data();
-    if (!cuponData.activo) { showMsg('cupon-msg', 'error', 'Cupón usado.'); btn.innerHTML='Recargar'; btn.disabled=false; return; }
-    const monto = parseFloat(cuponData.ingreso) || 0;
-    currentBalance += monto;
-    updateBalanceDisplay();
-    document.getElementById('cupon-input').value = '';
-    showMsg('cupon-msg', 'success', `🎉 ¡+$${monto.toFixed(2)} acreditados! Saldo: $${currentBalance.toFixed(2)}`);
-  } catch(e) { showMsg('cupon-msg', 'error', 'Error.'); }
-  finally { btn.innerHTML = 'Recargar'; btn.disabled = false; }
+  showMsg('cupon-msg', 'success', `🎉 Bien hecho, te acreditados!`);
+  btn.innerHTML = 'Recargar'; btn.disabled = false;
 }
 
 function showMsg(elementId, type, message) {
