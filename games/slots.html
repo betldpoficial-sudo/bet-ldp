@@ -2,143 +2,63 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Slots - Bet LDP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/slots.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: linear-gradient(135deg, #0a0a1a 0%, #0f0f23 100%);
-      font-family: 'Raleway', sans-serif;
-      color: #e2e2e2;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-    .game-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: rgba(15, 15, 35, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 30px;
-      border: 1px solid rgba(201, 162, 39, 0.3);
-    }
-    h1 {
-      font-family: 'Cinzel', serif;
-      text-align: center;
-      color: #c9a227;
-      margin-bottom: 30px;
-    }
-    .back-btn {
-      background: rgba(201, 162, 39, 0.2);
-      border: 1px solid rgba(201, 162, 39, 0.4);
-      color: #c9a227;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: rgba(26, 26, 46, 0.6);
-      border: 1px solid rgba(201, 162, 39, 0.2);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .reels {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin: 30px 0;
-    }
-    .slot-reel {
-      width: 100px;
-      height: 100px;
-      background: rgba(0,0,0,0.4);
-      border: 2px solid rgba(201, 162, 39, 0.5);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 56px;
-      transition: all 0.3s;
-    }
-    .spinning {
-      animation: spin 0.3s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .win-glow {
-      box-shadow: 0 0 20px rgba(201, 162, 39, 0.8);
-      border-color: #c9a227;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #c9a227, #a07c1a);
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 18px;
-    }
-    .bet-options { display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
-    .bet-btn {
-      background: rgba(201, 162, 39, 0.2);
-      border: 1px solid rgba(201, 162, 39, 0.3);
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .bet-btn:hover { background: rgba(201, 162, 39, 0.4); }
-    input {
-      padding: 10px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(201, 162, 39, 0.3);
-      border-radius: 8px;
-      color: white;
-      text-align: center;
-    }
-    .alert { padding: 12px; border-radius: 8px; margin-top: 15px; }
-    .alert.error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
-    .alert.success { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
-  </style>
 </head>
 <body>
-<div class="game-container">
-  <button class="back-btn" onclick="window.location.href='../index.html'">← Volver al casino</button>
-  <h1>🎰 TRAGAMONEDAS 🎰</h1>
-  
-  <div id="slots-selection" class="card">
-    <div style="font-size:24px; font-weight:bold; color:#c9a227; margin-bottom:20px;" id="saldo-display">$0</div>
-    <div class="bet-options">
-      <button class="bet-btn" onclick="setBet(5)">$5</button>
-      <button class="bet-btn" onclick="setBet(10)">$10</button>
-      <button class="bet-btn" onclick="setBet(25)">$25</button>
-      <button class="bet-btn" onclick="setBet(50)">$50</button>
-    </div>
-    <input type="number" id="custom-bet" placeholder="Apuesta personalizada" min="1" step="0.01">
-    <button class="btn-primary" onclick="setCustomBet()" style="margin:10px; background:#333;">Aplicar</button>
-    <button class="btn-primary" onclick="slotsStartGame()" style="margin-top:20px;">🎲 JUGAR 🎲</button>
-    <div id="slots-msg" class="alert" style="display:none;"></div>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../index.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
   </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
 
-  <div id="slots-game" style="display:none;">
-    <div class="card">
-      <div class="reels">
-        <div class="slot-reel" id="reel1">🍒</div>
-        <div class="slot-reel" id="reel2">🍒</div>
-        <div class="slot-reel" id="reel3">🍒</div>
+<div class="game-master">
+  <div class="game-container">
+    <h1>🎰 TRAGAMONEDAS 🎰</h1>
+
+    <div id="slots-selection" class="card">
+      <div class="saldo-premium">
+        <div style="font-size: 13px; letter-spacing: 1px; opacity: 0.8;">💰 SALDO ACTUAL</div>
+        <div style="font-size: 42px; font-weight: bold; color: #fedb78;" id="saldo-display">$0.00</div>
       </div>
-      <button class="btn-primary" id="spin-btn" onclick="slotsSpin()">🎲 GIRAR 🎲</button>
-      <button class="btn-primary" style="background:#333; margin-top:10px;" onclick="location.reload()">Cambiar apuesta</button>
-      <div id="slots-game-msg" class="alert" style="display:none;"></div>
+      <div class="bet-options">
+        <button class="bet-btn" onclick="setBet(5)">$5</button>
+        <button class="bet-btn" onclick="setBet(10)">$10</button>
+        <button class="bet-btn" onclick="setBet(25)">$25</button>
+        <button class="bet-btn" onclick="setBet(50)">$50</button>
+      </div>
+      <input type="number" id="custom-bet" placeholder="Apuesta personalizada" min="1" step="1">
+      <button class="btn-secondary" onclick="setCustomBet()" style="margin-top: 6px;">✅ Aplicar monto</button>
+      <button class="btn-primary" onclick="slotsStartGame()" style="margin-top: 22px;">🎲 EMPEZAR A GIRAR 🎲</button>
+      <div id="slots-msg" class="alert" style="display:none;"></div>
+    </div>
+
+    <div id="slots-game" style="display:none;">
+      <div class="card">
+        <div class="reels">
+          <div class="slot-reel" id="reel1">🍒</div>
+          <div class="slot-reel" id="reel2">🍒</div>
+          <div class="slot-reel" id="reel3">🍒</div>
+        </div>
+        <button class="btn-primary" id="spin-btn" onclick="slotsSpin()">🌀 GIRAR 🎰</button>
+        <div class="flex-buttons">
+          <button class="btn-secondary" onclick="resetToMenu()">🔄 CAMBIAR APUESTA</button>
+          <button class="btn-secondary" onclick="window.location.href='../index.html'">🏠 CASINO</button>
+        </div>
+        <div id="slots-game-msg" class="alert" style="display:none;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -168,65 +88,101 @@
       el.className = 'alert ' + type;
       el.textContent = text;
       el.style.display = 'block';
-      setTimeout(() => { if (el) el.style.display = 'none'; }, 3000);
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3200);
     }
   }
 
-  async function autoLogin() {
-    const savedUserId = localStorage.getItem('betldp_user_id');
-    const savedEmail = localStorage.getItem('betldp_user_email');
-    if (!savedUserId || !savedEmail) return false;
-    try {
-      const doc = await db.collection('cuentas').doc(savedUserId).get();
-      if (doc.exists && doc.data().correo === savedEmail) {
-        currentUser = { docId: doc.id, ...doc.data() };
-        document.getElementById('saldo-display').textContent = '$' + currentUser.dinero.toFixed(2);
-        return true;
-      }
-    } catch(e) { console.warn(e); }
-    return false;
-  }
-
-  async function updateUserMoney(newAmount) {
+  async function updateGlobalBalanceDisplay(newAmount) {
     if (!currentUser) return;
     currentUser.dinero = newAmount;
-    document.getElementById('saldo-display').textContent = '$' + newAmount.toFixed(2);
-    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: newAmount });
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSlot = document.getElementById('saldo-display');
+    if (saldoSlot) saldoSlot.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'slots_player@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "SlotMaster", correo: "slots_player@demo.com", clave: "jackpot123", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
   }
 
   function setBet(amount) {
     currentBet = amount;
-    showMsg('slots-msg', 'success', `Apuesta: $${amount}`);
+    showMsg('slots-msg', 'success', `💰 Apuesta seleccionada: $${amount}`);
   }
 
   function setCustomBet() {
     const custom = parseFloat(document.getElementById('custom-bet').value);
     if (custom && custom > 0) {
       currentBet = custom;
-      showMsg('slots-msg', 'success', `Apuesta: $${currentBet}`);
+      showMsg('slots-msg', 'success', `💰 Apuesta personalizada: $${custom.toFixed(2)}`);
     } else {
-      showMsg('slots-msg', 'error', 'Monto inválido');
+      showMsg('slots-msg', 'error', '⚠️ Ingresa un monto válido');
     }
   }
 
   async function slotsStartGame() {
     if (!currentUser) {
-      showMsg('slots-msg', 'error', 'Debés iniciar sesión.');
+      showMsg('slots-msg', 'error', '⛔ No se pudo cargar tu usuario. Reinicia la página.');
       return;
     }
     if (currentBet > currentUser.dinero) {
-      showMsg('slots-msg', 'error', 'Saldo insuficiente.');
+      showMsg('slots-msg', 'error', `❌ Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
       return;
     }
     document.getElementById('slots-selection').style.display = 'none';
     document.getElementById('slots-game').style.display = 'block';
+    isSpinning = false;
+    const spinBtn = document.getElementById('spin-btn');
+    if (spinBtn) spinBtn.disabled = false;
+    const msgGame = document.getElementById('slots-game-msg');
+    if (msgGame) msgGame.style.display = 'none';
   }
 
   async function slotsSpin() {
-    if (isSpinning) { showMsg('slots-game-msg', 'error', 'Espera a que termine el giro'); return; }
+    if (isSpinning) {
+      showMsg('slots-game-msg', 'error', '⏳ Espera a que termine el giro actual');
+      return;
+    }
+    if (!currentUser) return;
     if (currentBet > currentUser.dinero) {
-      showMsg('slots-game-msg', 'error', 'Saldo insuficiente.');
-      location.reload();
+      showMsg('slots-game-msg', 'error', `💸 Saldo insuficiente. Saldo: $${currentUser.dinero.toFixed(2)}`);
+      resetToMenu();
       return;
     }
 
@@ -235,48 +191,109 @@
     spinBtn.disabled = true;
     spinBtn.innerHTML = '🌀 GIRANDO...';
 
-    await updateUserMoney(currentUser.dinero - currentBet);
+    // Descontar la apuesta antes del giro
+    const betSuccess = await modifyUserMoney(currentBet, false);
+    if (!betSuccess) {
+      showMsg('slots-game-msg', 'error', 'Error al procesar la apuesta');
+      spinBtn.disabled = false;
+      spinBtn.innerHTML = '🎰 GIRAR';
+      isSpinning = false;
+      return;
+    }
 
-    const reels = [
+    const reelsElements = [
       document.getElementById('reel1'),
       document.getElementById('reel2'),
       document.getElementById('reel3')
     ];
-    reels.forEach(reel => reel.classList.add('spinning'));
+    reelsElements.forEach(reel => reel.classList.add('spinning'));
 
     setTimeout(async () => {
       const results = [];
-      for (let i = 0; i < 3; i++) results.push(symbols[Math.floor(Math.random() * symbols.length)]);
-      
       for (let i = 0; i < 3; i++) {
-        reels[i].classList.remove('spinning');
-        reels[i].textContent = results[i];
+        const randomIndex = Math.floor(Math.random() * symbols.length);
+        results.push(symbols[randomIndex]);
+      }
+
+      // Detener animación y mostrar símbolos
+      for (let i = 0; i < 3; i++) {
+        reelsElements[i].classList.remove('spinning');
+        reelsElements[i].textContent = results[i];
+        reelsElements[i].classList.remove('win-glow');
       }
 
       let winAmount = 0;
+      let winMessage = '';
+
       if (results[0] === results[1] && results[1] === results[2]) {
         winAmount = currentBet * payouts[results[0]];
-        showMsg('slots-game-msg', 'success', `🎉 ¡TRES! Ganaste $${winAmount.toFixed(2)}! 🎉`);
-        reels.forEach(reel => reel.classList.add('win-glow'));
-        setTimeout(() => reels.forEach(reel => reel.classList.remove('win-glow')), 1500);
-      } else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
+        winMessage = `🎉 ¡TRES SÍMBOLOS IGUALES! Ganaste $${winAmount.toFixed(2)} 🎉`;
+        reelsElements.forEach(reel => reel.classList.add('win-glow'));
+        setTimeout(() => reelsElements.forEach(reel => reel.classList.remove('win-glow')), 1500);
+      } 
+      else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
         winAmount = currentBet * 1.5;
-        showMsg('slots-game-msg', 'success', `🎉 ¡DOS IGUALES! Ganaste $${winAmount.toFixed(2)}! 🎉`);
-        reels[1].classList.add('win-glow');
-        setTimeout(() => reels[1].classList.remove('win-glow'), 1000);
-      } else {
-        showMsg('slots-game-msg', 'error', `😢 Perdiste $${currentBet.toFixed(2)}`);
+        winMessage = `✨ ¡PAR! Ganaste $${winAmount.toFixed(2)} ✨`;
+        if (results[0] === results[1]) {
+          reelsElements[0].classList.add('win-glow');
+          reelsElements[1].classList.add('win-glow');
+        } else if (results[1] === results[2]) {
+          reelsElements[1].classList.add('win-glow');
+          reelsElements[2].classList.add('win-glow');
+        } else if (results[0] === results[2]) {
+          reelsElements[0].classList.add('win-glow');
+          reelsElements[2].classList.add('win-glow');
+        }
+        setTimeout(() => {
+          reelsElements.forEach(r => r.classList.remove('win-glow'));
+        }, 1200);
+      } 
+      else {
+        winMessage = `😢 Sin suerte... perdiste $${currentBet.toFixed(2)}`;
       }
 
-      if (winAmount > 0) await updateUserMoney(currentUser.dinero + winAmount);
-      
+      if (winAmount > 0) {
+        await modifyUserMoney(winAmount, true);
+        showMsg('slots-game-msg', 'success', winMessage);
+      } else {
+        showMsg('slots-game-msg', 'error', winMessage);
+      }
+
       isSpinning = false;
       spinBtn.disabled = false;
-      spinBtn.innerHTML = '🎲 GIRAR 🎲';
-    }, 600);
+      spinBtn.innerHTML = '🌀 GIRAR 🎰';
+    }, 550);
   }
 
-  autoLogin();
+  function resetToMenu() {
+    document.getElementById('slots-game').style.display = 'none';
+    document.getElementById('slots-selection').style.display = 'block';
+    const msgSel = document.getElementById('slots-msg');
+    if (msgSel) msgSel.style.display = 'none';
+    const msgGame = document.getElementById('slots-game-msg');
+    if (msgGame) msgGame.style.display = 'none';
+    isSpinning = false;
+    const spinBtn = document.getElementById('spin-btn');
+    if (spinBtn) {
+      spinBtn.disabled = false;
+      spinBtn.innerHTML = '🌀 GIRAR 🎰';
+    }
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      const moneySpan = document.getElementById('money-display');
+      if (moneySpan) moneySpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  init();
 </script>
 </body>
 </html>

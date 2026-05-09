@@ -2,137 +2,83 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TA-TE-TI - Bet LDP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>TA-TE-TI vs IA - Bet LDP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/tata-ti.css"> 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: linear-gradient(135deg, #0a0a1a 0%, #0f0f23 100%);
-      font-family: 'Raleway', sans-serif;
-      color: #e2e2e2;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-    .game-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: rgba(15, 15, 35, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 30px;
-      border: 1px solid rgba(201, 162, 39, 0.3);
-    }
-    h1 {
-      font-family: 'Cinzel', serif;
-      text-align: center;
-      color: #c9a227;
-      margin-bottom: 30px;
-    }
-    .back-btn {
-      background: rgba(201, 162, 39, 0.2);
-      border: 1px solid rgba(201, 162, 39, 0.4);
-      color: #c9a227;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: rgba(26, 26, 46, 0.6);
-      border: 1px solid rgba(201, 162, 39, 0.2);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .tata-board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      background: rgba(0,0,0,0.3);
-      padding: 20px;
-      border-radius: 16px;
-    }
-    .tata-cell {
-      aspect-ratio: 1;
-      background: rgba(201, 162, 39, 0.1);
-      border: 2px solid rgba(201, 162, 39, 0.3);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tata-cell:hover { background: rgba(201, 162, 39, 0.2); transform: scale(1.02); }
-    .btn-primary {
-      background: linear-gradient(135deg, #c9a227, #a07c1a);
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
-    select, input {
-      width: 100%;
-      padding: 12px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(201, 162, 39, 0.3);
-      border-radius: 8px;
-      color: white;
-      margin: 10px 0;
-    }
-    .alert { padding: 12px; border-radius: 8px; margin-top: 15px; text-align: center; }
-    .alert.error { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; }
-    .alert.success { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
-  </style>
 </head>
 <body>
-<div class="game-container">
-  <button class="back-btn" onclick="window.location.href='../index.html'">← Volver al casino</button>
-  <h1>⭕ TA-TE-TI vs IA ❌</h1>
-  
-  <div id="tata-selection" class="card">
-    <div style="font-size:24px; font-weight:bold; color:#c9a227; text-align:center; margin-bottom:20px;" id="saldo-display">$0</div>
-    <label>Dificultad</label>
-    <select id="tata-diff">
-      <option value="medium">🎲 Medio - 7.5% ganancia</option>
-      <option value="hard">🔥 Difícil - 15% ganancia</option>
-    </select>
-    <label>Tu apuesta ($)</label>
-    <input type="number" id="tata-bet" placeholder="Ingresa tu apuesta" min="1" step="0.01">
-    <button class="btn-primary" onclick="tataStartGame()">Iniciar partida</button>
-    <div id="tata-msg-selection" class="alert" style="display:none;"></div>
-  </div>
 
-  <div id="tata-game-area" style="display:none;">
-    <div class="card">
-      <div>🤖 IA (<span id="tata-diff-label">Medio</span>)</div>
-      <div>💰 Apuesta: $<span id="tata-bet-display">0</span></div>
-      <div>💵 Posible ganancia: +<span id="tata-win-percent">7.5</span>%</div>
-    </div>
-    <div class="card">
-      <div id="tata-board" class="tata-board"></div>
-      <button class="btn-primary" style="margin-top:16px; background:#333;" onclick="tataCancelGame()">Cancelar partida</button>
-      <div id="tata-game-msg" class="alert" style="display:none;"></div>
-    </div>
+<!-- BARRA DE NAVEGACIÓN OFICIAL (idéntica a la plataforma) -->
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../index.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
   </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
 
-  <div id="tata-result" class="card" style="display:none; text-align:center;">
-    <h2 id="tata-result-title">🎉 Ganaste</h2>
-    <div id="tata-result-detail" style="margin:16px 0;"></div>
-    <button class="btn-primary" onclick="location.reload()">Jugar de nuevo</button>
+<!-- Contenedor principal con centrado vertical y horizontal -->
+<div class="game-master">
+  <div class="game-container">
+    <h1>⭕ TA-TE-TI vs IA ❌</h1>
+
+    <!-- Panel de selección / apuesta / dificultad -->
+    <div id="tata-selection" class="card">
+      <div class="saldo-header">
+        <div style="font-size: 12px; letter-spacing: 1px; opacity:0.7;">💎 SALDO DISPONIBLE</div>
+        <div style="font-size: 38px; font-weight: bold; color: #fcd15a;" id="saldo-display">$0.00</div>
+      </div>
+      <label>🤖 Dificultad</label>
+      <select id="tata-diff">
+        <option value="medium">🎲 Medio - 7.5% ganancia</option>
+        <option value="hard">🔥 Difícil - 15% ganancia</option>
+      </select>
+      <label>💰 Tu apuesta ($)</label>
+      <input type="number" id="tata-bet" placeholder="Ej: 50" min="1" step="1">
+      <button class="btn-primary" onclick="tataStartGame()">✨ INICIAR DUELO ✨</button>
+      <div id="tata-msg-selection" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- Área de juego (tablero) -->
+    <div id="tata-game-area" style="display:none;">
+      <div class="card">
+        <div class="info-row">
+          <span>🤖 IA (<span id="tata-diff-label">Medio</span>)</span>
+          <span>🎲 Apuesta: $<span id="tata-bet-display">0</span></span>
+        </div>
+        <div class="info-row">
+          <span>💎 Posible ganancia extra:</span>
+          <span style="color:#f5cd6a;">+<span id="tata-win-percent">7.5</span>%</span>
+        </div>
+      </div>
+      <div class="card">
+        <div id="tata-board" class="tata-board"></div>
+        <button class="btn-secondary" onclick="tataCancelGame()">🚪 CANCELAR / RETIRAR APUESTA</button>
+        <div id="tata-game-msg" class="alert" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Pantalla de resultado final -->
+    <div id="tata-result" class="card" style="display:none; text-align:center;">
+      <h2 id="tata-result-title" style="color:#efcd78;">🏆 RESULTADO</h2>
+      <div id="tata-result-detail" style="margin: 20px 0; font-size: 1.1rem;"></div>
+      <button class="btn-primary" onclick="resetToMenu()">🎮 JUGAR DE NUEVO</button>
+      <button class="btn-secondary" style="margin-top: 12px;" onclick="window.location.href='../index.html'">🏠 VOLVER AL CASINO</button>
+    </div>
   </div>
 </div>
 
 <script>
+  // ===================== CONFIGURACIÓN FIREBASE (OFICIAL) =====================
   const firebaseConfig = {
     apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
     authDomain: "tuesa-oficial.firebaseapp.com",
@@ -146,45 +92,84 @@
 
   let currentUser = null;
   let tataState = {
-    active: false, board: Array(9).fill(null), difficulty: 'medium',
-    bet: 0, playerSymbol: 'X', aiSymbol: 'O', gameOver: false,
-    winner: null, payoutPercent: 7.5
+    active: false,
+    board: Array(9).fill(null),
+    difficulty: 'medium',
+    bet: 0,
+    playerSymbol: 'X',
+    aiSymbol: 'O',
+    gameOver: false,
+    winner: null,
+    payoutPercent: 7.5
   };
 
+  // =============== Helper UI y Firebase ===============
   function showMsg(containerId, type, text) {
     const el = document.getElementById(containerId);
     if (el) {
       el.className = 'alert ' + type;
       el.textContent = text;
       el.style.display = 'block';
-      setTimeout(() => { if (el) el.style.display = 'none'; }, 4000);
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
     }
   }
 
-  async function autoLogin() {
-    const savedUserId = localStorage.getItem('betldp_user_id');
-    const savedEmail = localStorage.getItem('betldp_user_email');
-    if (!savedUserId || !savedEmail) return false;
-    try {
-      const doc = await db.collection('cuentas').doc(savedUserId).get();
-      if (doc.exists && doc.data().correo === savedEmail) {
-        currentUser = { docId: doc.id, ...doc.data() };
-        document.getElementById('saldo-display').textContent = '$' + currentUser.dinero.toFixed(2);
-        return true;
-      }
-    } catch(e) { console.warn(e); }
-    return false;
-  }
-
-  async function updateUserMoney(newAmount) {
+  // Actualiza navbar y display de saldo
+  async function updateGlobalBalanceDisplay(newAmount) {
     if (!currentUser) return;
     currentUser.dinero = newAmount;
-    document.getElementById('saldo-display').textContent = '$' + newAmount.toFixed(2);
-    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: newAmount });
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
   }
 
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserBalance(amount, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += amount;
+    else newMoney -= amount;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  // Auto-login estándar (coherente con otros juegos)
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    // demo user para tata-ti
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'tata_player@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "Estratega", correo: "tata_player@demo.com", clave: "tatabet", dinero: 2000, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // =============== Lógica del Ta-Te-Ti ===============
   function renderTataBoard() {
     const container = document.getElementById('tata-board');
+    if (!container) return;
     container.innerHTML = '';
     for (let i = 0; i < 9; i++) {
       const cell = document.createElement('div');
@@ -192,7 +177,9 @@
       cell.textContent = tataState.board[i] || '';
       if (!tataState.gameOver && tataState.board[i] === null && tataState.active && tataState.winner === null) {
         cell.style.cursor = 'pointer';
-        cell.onclick = () => tataPlayerMove(i);
+        cell.onclick = (function(idx) { return () => tataPlayerMove(idx); })(i);
+      } else {
+        cell.style.cursor = 'default';
       }
       container.appendChild(cell);
     }
@@ -213,6 +200,7 @@
   }
 
   function tataGetBestMove() {
+    // intentar ganar
     for (let i = 0; i < 9; i++) {
       if (tataState.board[i] === null) {
         tataState.board[i] = tataState.aiSymbol;
@@ -220,6 +208,7 @@
         tataState.board[i] = null;
       }
     }
+    // bloquear victoria del jugador
     for (let i = 0; i < 9; i++) {
       if (tataState.board[i] === null) {
         tataState.board[i] = tataState.playerSymbol;
@@ -233,15 +222,19 @@
   async function tataAIMove() {
     if (!tataState.active || tataState.gameOver) return;
     let move = -1;
-    if (tataState.difficulty === 'hard') move = tataGetBestMove();
-    else move = Math.random() < 0.6 ? tataGetBestMove() : tataGetRandomEmpty();
+    if (tataState.difficulty === 'hard') {
+      move = tataGetBestMove();
+    } else {
+      // medio: 65% probabilidad de movimiento óptimo
+      move = Math.random() < 0.65 ? tataGetBestMove() : tataGetRandomEmpty();
+    }
     if (move === -1) move = tataGetRandomEmpty();
     if (move !== -1) {
       tataState.board[move] = tataState.aiSymbol;
       renderTataBoard();
       const winner = tataCheckWinner(tataState.board);
-      if (winner) tataHandleGameOver(winner);
-      else if (tataState.board.every(cell => cell !== null)) tataHandleGameOver('draw');
+      if (winner) await tataHandleGameOver(winner);
+      else if (tataState.board.every(cell => cell !== null)) await tataHandleGameOver('draw');
     }
   }
 
@@ -250,73 +243,148 @@
     tataState.board[index] = tataState.playerSymbol;
     renderTataBoard();
     const winner = tataCheckWinner(tataState.board);
-    if (winner) { tataHandleGameOver(winner); return; }
-    if (tataState.board.every(cell => cell !== null)) { tataHandleGameOver('draw'); return; }
-    setTimeout(() => tataAIMove(), 200);
+    if (winner) {
+      await tataHandleGameOver(winner);
+      return;
+    }
+    if (tataState.board.every(cell => cell !== null)) {
+      await tataHandleGameOver('draw');
+      return;
+    }
+    setTimeout(() => tataAIMove(), 280);
   }
 
   async function tataHandleGameOver(winner) {
+    if (tataState.gameOver) return;
     tataState.gameOver = true;
     tataState.active = false;
-    let prize = 0;
+    let prizeExtra = 0;
+    let baseReturn = 0;
+
     if (winner === tataState.playerSymbol) {
-      prize = tataState.bet * (tataState.payoutPercent / 100);
-      await updateUserMoney(currentUser.dinero + tataState.bet + prize);
-    } else if (winner === tataState.aiSymbol) {
-      await updateUserMoney(currentUser.dinero);
-    } else {
-      await updateUserMoney(currentUser.dinero + tataState.bet);
+      prizeExtra = tataState.bet * (tataState.payoutPercent / 100);
+      const totalWin = tataState.bet + prizeExtra;
+      await modifyUserBalance(totalWin, true);
+      document.getElementById('tata-result-title').innerHTML = '🎉 ¡VICTORIA ESPLÉNDIDA! 🎉';
+      document.getElementById('tata-result-detail').innerHTML = `
+        <div style="font-size: 1.2rem;">🏆 Ganaste +$${prizeExtra.toFixed(2)} extra</div>
+        <div>💰 Total recibido: $${totalWin.toFixed(2)}</div>
+        <div>✨ ¡Enhorabuena, estratega!</div>
+      `;
+    } 
+    else if (winner === tataState.aiSymbol) {
+      // No hay devolución (la apuesta ya fue descontada)
+      document.getElementById('tata-result-title').innerHTML = '💀 DERROTA 💀';
+      document.getElementById('tata-result-detail').innerHTML = `
+        <div>La IA ha ganado la partida.</div>
+        <div>💸 Has perdido $${tataState.bet.toFixed(2)}</div>
+        <div>Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+      `;
+    } 
+    else {
+      // empate: se devuelve la apuesta integra
+      await modifyUserBalance(tataState.bet, true);
+      document.getElementById('tata-result-title').innerHTML = '🤝 EMPATE 🤝';
+      document.getElementById('tata-result-detail').innerHTML = `
+        <div>Tablero lleno sin ganador.</div>
+        <div>🔄 Se te devuelve tu apuesta: $${tataState.bet.toFixed(2)}</div>
+        <div>💰 Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+      `;
     }
+
     document.getElementById('tata-game-area').style.display = 'none';
     document.getElementById('tata-result').style.display = 'block';
-    const titleEl = document.getElementById('tata-result-title');
-    const detailEl = document.getElementById('tata-result-detail');
-    if (winner === tataState.playerSymbol) {
-      titleEl.innerHTML = '🎉 ¡VICTORIA! 🎉';
-      detailEl.innerHTML = `Ganaste +$${prize.toFixed(2)}<br>Total recibido: $${(tataState.bet + prize).toFixed(2)}`;
-    } else if (winner === tataState.aiSymbol) {
-      titleEl.innerHTML = '💀 Derrota 💀';
-      detailEl.innerHTML = `Perdiste tu apuesta: $${tataState.bet.toFixed(2)}`;
-    } else {
-      titleEl.innerHTML = '🤝 Empate 🤝';
-      detailEl.innerHTML = `Se te devolvió tu apuesta: $${tataState.bet.toFixed(2)}`;
-    }
   }
 
-  async function tataStartGame() {
-    if (!currentUser) { showMsg('tata-msg-selection', 'error', 'Debés iniciar sesión.'); return; }
-    const diff = document.getElementById('tata-diff').value;
-    const bet = parseFloat(document.getElementById('tata-bet').value);
-    if (!bet || bet <= 0) { showMsg('tata-msg-selection', 'error', 'Apuesta válida requerida.'); return; }
-    if (bet > currentUser.dinero) { showMsg('tata-msg-selection', 'error', 'Saldo insuficiente.'); return; }
+  // Cancelar partida antes de finalizar: reintegra la apuesta
+  async function tataCancelGame() {
+    if (!tataState.active) {
+      resetToMenu();
+      return;
+    }
+    if (!tataState.gameOver && tataState.active) {
+      await modifyUserBalance(tataState.bet, true);
+      showMsg('tata-game-msg', 'success', `⏸️ Partida cancelada. Se devolvieron $${tataState.bet.toFixed(2)}`);
+    }
+    resetToMenu();
+  }
 
-    tataState.difficulty = diff;
-    tataState.bet = bet;
-    tataState.payoutPercent = diff === 'medium' ? 7.5 : 15;
+  // Inicio de partida: valida y descuenta apuesta
+  async function tataStartGame() {
+    if (!currentUser) {
+      showMsg('tata-msg-selection', 'error', '⛔ No se pudo cargar tu sesión. Reinicia la página.');
+      return;
+    }
+    const diffSelect = document.getElementById('tata-diff').value;
+    const rawBet = parseFloat(document.getElementById('tata-bet').value);
+    if (isNaN(rawBet) || rawBet < 1) {
+      showMsg('tata-msg-selection', 'error', '⚠️ Apuesta inválida (mínimo $1).');
+      return;
+    }
+    if (rawBet > currentUser.dinero) {
+      showMsg('tata-msg-selection', 'error', `❌ Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+
+    // configurar estado
+    tataState.difficulty = diffSelect;
+    tataState.bet = rawBet;
+    tataState.payoutPercent = diffSelect === 'medium' ? 7.5 : 15;
     tataState.board = Array(9).fill(null);
     tataState.gameOver = false;
-    tataState.winner = null;
     tataState.active = true;
+    tataState.winner = null;
 
-    await updateUserMoney(currentUser.dinero - bet);
+    // Descontar apuesta
+    const success = await modifyUserBalance(rawBet, false);
+    if (!success) {
+      showMsg('tata-msg-selection', 'error', 'Error al procesar la apuesta.');
+      return;
+    }
 
+    // actualizar interfaz juego
     document.getElementById('tata-selection').style.display = 'none';
     document.getElementById('tata-game-area').style.display = 'block';
     document.getElementById('tata-result').style.display = 'none';
-    document.getElementById('tata-diff-label').innerText = diff === 'medium' ? 'Medio' : 'Difícil';
-    document.getElementById('tata-bet-display').innerText = bet.toFixed(2);
+    document.getElementById('tata-diff-label').innerText = diffSelect === 'medium' ? 'Medio' : 'Difícil';
+    document.getElementById('tata-bet-display').innerText = rawBet.toFixed(2);
     document.getElementById('tata-win-percent').innerText = tataState.payoutPercent;
     renderTataBoard();
+
+    // si por algún motivo el juego arranca y el jugador es X (siempre)
+    // limpiar mensajes residuales
+    const msgGame = document.getElementById('tata-game-msg');
+    if (msgGame) msgGame.style.display = 'none';
   }
 
-  async function tataCancelGame() {
-    if (tataState.active && !tataState.gameOver) {
-      await updateUserMoney(currentUser.dinero + tataState.bet);
+  // reset completo sin recargar la página (conserva sesión)
+  function resetToMenu() {
+    document.getElementById('tata-game-area').style.display = 'none';
+    document.getElementById('tata-result').style.display = 'none';
+    document.getElementById('tata-selection').style.display = 'block';
+    const msgSel = document.getElementById('tata-msg-selection');
+    if (msgSel) msgSel.style.display = 'none';
+    const msgGame = document.getElementById('tata-game-msg');
+    if (msgGame) msgGame.style.display = 'none';
+    tataState.active = false;
+    tataState.gameOver = false;
+    tataState.board = Array(9).fill(null);
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
     }
-    location.reload();
   }
 
-  autoLogin();
+  // Inicialización global
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  init();
 </script>
 </body>
 </html>

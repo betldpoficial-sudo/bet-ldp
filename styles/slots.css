@@ -1,0 +1,201 @@
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at 20% 40%, #0a0c1a, #01020a);
+      font-family: 'Raleway', sans-serif;
+      color: #ececec;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* centrado vertical maestro */
+    .game-master {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+    }
+
+    .game-container {
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      background: rgba(12, 12, 28, 0.88);
+      backdrop-filter: blur(12px);
+      border-radius: 42px;
+      padding: 28px 32px;
+      border: 1px solid rgba(201, 162, 39, 0.38);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: all 0.2s;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      color: #efcb72;
+      text-shadow: 0 0 8px rgba(201, 162, 39, 0.6);
+      margin-bottom: 26px;
+      font-size: 2rem;
+      letter-spacing: 2px;
+    }
+
+    .card {
+      background: rgba(22, 22, 44, 0.75);
+      border: 1px solid rgba(201, 162, 39, 0.25);
+      border-radius: 28px;
+      padding: 24px;
+      margin-bottom: 22px;
+      text-align: center;
+    }
+
+    .reels {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 25px 0 35px;
+      flex-wrap: wrap;
+    }
+
+    .slot-reel {
+      width: 110px;
+      height: 110px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 3px solid rgba(201, 162, 39, 0.55);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 68px;
+      transition: all 0.2s;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .spinning {
+      animation: spinReel 0.22s linear infinite;
+    }
+
+    @keyframes spinReel {
+      0% { transform: translateY(0px) rotate(0deg); }
+      25% { transform: translateY(-8px) rotate(5deg); }
+      75% { transform: translateY(6px) rotate(-5deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    .win-glow {
+      box-shadow: 0 0 24px 6px rgba(201, 162, 39, 0.9);
+      border-color: #f7d44a;
+      transition: 0.1s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #c9a227, #a07c1a);
+      border: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      color: #12100c;
+      font-weight: bold;
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: #e2b841;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(201, 162, 39, 0.18);
+      border: 1px solid rgba(201, 162, 39, 0.5);
+      padding: 10px 18px;
+      border-radius: 40px;
+      color: #efcd84;
+      cursor: pointer;
+      font-weight: 500;
+      width: 100%;
+    }
+
+    .bet-options {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 18px 0;
+      flex-wrap: wrap;
+    }
+
+    .bet-btn {
+      background: rgba(201, 162, 39, 0.12);
+      border: 1px solid rgba(201, 162, 39, 0.45);
+      padding: 10px 20px;
+      border-radius: 48px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #fbeba9;
+      transition: 0.2s;
+    }
+
+    .bet-btn:hover {
+      background: rgba(201, 162, 39, 0.45);
+      border-color: #fbe283;
+    }
+
+    input {
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(201, 162, 39, 0.5);
+      border-radius: 48px;
+      color: #f5e6c4;
+      text-align: center;
+      font-size: 1rem;
+      margin: 8px 0;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #e8bc4a;
+      box-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 48px;
+      margin-top: 18px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .alert.error {
+      background: rgba(220, 53, 69, 0.28);
+      border: 1px solid #e86272;
+      color: #ffcdcd;
+    }
+
+    .alert.success {
+      background: rgba(46, 204, 113, 0.28);
+      border: 1px solid #60e68c;
+      color: #dcffd5;
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .saldo-premium {
+      background: #141424b3;
+      border-radius: 60px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+  

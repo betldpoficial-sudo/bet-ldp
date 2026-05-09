@@ -2,130 +2,65 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Duelo de Líneas - Bet LDP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Duelo de Líneas — Bet LDP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/duelo-lineas.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: linear-gradient(135deg, #0a0a1a 0%, #0f0f23 100%);
-      font-family: 'Raleway', sans-serif;
-      color: #e2e2e2;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-    .game-container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: rgba(15, 15, 35, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      padding: 30px;
-      border: 1px solid rgba(201, 162, 39, 0.3);
-    }
-    h1 {
-      font-family: 'Cinzel', serif;
-      text-align: center;
-      color: #c9a227;
-      margin-bottom: 30px;
-    }
-    .back-btn {
-      background: rgba(201, 162, 39, 0.2);
-      border: 1px solid rgba(201, 162, 39, 0.4);
-      color: #c9a227;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: rgba(26, 26, 46, 0.6);
-      border: 1px solid rgba(201, 162, 39, 0.2);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .game-grid {
-      display: grid;
-      gap: 6px;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .grid-square {
-      background: rgba(201, 162, 39, 0.15);
-      border: 1px solid rgba(201, 162, 39, 0.3);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-    .grid-square:hover { background: rgba(201, 162, 39, 0.3); transform: scale(1.02); }
-    .btn-primary {
-      background: linear-gradient(135deg, #c9a227, #a07c1a);
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
-    select, input {
-      width: 100%;
-      padding: 12px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(201, 162, 39, 0.3);
-      border-radius: 8px;
-      color: white;
-      margin: 10px 0;
-    }
-    .alert { padding: 12px; border-radius: 8px; margin-top: 15px; text-align: center; }
-    .alert.error { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; }
-    .alert.success { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
-    .lives-display { font-size: 28px; font-weight: bold; color: #c9a227; text-align: center; }
-  </style>
 </head>
 <body>
-<div class="game-container">
-  <button class="back-btn" onclick="window.location.href='../index.html'">← Volver al casino</button>
-  <h1>⚔️ DUELO DE LÍNEAS ⚔️</h1>
-  
-  <div id="duelo-selection" class="card">
-    <div style="font-size:24px; font-weight:bold; color:#c9a227; text-align:center; margin-bottom:20px;" id="saldo-display">$0</div>
-    <label>Dificultad</label>
-    <select id="duelo-diff">
-      <option value="easy">🟢 Fácil (15 vidas, 7x7) - 7.5%</option>
-      <option value="normal">🟡 Medio (10 vidas, 7x7) - 15%</option>
-      <option value="hard">🔴 Difícil (10 vidas, 10x10) - 22.5%</option>
-    </select>
-    <label>Tu apuesta ($)</label>
-    <input type="number" id="duelo-bet" placeholder="Ingresa tu apuesta" min="1" step="0.01">
-    <button class="btn-primary" onclick="dueloStartGame()">Iniciar partida</button>
-    <div id="duelo-msg" class="alert" style="display:none;"></div>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../index.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
   </div>
-
-  <div id="duelo-game" style="display:none;">
-    <div class="card">
-      <div class="lives-display">❤️ <span id="duelo-lives">0</span> vidas</div>
-      <div>Apuesta: $<span id="duelo-bet-display">0</span></div>
-    </div>
-    <div class="card">
-      <div id="duelo-grid" class="game-grid"></div>
-      <button class="btn-primary" style="background:#333; margin-top:16px;" onclick="dueloEndGame()">Abandonar partida</button>
-      <div id="duelo-game-msg" class="alert" style="display:none;"></div>
-    </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
   </div>
+</nav>
+<div class="game-master">
+  <div class="game-container">
+    <h1>⚔️ DUELO DE LÍNEAS ⚔️</h1>
 
-  <div id="duelo-result" class="card" style="display:none; text-align:center;">
-    <h2 id="duelo-result-title">🎉 Resultado</h2>
-    <div id="duelo-result-detail" style="margin:20px 0;"></div>
-    <button class="btn-primary" onclick="location.reload()">Jugar de nuevo</button>
+    <div id="duelo-selection" class="card">
+      <div style="font-size:26px; font-weight:bold; color:#f5cd7a; text-align:center; margin-bottom:16px;" id="saldo-display">$0.00</div>
+      <label>🎯 Dificultad</label>
+      <select id="duelo-diff">
+        <option value="easy">🟢 Fácil (15 vidas, 7x7) - 7.5%</option>
+        <option value="normal">🟡 Medio (10 vidas, 7x7) - 15%</option>
+        <option value="hard">🔴 Difícil (10 vidas, 10x10) - 22.5%</option>
+      </select>
+      <label>💰 Tu apuesta ($)</label>
+      <input type="number" id="duelo-bet" placeholder="Ej: 50" min="1" step="1">
+      <button class="btn-primary" onclick="dueloStartGame()">✨ INICIAR DUELO ✨</button>
+      <div id="duelo-msg" class="alert" style="display:none;"></div>
+    </div>
+
+    <div id="duelo-game" style="display:none;">
+      <div class="card">
+        <div class="lives-display">❤️ <span id="duelo-lives">0</span> VIDAS</div>
+        <div class="info-row">
+          <span>🎲 Apuesta:</span>
+          <strong>$<span id="duelo-bet-display">0</span></strong>
+        </div>
+      </div>
+      <div class="card" style="padding: 20px;">
+        <div id="duelo-grid" class="game-grid"></div>
+        <button class="btn-primary" style="background: #2c2c3e; margin-top: 20px;" onclick="dueloEndGame(true)">🏳️ ABANDONAR PARTIDA</button>
+        <div id="duelo-game-msg" class="alert" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="duelo-result" class="card" style="display:none; text-align:center;">
+      <h2 id="duelo-result-title" style="color:#f3cd81;">🏆 RESULTADO</h2>
+      <div id="duelo-result-detail" style="margin:24px 0; font-size:1.1rem;"></div>
+      <button class="btn-primary" onclick="resetToMenu()">🔄 JUGAR DE NUEVO</button>
+    </div>
   </div>
 </div>
 
@@ -143,8 +78,13 @@
 
   let currentUser = null;
   let dueloState = {
-    selectedSquare: null, lives: 0, gridSize: 7,
-    bet: 0, maxLives: 0, payoutPercentage: 7.5
+    selectedSquare: null,
+    lives: 0,
+    gridSize: 7,
+    bet: 0,
+    maxLives: 10,
+    payoutPercentage: 7.5,
+    activeGame: false
   };
 
   function showMsg(containerId, type, text) {
@@ -157,104 +97,243 @@
     }
   }
 
-  async function autoLogin() {
-    const savedUserId = localStorage.getItem('betldp_user_id');
-    const savedEmail = localStorage.getItem('betldp_user_email');
-    if (!savedUserId || !savedEmail) return false;
-    try {
-      const doc = await db.collection('cuentas').doc(savedUserId).get();
-      if (doc.exists && doc.data().correo === savedEmail) {
-        currentUser = { docId: doc.id, ...doc.data() };
-        document.getElementById('saldo-display').textContent = '$' + currentUser.dinero.toFixed(2);
-        return true;
-      }
-    } catch(e) { console.warn(e); }
-    return false;
-  }
-
-  async function updateUserMoney(newAmount) {
+  async function updateGlobalMoneyDisplay(newAmount) {
     if (!currentUser) return;
     currentUser.dinero = newAmount;
-    document.getElementById('saldo-display').textContent = '$' + newAmount.toFixed(2);
-    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: newAmount });
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
   }
 
+  async function syncUserToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalMoneyDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const testSnap = await db.collection('cuentas').where('correo', '==', 'test@duelo.com').get();
+    if (!testSnap.empty) {
+      currentUser = { docId: testSnap.docs[0].id, ...testSnap.docs[0].data() };
+    } else {
+      const newUser = { user: 'Duelero', correo: 'test@duelo.com', clave: 'duel123', dinero: 1500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalMoneyDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // Modifica el dinero del usuario (deducción o premio)
+  async function modifyUserMoney(amountChange, isAdding = false) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += amountChange;
+    else newMoney -= amountChange;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalMoneyDisplay(newMoney);
+    await syncUserToFirestore();
+    return true;
+  }
+
+  // Configura grid y elige casilla SECRETA
   function dueloSetupGrid() {
     const grid = document.getElementById('duelo-grid');
     const size = dueloState.gridSize;
-    let squareSize = size === 10 ? '32px' : '40px';
+    let squareSize = size === 10 ? '42px' : '48px';
     grid.style.gridTemplateColumns = `repeat(${size}, ${squareSize})`;
     grid.innerHTML = '';
-    dueloState.selectedSquare = Math.floor(Math.random() * size * size);
+    // elegir una casilla aleatoria para la victoria
+    const totalCells = size * size;
+    dueloState.selectedSquare = Math.floor(Math.random() * totalCells);
     dueloState.lives = dueloState.maxLives;
     document.getElementById('duelo-lives').textContent = dueloState.lives;
 
-    for (let i = 0; i < size * size; i++) {
+    for (let i = 0; i < totalCells; i++) {
       const square = document.createElement('div');
       square.className = 'grid-square';
       square.style.width = squareSize;
       square.style.height = squareSize;
-      square.onclick = () => dueloCheckSquare(i);
+      square.setAttribute('data-index', i);
+      square.onclick = (function(idx) { return function() { dueloCheckSquare(idx); }; })(i);
       grid.appendChild(square);
     }
   }
 
+  // Lógica principal al hacer clic en una casilla
   async function dueloCheckSquare(index) {
-    if (dueloState.lives <= 0) return;
+    if (!dueloState.activeGame) return;
+    if (dueloState.lives <= 0) {
+      await dueloEndGame(false);
+      return;
+    }
+
     const size = dueloState.gridSize;
-    const selectedRow = Math.floor(dueloState.selectedSquare / size);
-    const selectedCol = dueloState.selectedSquare % size;
+    const secretRow = Math.floor(dueloState.selectedSquare / size);
+    const secretCol = dueloState.selectedSquare % size;
     const clickedRow = Math.floor(index / size);
     const clickedCol = index % size;
     const squares = document.querySelectorAll('#duelo-grid div');
+    if (!squares[index]) return;
+
     const clickedSquare = squares[index];
 
+    // CASO VICTORIA -> premio
     if (index === dueloState.selectedSquare) {
-      clickedSquare.style.background = '#27ae60';
-      clickedSquare.textContent = '✓';
-      const payout = dueloState.bet * (dueloState.payoutPercentage / 100);
-      await updateUserMoney(currentUser.dinero + dueloState.bet + payout);
+      dueloState.activeGame = false;
+      clickedSquare.style.background = '#2a9d6e';
+      clickedSquare.style.borderColor = '#f5c542';
+      clickedSquare.textContent = '✨';
+      const profitBonus = dueloState.bet * (dueloState.payoutPercentage / 100);
+      const totalWin = dueloState.bet + profitBonus;
+      await modifyUserMoney(totalWin, true);
+      
+      // mostrar resultado victoria
       document.getElementById('duelo-game').style.display = 'none';
       document.getElementById('duelo-result').style.display = 'block';
-      document.getElementById('duelo-result-title').innerHTML = '🎉 ¡VICTORIA! 🎉';
-      document.getElementById('duelo-result-detail').innerHTML = `Ganancia: +$${(dueloState.bet + payout).toFixed(2)}<br>Saldo: $${currentUser.dinero.toFixed(2)}`;
-    } else {
-      dueloState.lives--;
-      document.getElementById('duelo-lives').textContent = dueloState.lives;
-      if (clickedCol === selectedCol) clickedSquare.style.background = '#f39c12';
-      else if (clickedRow === selectedRow) clickedSquare.style.background = '#3498db';
-      else clickedSquare.style.background = '#34495e';
-      if (dueloState.lives <= 0) dueloEndGame();
+      document.getElementById('duelo-result-title').innerHTML = '🎉 ¡DUELO GANADO! 🎉';
+      document.getElementById('duelo-result-detail').innerHTML = `
+        <div style="font-size:1.3rem; margin:10px 0;">💵 GANANCIA NETA: +$${totalWin.toFixed(2)}</div>
+        <div>💰 Nuevo saldo: $${currentUser.dinero.toFixed(2)}</div>
+        <div style="margin-top:8px;">🎯 ¡Elegiste la línea exacta!</div>
+      `;
+      dueloState.activeGame = false;
+      return;
+    }
+
+    // Fallo -> pérdida de vida + feedback visual
+    dueloState.lives--;
+    document.getElementById('duelo-lives').textContent = dueloState.lives;
+    
+    // efecto visual según pista: Misma columna? Misma fila? o ninguna
+    if (clickedCol === secretCol) {
+      clickedSquare.style.background = '#e67e22';  // naranja (columna)
+      clickedSquare.style.borderColor = '#faa75e';
+      clickedSquare.textContent = '▼';
+    } 
+    else if (clickedRow === secretRow) {
+      clickedSquare.style.background = '#2980b9';  // azul (fila)
+      clickedSquare.style.borderColor = '#5faee3';
+      clickedSquare.textContent = '▶';
+    } 
+    else {
+      clickedSquare.style.background = '#4a5b6e';
+      clickedSquare.style.borderColor = '#6c7f8f';
+      clickedSquare.textContent = '✗';
+    }
+    
+    if (dueloState.lives <= 0) {
+      // derrota sin premio
+      await dueloEndGame(false);
     }
   }
 
-  async function dueloEndGame() {
+  // Finalizar juego (derrota o abandono)
+  async function dueloEndGame(isAbandon = false) {
+    if (!dueloState.activeGame && !isAbandon) return;
+    dueloState.activeGame = false;
+    
+    // Mostrar pantalla de derrota (saldo ya fue descontado al inicio)
     document.getElementById('duelo-game').style.display = 'none';
     document.getElementById('duelo-result').style.display = 'block';
-    document.getElementById('duelo-result-title').innerHTML = '💀 Derrota 💀';
-    document.getElementById('duelo-result-detail').innerHTML = `Perdiste $${dueloState.bet.toFixed(2)}<br>Saldo: $${currentUser.dinero.toFixed(2)}`;
+    document.getElementById('duelo-result-title').innerHTML = isAbandon ? '🏳️ ABANDONO' : '💀 DERROTA 💀';
+    const lostAmount = dueloState.bet;
+    document.getElementById('duelo-result-detail').innerHTML = `
+      <div style="font-size:1.2rem; margin:12px 0;">❌ Has perdido $${lostAmount.toFixed(2)}</div>
+      <div>💰 Saldo actual: $${currentUser?.dinero?.toFixed(2) ?? 0}</div>
+      <div style="margin-top:8px;">😔 La línea oculta no fue revelada a tiempo.</div>
+    `;
   }
 
+  // Inicio de partida: valida apuesta, aplica descuento, configura partida
   async function dueloStartGame() {
-    if (!currentUser) { showMsg('duelo-msg', 'error', 'Debés iniciar sesión.'); return; }
-    const diff = document.getElementById('duelo-diff').value;
-    const bet = parseFloat(document.getElementById('duelo-bet').value);
-    if (!bet || bet <= 0) { showMsg('duelo-msg', 'error', 'Apuesta válida requerida.'); return; }
-    if (bet > currentUser.dinero) { showMsg('duelo-msg', 'error', 'Saldo insuficiente.'); return; }
+    if (!currentUser) {
+      showMsg('duelo-msg', 'error', '⛔ No se pudo cargar tu cuenta. Recarga o inicia sesión.');
+      return;
+    }
 
-    dueloState.bet = bet;
-    if (diff === 'easy') { dueloState.maxLives = 15; dueloState.gridSize = 7; dueloState.payoutPercentage = 7.5; }
-    else if (diff === 'normal') { dueloState.maxLives = 10; dueloState.gridSize = 7; dueloState.payoutPercentage = 15; }
-    else { dueloState.maxLives = 10; dueloState.gridSize = 10; dueloState.payoutPercentage = 22.5; }
+    const diffSelect = document.getElementById('duelo-diff');
+    const difficulty = diffSelect.value;
+    const rawBet = parseFloat(document.getElementById('duelo-bet').value);
+    if (isNaN(rawBet) || rawBet < 1) {
+      showMsg('duelo-msg', 'error', '⚠️ Apuesta inválida. Monto mínimo $1');
+      return;
+    }
+    const betAmount = rawBet;
+    if (betAmount > currentUser.dinero) {
+      showMsg('duelo-msg', 'error', `❌ Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
 
-    await updateUserMoney(currentUser.dinero - bet);
-    document.getElementById('duelo-bet-display').textContent = bet.toFixed(2);
+    // configurar dificultad
+    if (difficulty === 'easy') {
+      dueloState.maxLives = 15;
+      dueloState.gridSize = 7;
+      dueloState.payoutPercentage = 7.5;
+    } else if (difficulty === 'normal') {
+      dueloState.maxLives = 10;
+      dueloState.gridSize = 7;
+      dueloState.payoutPercentage = 15;
+    } else {
+      dueloState.maxLives = 10;
+      dueloState.gridSize = 10;
+      dueloState.payoutPercentage = 22.5;
+    }
+
+    dueloState.bet = betAmount;
+    dueloState.activeGame = true;
+
+    // DESCUENTO DE LA APUESTA (riesgo)
+    const success = await modifyUserMoney(betAmount, false);
+    if (!success) {
+      showMsg('duelo-msg', 'error', 'Error al descontar apuesta, saldo insuficiente.');
+      return;
+    }
+
+    // Mostrar datos en interfaz de juego
+    document.getElementById('duelo-bet-display').textContent = betAmount.toFixed(2);
     document.getElementById('duelo-selection').style.display = 'none';
     document.getElementById('duelo-game').style.display = 'block';
+    document.getElementById('duelo-result').style.display = 'none';
+    
     dueloSetupGrid();
   }
 
-  autoLogin();
+  // Reset visual para volver a menú principal (jugar otra vez)
+  function resetToMenu() {
+    document.getElementById('duelo-result').style.display = 'none';
+    document.getElementById('duelo-game').style.display = 'none';
+    document.getElementById('duelo-selection').style.display = 'block';
+    // limpiar mensajes residuales
+    const msgDiv = document.getElementById('duelo-msg');
+    if (msgDiv) msgDiv.style.display = 'none';
+    const gameMsg = document.getElementById('duelo-game-msg');
+    if (gameMsg) gameMsg.style.display = 'none';
+    dueloState.activeGame = false;
+  }
+
+  // Carga inicial y refresco periódico del saldo en navbar (actualización dinámica)
+  async function init() {
+    await autoLoginAndLoadUser();
+    // Asegurar que el navbar tenga el saldo correcto después de cada modificación
+    if (currentUser) {
+      const moneySpan = document.getElementById('money-display');
+      if (moneySpan) moneySpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  init();
 </script>
 </body>
 </html>

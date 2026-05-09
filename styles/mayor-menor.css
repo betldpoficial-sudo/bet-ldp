@@ -1,0 +1,195 @@
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at 15% 30%, #0a0c1a, #02040c);
+      font-family: 'Raleway', sans-serif;
+      color: #ececec;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Contenedor principal que centra vertical y horizontalmente */
+    .game-master {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+    }
+
+    .game-container {
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      background: rgba(12, 12, 28, 0.88);
+      backdrop-filter: blur(12px);
+      border-radius: 36px;
+      padding: 28px 32px;
+      border: 1px solid rgba(201, 162, 39, 0.35);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      color: #e9c468;
+      text-shadow: 0 0 8px rgba(201, 162, 39, 0.5);
+      margin-bottom: 28px;
+      font-size: 2rem;
+      letter-spacing: 2px;
+    }
+
+    /* estilos de cartas similares a los juegos anteriores */
+    .card {
+      background: rgba(22, 22, 44, 0.75);
+      border: 1px solid rgba(201, 162, 39, 0.25);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 22px;
+      transition: all 0.2s;
+    }
+
+    .mm-number {
+      font-size: 78px;
+      font-weight: 900;
+      text-align: center;
+      color: #f3cd81;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 40px;
+      padding: 30px 20px;
+      margin: 20px 0;
+      transition: transform 0.2s ease;
+      border: 1px solid #c9a22766;
+      font-family: monospace;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #c9a227, #a07c1a);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 48px;
+      color: #0e0e0e;
+      font-weight: bold;
+      font-family: 'Raleway', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: #dfb541;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(201, 162, 39, 0.18);
+      border: 1px solid rgba(201, 162, 39, 0.5);
+      padding: 10px 20px;
+      border-radius: 48px;
+      color: #e9c87a;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(201, 162, 39, 0.35);
+    }
+
+    .bet-options {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .bet-btn {
+      background: rgba(201, 162, 39, 0.12);
+      border: 1px solid rgba(201, 162, 39, 0.4);
+      padding: 10px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      color: #f5deac;
+    }
+
+    .bet-btn:hover, .bet-btn.active {
+      background: rgba(201, 162, 39, 0.5);
+      border-color: #f0c75e;
+      color: #ffffff;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 18px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(201, 162, 39, 0.5);
+      border-radius: 48px;
+      color: #f2e8cf;
+      font-size: 1rem;
+      margin: 12px 0;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: #e3bc58;
+      box-shadow: 0 0 6px rgba(201, 162, 39, 0.4);
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 40px;
+      margin-top: 18px;
+      text-align: center;
+      font-weight: 500;
+      backdrop-filter: blur(6px);
+    }
+
+    .alert.error {
+      background: rgba(220, 53, 69, 0.25);
+      border: 1px solid #e65c6e;
+      color: #ffbfbf;
+    }
+
+    .alert.success {
+      background: rgba(46, 204, 113, 0.25);
+      border: 1px solid #60e68c;
+      color: #c8ffcf;
+    }
+
+    .alert.info {
+      background: rgba(52, 152, 219, 0.25);
+      border: 1px solid #5dade2;
+      color: #c2e0ff;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 18px;
+      margin: 25px 0 15px 0;
+    }
+
+    .win-display {
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .saldo-header {
+      text-align: center;
+      margin-bottom: 18px;
+      background: #0a0a1a70;
+      border-radius: 64px;
+      padding: 10px;
+    }
+  
