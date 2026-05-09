@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mayor o Menor - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #0a0a1a 0%, #0f0f23 100%);
+      font-family: 'Raleway', sans-serif;
+      color: #e2e2e2;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(15, 15, 35, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 30px;
+      border: 1px solid rgba(201, 162, 39, 0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      color: #c9a227;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    .back-btn {
+      background: rgba(201, 162, 39, 0.2);
+      border: 1px solid rgba(201, 162, 39, 0.4);
+      color: #c9a227;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+    }
+    .back-btn:hover {
+      background: rgba(201, 162, 39, 0.4);
+    }
+    .card {
+      background: rgba(26, 26, 46, 0.6);
+      border: 1px solid rgba(201, 162, 39, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .mm-number {
+      font-size: 64px;
+      font-weight: 900;
+      text-align: center;
+      color: #c9a227;
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      padding: 30px;
+      margin: 20px 0;
+      transition: transform 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #c9a227, #a07c1a);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      background: rgba(201, 162, 39, 0.2);
+      border: 1px solid rgba(201, 162, 39, 0.4);
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: #c9a227;
+      cursor: pointer;
+    }
+    .bet-options { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+    .bet-btn {
+      background: rgba(201, 162, 39, 0.15);
+      border: 1px solid rgba(201, 162, 39, 0.3);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .bet-btn:hover, .bet-btn.active {
+      background: rgba(201, 162, 39, 0.4);
+      border-color: #c9a227;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(201, 162, 39, 0.3);
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+    }
+    .alert { padding: 12px; border-radius: 8px; margin-top: 15px; text-align: center; }
+    .alert.error { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; }
+    .alert.success { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
+    .flex-row { display: flex; gap: 15px; margin-top: 20px; }
+    .win-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #c9a227;
+      text-align: center;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Volver al casino</button>
+  <h1>🎲 MAYOR o MENOR 🎲</h1>
+  
+  <div id="mm-selection" class="card">
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="font-size:14px; color:#aaa;">Tu saldo actual</div>
+      <div style="font-size:32px; font-weight:bold; color:#c9a227;" id="saldo-display">$0</div>
+    </div>
+    <label>Tu apuesta ($)</label>
+    <div class="bet-options">
+      <button class="bet-btn" onclick="setQuickBet(10)">$10</button>
+      <button class="bet-btn" onclick="setQuickBet(25)">$25</button>
+      <button class="bet-btn" onclick="setQuickBet(50)">$50</button>
+      <button class="bet-btn" onclick="setQuickBet(100)">$100</button>
+    </div>
+    <input type="number" id="mm-bet" placeholder="Ingresa tu apuesta" min="1" step="0.01">
+    <button class="btn-primary" onclick="mmStartGame()" style="margin-top:20px; width:100%;">Iniciar partida</button>
+    <div id="mm-msg-selection" class="alert" style="display:none;"></div>
+  </div>
+
+  <div id="mm-game-area" style="display:none;">
+    <div class="card">
+      <div style="text-align:center;">
+        <div style="font-size:14px; color:#aaa;">Apuesta actual</div>
+        <div style="font-size:24px; font-weight:bold; color:#c9a227;">$<span id="mm-bet-display">0</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="mm-current-number" class="mm-number">5</div>
+      <div class="flex-row">
+        <button class="btn-primary" onclick="mmGuess('mayor')" style="flex:1;">🔺 MAYOR</button>
+        <button class="btn-primary" onclick="mmGuess('menor')" style="flex:1;">🔻 MENOR</button>
+      </div>
+      <div id="mm-result" style="font-size:16px; text-align:center; min-height:50px;"></div>
+      <button class="btn-secondary" style="margin-top:15px; width:100%;" onclick="mmEndGame()">💵 Retirarse con ganancias</button>
+    </div>
+  </div>
+
+  <div id="mm-result-final" class="card" style="display:none; text-align:center;">
+    <h2 id="mm-final-title">🎉 Resultado</h2>
+    <div id="mm-final-detail" style="margin:20px 0; font-size:18px;"></div>
+    <button class="btn-primary" onclick="location.reload()">Jugar de nuevo</button>
+    <button class="btn-secondary" style="margin-top:10px;" onclick="window.location.href='../index.html'">Volver al casino</button>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let mmState = { active: false, bet: 0, currentNumber: 5, gameOver: false };
+
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 4000);
+    }
+  }
+
+  async function autoLogin() {
+    const savedUserId = localStorage.getItem('betldp_user_id');
+    const savedEmail = localStorage.getItem('betldp_user_email');
+    if (!savedUserId || !savedEmail) return false;
+    try {
+      const doc = await db.collection('cuentas').doc(savedUserId).get();
+      if (doc.exists && doc.data().correo === savedEmail) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        document.getElementById('saldo-display').textContent = '$' + currentUser.dinero.toFixed(2);
+        return true;
+      }
+    } catch(e) { console.warn(e); }
+    return false;
+  }
+
+  async function updateUserMoney(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    document.getElementById('saldo-display').textContent = '$' + newAmount.toFixed(2);
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: newAmount });
+  }
+
+  function setQuickBet(amount) {
+    document.getElementById('mm-bet').value = amount;
+  }
+
+  async function mmStartGame() {
+    if (!currentUser) {
+      showMsg('mm-msg-selection', 'error', 'Debés iniciar sesión primero. Volviendo al casino...');
+      setTimeout(() => window.location.href = '../index.html', 2000);
+      return;
+    }
+    const bet = parseFloat(document.getElementById('mm-bet').value);
+    if (!bet || bet <= 0) { showMsg('mm-msg-selection', 'error', 'Apuesta válida requerida.'); return; }
+    if (bet > currentUser.dinero) { showMsg('mm-msg-selection', 'error', 'Saldo insuficiente.'); return; }
+
+    mmState.bet = bet;
+    mmState.currentNumber = Math.floor(Math.random() * 10) + 1;
+    mmState.active = true;
+    mmState.gameOver = false;
+
+    await updateUserMoney(currentUser.dinero - bet);
+
+    document.getElementById('mm-selection').style.display = 'none';
+    document.getElementById('mm-game-area').style.display = 'block';
+    document.getElementById('mm-result-final').style.display = 'none';
+    document.getElementById('mm-bet-display').innerText = bet.toFixed(2);
+    document.getElementById('mm-current-number').innerText = mmState.currentNumber;
+    document.getElementById('mm-result').innerHTML = '';
+  }
+
+  async function mmGuess(choice) {
+    if (!mmState.active || mmState.gameOver) return;
+
+    let newNumber;
+    do { newNumber = Math.floor(Math.random() * 10) + 1; } while (newNumber === mmState.currentNumber);
+
+    const numberDisplay = document.getElementById('mm-current-number');
+    numberDisplay.style.transform = 'scale(1.2)';
+    setTimeout(() => {
+      numberDisplay.innerText = newNumber;
+      numberDisplay.style.transform = 'scale(1)';
+    }, 150);
+
+    let won = (choice === 'mayor' && newNumber > mmState.currentNumber) ||
+              (choice === 'menor' && newNumber < mmState.currentNumber);
+    mmState.currentNumber = newNumber;
+
+    if (won) {
+      const winAmount = mmState.bet * 2;
+      mmState.bet = winAmount;
+      document.getElementById('mm-result').innerHTML = `<span style="color:#2ecc71;">✅ ¡Acertaste! Sigues jugando. Apuesta actual: $${winAmount.toFixed(2)}</span>`;
+    } else {
+      mmState.gameOver = true;
+      mmState.active = false;
+      document.getElementById('mm-result').innerHTML = `<span style="color:#e74c3c;">❌ ¡Perdiste! El nuevo número era ${newNumber}.</span>`;
+      setTimeout(() => mmShowFinalResult(false), 1000);
+    }
+  }
+
+  async function mmShowFinalResult(won) {
+    document.getElementById('mm-game-area').style.display = 'none';
+    document.getElementById('mm-result-final').style.display = 'block';
+    if (!won) {
+      document.getElementById('mm-final-title').innerHTML = '💀 Derrota 💀';
+      document.getElementById('mm-final-detail').innerHTML = `Perdiste tu apuesta original: $${mmState.bet.toFixed(2)}<br><br>Saldo actual: $${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  async function mmEndGame() {
+    if (!mmState.active) return;
+    const totalWin = mmState.bet;
+    await updateUserMoney(currentUser.dinero + totalWin);
+    mmState.active = false;
+    mmState.gameOver = true;
+    document.getElementById('mm-game-area').style.display = 'none';
+    document.getElementById('mm-result-final').style.display = 'block';
+    document.getElementById('mm-final-title').innerHTML = '🎉 ¡Te retiraste con ganancias! 🎉';
+    document.getElementById('mm-final-detail').innerHTML = `Ganaste $${totalWin.toFixed(2)}<br>Total retirado: $${totalWin.toFixed(2)}<br><br>Saldo actual: $${currentUser.dinero.toFixed(2)}`;
+  }
+
+  autoLogin();
+</script>
+</body>
+</html>

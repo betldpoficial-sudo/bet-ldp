@@ -289,3 +289,9 @@ if (typeof resetCardDisplay === 'undefined') {
     }
   };
 }
+function toggleMenuAccount() {
+  document.getElementById('menu-account').classList.toggle('open');
+}
+function closeMenuAccount() {
+  document.getElementById('menu-account').classList.remove('open');
+}

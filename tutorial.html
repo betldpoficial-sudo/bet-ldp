@@ -634,27 +634,63 @@ async function register() {
   const name = document.getElementById('reg-name').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const pass = document.getElementById('reg-pass').value;
-  if (!name || !email || !pass) { alert('Completá todos los campos.'); return; }
-  if (pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres.'); return; }
+  clearMsg('reg-msg');
+
+  if (!name || !email || !pass) { showMsg('reg-msg', 'error', 'Completá todos los campos.'); return; }
+  if (pass.length < 6) { showMsg('reg-msg', 'error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+
   const btn = document.getElementById('btn-reg-submit');
-  btn.innerHTML = 'Creando...';
+  btn.innerHTML = '<span class="spinner"></span>Creando cuenta...';
   btn.disabled = true;
+
   try {
     const check = await db.collection('cuentas').where('correo', '==', email).get();
-    if (!check.empty) { alert('Ya existe una cuenta.'); btn.innerHTML = 'Crear cuenta'; btn.disabled=false; return; }
-    await db.collection('cuentas').add({ clave: pass, correo: email, dinero: 0, user: name, verificado: false });
+    if (!check.empty) {
+      showMsg('reg-msg', 'error', 'Ya existe una cuenta con ese correo. Usá otro.');
+      btn.innerHTML = 'Crear cuenta'; btn.disabled = false; return;
+    }
+
+    await db.collection('cuentas').add({
+      clave:      pass,
+      correo:     email,
+      dinero:     0,
+      user:       name,
+      verificado: false
+    });
+
+    // Enviar correo de bienvenida
+    try {
+      await emailjs.send("service_jwbttvy", "template_bienvenida", {
+        nombre: name,
+        email:  email,
+        fecha: new Date().toLocaleDateString('es-ES')
+      });
+      console.log('Correo de bienvenida enviado correctamente');
+    } catch(emailError) {
+      console.error('Error al enviar correo de bienvenida:', emailError);
+    }
+
+    // Actualizar localStorage y UI del tutorial
     localStorage.setItem('usuarioActual', JSON.stringify({ docId: 'temp', nombre: name, correo: email, dinero: 0 }));
     currentBalance = 0;
     updateBalanceDisplay();
-    alert('¡Cuenta creada exitosamente!');
-    document.getElementById('reg-name').value = '';
-    document.getElementById('reg-email').value = '';
-    document.getElementById('reg-pass').value = '';
-    document.getElementById('btn-go-register').style.display = 'none';
-    document.getElementById('btn-go-recarga').style.display = 'block';
-    showTab('inicio');
-  } catch(e) { alert('Error al crear la cuenta.'); console.error(e); }
-  finally { btn.innerHTML = 'Crear cuenta'; btn.disabled = false; }
+
+    showMsg('reg-msg', 'success', '¡Cuenta creada! Te hemos enviado un correo de confirmación. Serás redirigido al inicio...');
+    setTimeout(() => {
+      clearMsg('reg-msg');
+      document.getElementById('reg-name').value = '';
+      document.getElementById('reg-email').value = '';
+      document.getElementById('reg-pass').value = '';
+      document.getElementById('btn-go-register').style.display = 'none';
+      document.getElementById('btn-go-recarga').style.display = 'block';
+      showTab('inicio');
+    }, 2500);
+  } catch(e) {
+    showMsg('reg-msg', 'error', 'Error al crear la cuenta. Intentá nuevamente.');
+    console.error(e);
+  } finally {
+    btn.innerHTML = 'Crear cuenta'; btn.disabled = false;
+  }
 }
 
 async function cuponRec() {

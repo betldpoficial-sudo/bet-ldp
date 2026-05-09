@@ -1,0 +1,3 @@
+Asi me quedo mi index.html, ahora quiero que cuando el usuario cree su cuenta, le llegara un correo.
+
+Dime que hacer...
