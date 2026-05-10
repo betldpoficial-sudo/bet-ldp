@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Dados del Duelo — Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/dados.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../index.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🎲 JUEGO DE DADOS 🎲</h1>
+
+    <div id="dados-selection" class="card">
+      <div style="font-size:26px; font-weight:bold; color:#f5cd7a; text-align:center; margin-bottom:16px;" id="saldo-display">$0.00</div>
+      
+      <label>🎯 Tipo de apuesta</label>
+      <select id="bet-type">
+        <option value="mayor7">⚔️ Mayor a 7 → paga 1:1</option>
+        <option value="menor7">🛡️ Menor a 7 → paga 1:1</option>
+        <option value="exacto7">✨ Exactamente 7 → paga 4:1</option>
+        <option value="par">🔢 Suma PAR → paga 1:1</option>
+        <option value="impar">🔢 Suma IMPAR → paga 1:1</option>
+        <option value="dobles">🎲 Dobles (mismo número) → paga 5:1</option>
+      </select>
+
+      <label>💰 Tu apuesta ($)</label>
+      <input type="number" id="dados-bet" placeholder="Ej: 50" min="1" step="1">
+      <button class="btn-primary" onclick="startDadosGame()">🎲 LANZAR DADOS 🎲</button>
+      <div id="dados-msg" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- Pantalla de juego: animación de dados -->
+    <div id="dados-game" style="display:none;">
+      <div class="card" style="text-align:center;">
+        <div class="lives-display" style="margin-bottom:12px;">💰 Apuesta: <strong>$<span id="game-bet-amount">0</span></strong> | 🎲 Apuesta: <span id="game-bet-type">-</span></div>
+        
+        <!-- Área de dados animados -->
+        <div class="dice-area">
+          <div class="dice-container">
+            <div class="dice" id="dice1">
+              <div class="dice-face">⚀</div>
+            </div>
+            <div class="dice" id="dice2">
+              <div class="dice-face">⚀</div>
+            </div>
+          </div>
+          <div class="sum-display" id="sum-display">= ?</div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+          <button class="btn-primary" id="roll-btn" onclick="rollDices()">🎲 LANZAR DADOS</button>
+          <button class="btn-secondary" style="background:#2c2c3e; margin-left:10px;" onclick="cancelDadosGame()">◀ CANCELAR</button>
+        </div>
+        <div id="dados-game-msg" class="alert" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Pantalla de resultado -->
+    <div id="dados-result" class="card" style="display:none; text-align:center;">
+      <h2 id="dados-result-title" style="color:#f3cd81;">🎲 RESULTADO</h2>
+      <div id="dados-result-detail" style="margin:24px 0; font-size:1.2rem;"></div>
+      <button class="btn-primary" onclick="resetDadosToMenu()">🔄 JUGAR DE NUEVO</button>
+    </div>
+  </div>
+</div>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentGameState = {
+    active: false,
+    betAmount: 0,
+    betType: 'mayor7',
+    multiplier: 1,
+    dice1: 1,
+    dice2: 1,
+    sum: 2
+  };
+
+  // ---------- UTILIDADES ----------
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 4000);
+    }
+  }
+
+  async function updateGlobalMoneyDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncUserToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(amountChange, isAdding = false) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += amountChange;
+    else newMoney -= amountChange;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalMoneyDisplay(newMoney);
+    await syncUserToFirestore();
+    return true;
+  }
+
+  // ---------- AUTOLOGIN ----------
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalMoneyDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const testSnap = await db.collection('cuentas').where('correo', '==', 'test@dados.com').get();
+    if (!testSnap.empty) {
+      currentUser = { docId: testSnap.docs[0].id, ...testSnap.docs[0].data() };
+    } else {
+      const newUser = { user: 'TiradorDados', correo: 'test@dados.com', clave: 'dados123', dinero: 2000, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalMoneyDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // Obtener multiplicador según tipo de apuesta
+  function getMultiplier(betType) {
+    if (betType === 'mayor7' || betType === 'menor7' || betType === 'par' || betType === 'impar') return 1;
+    if (betType === 'exacto7') return 4;
+    if (betType === 'dobles') return 5;
+    return 1;
+  }
+
+  // Determinar si la apuesta es ganadora dados los dados y el tipo
+  function isBetWinner(sum, dice1, dice2, betType) {
+    switch(betType) {
+      case 'mayor7': return sum > 7;
+      case 'menor7': return sum < 7;
+      case 'exacto7': return sum === 7;
+      case 'par': return sum % 2 === 0;
+      case 'impar': return sum % 2 === 1;
+      case 'dobles': return dice1 === dice2;
+      default: return false;
+    }
+  }
+
+  // Mostrar símbolo del dado según número
+  function getDiceSymbol(value) {
+    const symbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    return symbols[value-1];
+  }
+
+  // Animación de lanzamiento
+  async function rollDices() {
+    if (!currentGameState.active) return;
+    const rollBtn = document.getElementById('roll-btn');
+    if (rollBtn) rollBtn.disabled = true;
+    
+    const dice1Elem = document.getElementById('dice1');
+    const dice2Elem = document.getElementById('dice2');
+    const sumDisplay = document.getElementById('sum-display');
+    
+    // Agregar animación
+    dice1Elem.classList.add('rolling');
+    dice2Elem.classList.add('rolling');
+    
+    // Simular lanzamiento con valores aleatorios (1-6)
+    const newDice1 = Math.floor(Math.random() * 6) + 1;
+    const newDice2 = Math.floor(Math.random() * 6) + 1;
+    const newSum = newDice1 + newDice2;
+    
+    // Pequeño delay para efecto de azar
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
+    // Actualizar visuales
+    dice1Elem.querySelector('.dice-face').textContent = getDiceSymbol(newDice1);
+    dice2Elem.querySelector('.dice-face').textContent = getDiceSymbol(newDice2);
+    sumDisplay.textContent = `= ${newSum}`;
+    
+    // Quitar animación
+    dice1Elem.classList.remove('rolling');
+    dice2Elem.classList.remove('rolling');
+    
+    // Calcular resultado
+    const win = isBetWinner(newSum, newDice1, newDice2, currentGameState.betType);
+    let winAmount = 0;
+    if (win) {
+      winAmount = currentGameState.betAmount * currentGameState.multiplier;
+      await modifyUserMoney(winAmount, true);
+    }
+    
+    currentGameState.active = false;
+    if (rollBtn) rollBtn.disabled = false;
+    
+    // Mostrar pantalla de resultado
+    document.getElementById('dados-game').style.display = 'none';
+    document.getElementById('dados-result').style.display = 'block';
+    const resultTitle = document.getElementById('dados-result-title');
+    const resultDetail = document.getElementById('dados-result-detail');
+    
+    const diceSymbols = `${getDiceSymbol(newDice1)} ${getDiceSymbol(newDice2)}`;
+    const typeTranslated = {
+      'mayor7': 'Mayor a 7', 'menor7': 'Menor a 7', 'exacto7': 'Exactamente 7',
+      'par': 'Suma PAR', 'impar': 'Suma IMPAR', 'dobles': 'Dobles'
+    }[currentGameState.betType] || currentGameState.betType;
+    
+    if (win) {
+      resultTitle.innerHTML = '🎉 ¡APUESTA GANADA! 🎉';
+      resultDetail.innerHTML = `
+        <div style="font-size:2rem; margin:12px 0;">${diceSymbols}</div>
+        <div style="font-size:1.6rem; font-weight:bold;">🎲 SUMA: ${newSum} 🎲</div>
+        <div style="font-size:1.2rem; margin:15px 0;">💵 GANANCIA NETA: <strong style="color:#f5cd7a;">+$${winAmount.toFixed(2)}</strong></div>
+        <div>💰 Nuevo saldo: $${currentUser.dinero.toFixed(2)}</div>
+        <div style="margin-top:12px;">✨ ¡Acertaste tu apuesta (${typeTranslated})! ✨</div>
+      `;
+    } else {
+      resultTitle.innerHTML = '😔 APUESTA PERDIDA';
+      resultDetail.innerHTML = `
+        <div style="font-size:2rem; margin:12px 0;">${diceSymbols}</div>
+        <div style="font-size:1.6rem; font-weight:bold;">🎲 SUMA: ${newSum} 🎲</div>
+        <div style="font-size:1.2rem; margin:15px 0;">❌ Has perdido <strong>$${currentGameState.betAmount.toFixed(2)}</strong></div>
+        <div>💰 Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+        <div>🤞 Tu apuesta (${typeTranslated}) no fue la correcta.</div>
+      `;
+    }
+  }
+
+  // Iniciar juego: validar apuesta y descontar
+  async function startDadosGame() {
+    if (!currentUser) {
+      showMsg('dados-msg', 'error', '⛔ Error de usuario. Recarga la página.');
+      return;
+    }
+
+    const betType = document.getElementById('bet-type').value;
+    const rawBet = parseFloat(document.getElementById('dados-bet').value);
+    if (isNaN(rawBet) || rawBet < 1) {
+      showMsg('dados-msg', 'error', '⚠️ Apuesta inválida, mínimo $1.');
+      return;
+    }
+    const betAmount = rawBet;
+    if (betAmount > currentUser.dinero) {
+      showMsg('dados-msg', 'error', `❌ Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+
+    // Descontar apuesta
+    const success = await modifyUserMoney(betAmount, false);
+    if (!success) {
+      showMsg('dados-msg', 'error', 'Error al descontar apuesta.');
+      return;
+    }
+
+    // Guardar estado
+    currentGameState.active = true;
+    currentGameState.betAmount = betAmount;
+    currentGameState.betType = betType;
+    currentGameState.multiplier = getMultiplier(betType);
+    currentGameState.dice1 = 1;
+    currentGameState.dice2 = 1;
+    currentGameState.sum = 2;
+
+    // Mostrar interfaz de juego
+    document.getElementById('dados-selection').style.display = 'none';
+    document.getElementById('dados-game').style.display = 'block';
+    document.getElementById('dados-result').style.display = 'none';
+    
+    // Actualizar textos
+    document.getElementById('game-bet-amount').innerText = betAmount.toFixed(2);
+    let typeLabel = '';
+    switch(betType) {
+      case 'mayor7': typeLabel = '⚔️ Mayor a 7'; break;
+      case 'menor7': typeLabel = '🛡️ Menor a 7'; break;
+      case 'exacto7': typeLabel = '✨ Exactamente 7'; break;
+      case 'par': typeLabel = '🔢 Suma PAR'; break;
+      case 'impar': typeLabel = '🔢 Suma IMPAR'; break;
+      case 'dobles': typeLabel = '🎲 Dobles'; break;
+      default: typeLabel = betType;
+    }
+    document.getElementById('game-bet-type').innerText = typeLabel;
+    
+    // Resetear dados visuales
+    const dice1Elem = document.getElementById('dice1');
+    const dice2Elem = document.getElementById('dice2');
+    const sumDisplay = document.getElementById('sum-display');
+    if (dice1Elem) dice1Elem.querySelector('.dice-face').textContent = '⚀';
+    if (dice2Elem) dice2Elem.querySelector('.dice-face').textContent = '⚀';
+    if (sumDisplay) sumDisplay.textContent = '= ?';
+  }
+
+  function cancelDadosGame() {
+    if (!currentGameState.active) return;
+    // Devolver apuesta (aún no se ha jugado)
+    if (currentGameState.betAmount > 0) {
+      modifyUserMoney(currentGameState.betAmount, true).then(() => {
+        currentGameState.active = false;
+        resetDadosToMenu();
+        showMsg('dados-msg', 'info', 'Partida cancelada. Se devolvió tu apuesta.');
+      }).catch(() => {
+        resetDadosToMenu();
+      });
+    } else {
+      resetDadosToMenu();
+    }
+  }
+
+  function resetDadosToMenu() {
+    document.getElementById('dados-result').style.display = 'none';
+    document.getElementById('dados-game').style.display = 'none';
+    document.getElementById('dados-selection').style.display = 'block';
+    const msgDiv = document.getElementById('dados-msg');
+    if (msgDiv) msgDiv.style.display = 'none';
+    const gameMsg = document.getElementById('dados-game-msg');
+    if (gameMsg) gameMsg.style.display = 'none';
+    currentGameState.active = false;
+  }
+
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

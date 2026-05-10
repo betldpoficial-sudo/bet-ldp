@@ -858,3 +858,103 @@
   flex: 0 0 auto !important;
   text-align: center !important;
 }
+
+/* Estilos coherentes con el diseño elegante del casino */
+.game-footer {
+  margin-top: 40px;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2a 100%);
+  border-top: 2px solid #f5cd7a;
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.85rem;
+  color: #c0b9a0;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(2px);
+}
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.footer-section h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: #f5cd7a;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.footer-section p {
+  margin: 0;
+  font-weight: 400;
+}
+@media (min-width: 768px) {
+  .footer-content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .game-footer {
+    padding: 16px 32px;
+  }
+}
+/* ============================================
+   ESTILOS PERSONALIZADOS PARA SCROLLBAR (WEBKIT)
+   Inspirados en la temática del casino BetLDP
+   ============================================ */
+
+/* Para Chrome, Edge, Safari (Webkit) */
+::-webkit-scrollbar {
+  width: 12px;          /* Ancho de la barra vertical */
+  height: 12px;         /* Alto de la barra horizontal */
+}
+
+/* Fondo de la barra (track) */
+::-webkit-scrollbar-track {
+  background: linear-gradient(135deg, #0f0f1a 0%, #18182a 100%);
+  border-radius: 12px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(245, 205, 122, 0.2);
+}
+
+/* Parte móvil de la barra (thumb) */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(145deg, #f5cd7a, #d4a843);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 245, 200, 0.6);
+  transition: all 0.2s ease;
+}
+
+/* Hover sobre la barra */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(145deg, #ffde9e, #e6b84a);
+  box-shadow: 0 0 8px rgba(245, 205, 122, 0.6);
+  cursor: pointer;
+}
+
+/* Esquina donde se juntan scrollbars (opcional) */
+::-webkit-scrollbar-corner {
+  background: #0f0f1a;
+  border-radius: 4px;
+}
+
+/* Para Firefox (estándar, soporte reciente) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #f5cd7a #0f0f1a;
+}
+
+/* Ajuste adicional para que se vea mejor en dispositivos móviles */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+  }
+}

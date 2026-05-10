@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Bet LDP · Soporte · Centro de ayuda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="./logo3.png" type="image/png">
+  <link rel="stylesheet" href="./styles/support.css">
+  <link rel="stylesheet" href="./styles/global.css">
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<div class="character-selector-overlay" id="character-selector-overlay">
+  <div class="character-selector-modal">
+    <h2 class="selector-title">Selecciona a tu asesorador</h2>
+    <div class="characters-grid" id="characters-grid"></div>
+  </div>
+</div>
+
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='./index.html'">
+      <img src="./logo1.png" alt="Bet LDP">
+    </button>
+  </div>
+</nav>
+
+<div class="support-wrapper">
+  <div class="faq-section">
+    <div class="support-header">
+      <img class="mini-logo" src="./logo3.png" alt="icon" onerror="this.style.display='none'">
+      <h1>Centro de Ayuda</h1>
+      <p>Elige un tema · Nuestra guía te responderá al instante</p>
+    </div>
+    <div id="faq-list-container"></div>
+  </div>
+
+<div id="global-response-area" class="character-response-area" style="display: none;">
+    <div class="response-inner">
+      <div class="tutorial-character" id="response-avatar-img">
+        <img id="response-avatar" src="" alt="Guía">
+      </div>
+      <div class="response-bubble">
+        <div class="character-name" id="response-char-name">✦ Akane ✦</div>
+        <div class="response-text" id="response-message-text">
+          Selecciona una pregunta para recibir asistencia.
+        </div>
+        <div class="response-footnote">✨ Toque cualquier recuadro para obtener más detalles ✨</div>
+      </div>
+    </div>
+  </div>
+  <footer>© Bet LDP — Soporte personalizado</footer>
+</div>
+
+<script src="./script-support.js"></script>
+<script>
+  const FAQ_ITEMS = [
+    {
+      id: "cancelar-suscripcion",
+      titulo: "¿Cómo anular mi suscripción?",
+      emoji: "🔒",
+      respuesta: "Para anular tu suscripción, accede a la pagina de inicio del casino, luego ve arriba a la derecha y toca el boton de la cuenta. Alli, selecciona 'Ajustes' y busca la opcion que diga: 'Cancelar suscripción'."
+    },
+    {
+      id: "reembolso-retiro",
+      titulo: "¿Cómo solicitar retiro de saldo?",
+      emoji: "💰",
+      respuesta: "Los retiros están disponibles, solo que no son al instante, para realizar esta operacion, debes dirigirte a la pagina de inicio del casino, luego ve arriba a la derecha y toca el boton de la cuenta. Alli, selecciona: 'Caja' y busca mas abajo, una opcion que diga: 'Solicitar retiro'. El monto maximo semanalmente es de $10000 (pesos), (puede ser que se apliquen recargos dependiendo del día y hora de la transacción y el método de pago)."
+    },
+    {
+      id: "codigo-bonus",
+      titulo: "¿De donde puedo sacar códigos promocionales?",
+      emoji: "🎁",
+      respuesta: "Los códigos promocionales son muy pocos. Ellos se suelen crear cuando 'BetLDP' o 'LoDePedro Studios' pagan y/o publicitan su pagina en redes sociales, grupos de Whatsapp etc. Pero si necesitas dinero, y no quieres recargarte ni pedir un prestamo, puedes obtener un codigo siguiendo al usuario de Tiktok '@bondisdepedritoo', darle likes en un par de publicaciones, compartirlas y en el privado escribirle poniendo el correo con el cual estas registrado aquí."
+    },
+    {
+      id: "seguridad-cuenta",
+      titulo: "¿Cómo puedo restablecer mi contraseña?",
+      emoji: "🛡️",
+      respuesta: "Para restablecer tu contraseña, debes hacer esto: Primero desloguate yendo a la pagina de inicio del casino, luego ve arriba a la derecha y toca el boton de la cuenta. Alli, selecciona: 'Cerrar sesion'. Luego cuando estes en la pestaña de login, preciona el boton que dice: 'Ir a recuperar mi contraseña'. Al completar los datos, te llegara un email que vendra con un codigo, vos pones el codigo en el campo correspondiente y te dejara cambiar de contraseña."
+    },
+    {
+      id: "metodos-pago",
+      titulo: "¿Cuales Medios de pagos aceptamos?",
+      emoji: "💳",
+      respuesta: "Solamente aceptamos transferencias bancarias en Pesos Argentinos. Si deseas realizar ua recarga, debes de ir a la pagina de inicio del casino, luego ve arriba a la derecha y toca el boton de la cuenta. Alli, selecciona: 'Caja' y busca mas abajo una opcion que diga: 'Solicitar Recarga'. El monto maximo para cargar semanalmente es de $100000 por tu salud."
+    }
+  ];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSelectedCharacter();
+    renderCharacterSelector();
+    renderFaqList();
+    setInitialWelcomeMessage();
+  });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>

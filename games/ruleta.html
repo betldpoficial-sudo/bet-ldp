@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Ruleta Española — Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/ruleta.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../index.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🎡 RULETA ESPAÑOLA 🎡</h1>
+
+    <div id="ruleta-selection" class="card">
+      <div style="font-size:26px; font-weight:bold; color:#f5cd7a; text-align:center; margin-bottom:16px;" id="saldo-display">$0.00</div>
+      
+      <label>🎯 Tipo de apuesta</label>
+      <select id="bet-type">
+        <option value="pleno">🔴 Pleno (número único) → paga 35:1</option>
+        <option value="color">🎨 Color (Rojo/Negro) → paga 1:1</option>
+        <option value="paridad">🔢 Par/Impar → paga 1:1</option>
+        <option value="docena">📊 Docena (1-12, 13-24, 25-36) → paga 2:1</option>
+        <option value="columna">📐 Columna → paga 2:1</option>
+      </select>
+
+      <div id="dynamic-selector"></div>
+
+      <label>💰 Tu apuesta ($)</label>
+      <input type="number" id="ruleta-bet" placeholder="Ej: 50" min="1" step="1">
+      <button class="btn-primary" onclick="startRuletaGame()">✨ GIRAR RULETA ✨</button>
+      <div id="ruleta-msg" class="alert" style="display:none;"></div>
+    </div>
+
+    <div id="ruleta-game" style="display:none;">
+      <div class="card" style="text-align:center;">
+        <div class="lives-display" style="margin-bottom:12px;">💰 Apuesta: <strong>$<span id="game-bet-amount">0</span></strong> | 🎲 Tipo: <span id="game-bet-type">-</span></div>
+        
+        <div class="roulette-wheel" id="roulette-wheel">
+          <div class="wheel-numbers" id="wheel-numbers"></div>
+          <div class="wheel-marker">▼</div>
+        </div>
+        
+        <div style="margin: 20px 0;">
+          <button class="btn-primary" id="spin-btn" onclick="spinRuleta()">🎰 GIRAR RULETA</button>
+          <button class="btn-secondary" style="background:#2c2c3e; margin-left:10px;" onclick="cancelAndBack()">◀ CANCELAR</button>
+        </div>
+        <div id="ruleta-game-msg" class="alert" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="ruleta-result" class="card" style="display:none; text-align:center;">
+      <h2 id="ruleta-result-title" style="color:#f3cd81;">🎲 RESULTADO</h2>
+      <div id="ruleta-result-detail" style="margin:24px 0; font-size:1.2rem;"></div>
+      <button class="btn-primary" onclick="resetRuletaToMenu()">🔄 JUGAR DE NUEVO</button>
+    </div>
+  </div>
+</div>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentGameState = {
+    active: false,
+    betAmount: 0,
+    betType: 'pleno',
+    selectedValue: null,     // número, color, paridad, docena o columna específica
+    winMultiplier: 0
+  };
+
+  // ---------- UTILIDADES ----------
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 4000);
+    }
+  }
+
+  async function updateGlobalMoneyDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncUserToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(amountChange, isAdding = false) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += amountChange;
+    else newMoney -= amountChange;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalMoneyDisplay(newMoney);
+    await syncUserToFirestore();
+    return true;
+  }
+
+  // ---------- AUTOLOGIN ----------
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalMoneyDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const testSnap = await db.collection('cuentas').where('correo', '==', 'test@ruleta.com').get();
+    if (!testSnap.empty) {
+      currentUser = { docId: testSnap.docs[0].id, ...testSnap.docs[0].data() };
+    } else {
+      const newUser = { user: 'JugadorRuleta', correo: 'test@ruleta.com', clave: 'ruleta123', dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalMoneyDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // ---------- LÓGICA DE RULETA: NÚMEROS, COLORES, ETC ----------
+  const europeanNumbers = [
+    0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+  ];
+  // colores: rojo (R) o negro (B). El 0 es verde.
+  function getNumberColor(num) {
+    if (num === 0) return 'verde';
+    const redNumbers = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    return redNumbers.includes(num) ? 'rojo' : 'negro';
+  }
+
+  // Generador de selector dinámico según tipo de apuesta
+  function renderDynamicSelector() {
+    const betType = document.getElementById('bet-type').value;
+    const container = document.getElementById('dynamic-selector');
+    if (!container) return;
+    
+    if (betType === 'pleno') {
+      container.innerHTML = `<label>🔢 Elige un número (0-36):</label>
+                             <select id="pleno-number" style="width:100%;padding:10px;margin-top:6px;border-radius:12px;">
+                               ${Array.from({length:37}, (_,i) => `<option value="${i}">${i}</option>`).join('')}
+                             </select>`;
+    } 
+    else if (betType === 'color') {
+      container.innerHTML = `<label>🎨 Elige color:</label>
+                             <select id="color-choice">
+                               <option value="rojo">🔴 Rojo</option>
+                               <option value="negro">⚫ Negro</option>
+                             </select>`;
+    }
+    else if (betType === 'paridad') {
+      container.innerHTML = `<label>🔢 Par o Impar:</label>
+                             <select id="parity-choice">
+                               <option value="par">✅ Par</option>
+                               <option value="impar">❌ Impar</option>
+                             </select>`;
+    }
+    else if (betType === 'docena') {
+      container.innerHTML = `<label>📊 Docena:</label>
+                             <select id="dozen-choice">
+                               <option value="1">1️⃣ 1-12</option>
+                               <option value="2">2️⃣ 13-24</option>
+                               <option value="3">3️⃣ 25-36</option>
+                             </select>`;
+    }
+    else if (betType === 'columna') {
+      container.innerHTML = `<label>📐 Columna:</label>
+                             <select id="column-choice">
+                               <option value="1">Primera columna (1,4,7...34)</option>
+                               <option value="2">Segunda columna (2,5,8...35)</option>
+                               <option value="3">Tercera columna (3,6,9...36)</option>
+                             </select>`;
+    }
+  }
+
+  // Validar si la apuesta es ganadora según tipo y valor elegido
+  function isBetWinner(landingNumber, betType, selectedDetail) {
+    if (betType === 'pleno') {
+      return landingNumber === parseInt(selectedDetail);
+    }
+    if (betType === 'color') {
+      const color = getNumberColor(landingNumber);
+      return color === selectedDetail;
+    }
+    if (betType === 'paridad') {
+      if (landingNumber === 0) return false;
+      if (selectedDetail === 'par') return landingNumber % 2 === 0;
+      else return landingNumber % 2 === 1;
+    }
+    if (betType === 'docena') {
+      if (landingNumber === 0) return false;
+      const doc = parseInt(selectedDetail);
+      if (doc === 1) return landingNumber >= 1 && landingNumber <= 12;
+      if (doc === 2) return landingNumber >= 13 && landingNumber <= 24;
+      if (doc === 3) return landingNumber >= 25 && landingNumber <= 36;
+      return false;
+    }
+    if (betType === 'columna') {
+      if (landingNumber === 0) return false;
+      const col = parseInt(selectedDetail);
+      // col1: números mod 3 == 1 (1,4,7...34)
+      if (col === 1) return landingNumber % 3 === 1;
+      if (col === 2) return landingNumber % 3 === 2;
+      if (col === 3) return landingNumber % 3 === 0;
+      return false;
+    }
+    return false;
+  }
+
+  // Obtener multiplicador según tipo
+  function getMultiplier(betType) {
+    if (betType === 'pleno') return 35;
+    if (betType === 'color' || betType === 'paridad') return 1;
+    if (betType === 'docena' || betType === 'columna') return 2;
+    return 1;
+  }
+
+  // Inicio de partida: validar y descontar apuesta
+  async function startRuletaGame() {
+    if (!currentUser) {
+      showMsg('ruleta-msg', 'error', '⛔ Error de usuario. Recarga la página.');
+      return;
+    }
+
+    const betType = document.getElementById('bet-type').value;
+    const rawBet = parseFloat(document.getElementById('ruleta-bet').value);
+    if (isNaN(rawBet) || rawBet < 1) {
+      showMsg('ruleta-msg', 'error', '⚠️ Apuesta inválida, mínimo $1.');
+      return;
+    }
+    const betAmount = rawBet;
+    if (betAmount > currentUser.dinero) {
+      showMsg('ruleta-msg', 'error', `❌ Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+
+    // Obtener selección dinámica
+    let selectedValue = null;
+    if (betType === 'pleno') {
+      const selectNum = document.getElementById('pleno-number');
+      if (!selectNum) { showMsg('ruleta-msg', 'error', 'Error de selección'); return; }
+      selectedValue = selectNum.value;
+    } else if (betType === 'color') {
+      selectedValue = document.getElementById('color-choice').value;
+    } else if (betType === 'paridad') {
+      selectedValue = document.getElementById('parity-choice').value;
+    } else if (betType === 'docena') {
+      selectedValue = document.getElementById('dozen-choice').value;
+    } else if (betType === 'columna') {
+      selectedValue = document.getElementById('column-choice').value;
+    }
+
+    // Descontar apuesta
+    const success = await modifyUserMoney(betAmount, false);
+    if (!success) {
+      showMsg('ruleta-msg', 'error', 'Error al descontar apuesta.');
+      return;
+    }
+
+    // guardar estado del juego
+    currentGameState.active = true;
+    currentGameState.betAmount = betAmount;
+    currentGameState.betType = betType;
+    currentGameState.selectedValue = selectedValue;
+    currentGameState.winMultiplier = getMultiplier(betType);
+
+    // mostrar interfaz de ruleta
+    document.getElementById('ruleta-selection').style.display = 'none';
+    document.getElementById('ruleta-game').style.display = 'block';
+    document.getElementById('ruleta-result').style.display = 'none';
+    
+    // actualizar texto informativo
+    document.getElementById('game-bet-amount').innerText = betAmount.toFixed(2);
+    let typeLabel = '';
+    if (betType === 'pleno') typeLabel = `Pleno al ${selectedValue}`;
+    else if (betType === 'color') typeLabel = `Color ${selectedValue === 'rojo' ? '🔴 Rojo' : '⚫ Negro'}`;
+    else if (betType === 'paridad') typeLabel = selectedValue === 'par' ? 'Par' : 'Impar';
+    else if (betType === 'docena') typeLabel = `Docena ${selectedValue}`;
+    else if (betType === 'columna') typeLabel = `Columna ${selectedValue}`;
+    document.getElementById('game-bet-type').innerText = typeLabel;
+
+    // Construir la ruleta visual con los números en orden europeo
+    buildWheel();
+  }
+
+  function buildWheel() {
+    const wheelContainer = document.getElementById('wheel-numbers');
+    if (!wheelContainer) return;
+    wheelContainer.innerHTML = '';
+    const total = europeanNumbers.length;
+    const angleStep = 360 / total;
+    
+    europeanNumbers.forEach((num, idx) => {
+      const seg = document.createElement('div');
+      seg.className = 'wheel-segment';
+      const startAngle = idx * angleStep;
+      // rotación y sesgo para formar triángulo circular
+      seg.style.transform = `rotate(${startAngle}deg) skewY(${90 - angleStep}deg)`;
+      seg.style.background = num === 0 ? '#2a6b3c' : (getNumberColor(num) === 'rojo' ? '#b13e3e' : '#2e2e2e');
+      seg.style.borderRight = '1px solid #f5cd7a';
+      seg.style.display = 'flex';
+      seg.style.alignItems = 'center';
+      seg.style.justifyContent = 'flex-start';
+      seg.style.paddingLeft = '25%';
+      seg.style.fontWeight = 'bold';
+      seg.style.fontSize = '14px';
+      seg.innerText = num;
+      wheelContainer.appendChild(seg);
+    });
+  }
+
+  let spinning = false;
+  async function spinRuleta() {
+    if (spinning) {
+      showMsg('ruleta-game-msg', 'warning', 'Ya está girando la ruleta, espera...');
+      return;
+    }
+    if (!currentGameState.active) return;
+
+    spinning = true;
+    const spinBtn = document.getElementById('spin-btn');
+    if (spinBtn) spinBtn.disabled = true;
+    
+    // Número aleatorio verdadero (0-36)
+    const resultNumber = Math.floor(Math.random() * 37);
+    // Ángulo final que debe mostrar el número en el marcador.
+    // En la posición fija superior (marcador ▼) debemos alinear el segmento correspondiente.
+    // La ruleta tiene los números en orden específico [0,32,15,...]. Calculamos la rotación para
+    // que el número ganador quede exactamente en el marcador (posicion a las 12 en punto).
+    const winningIndex = europeanNumbers.indexOf(resultNumber);
+    if (winningIndex === -1) {
+      // fallback, nunca debería pasar
+      spinning = false;
+      if(spinBtn) spinBtn.disabled = false;
+      return;
+    }
+    
+    const segmentAngle = 360 / europeanNumbers.length;
+    // La posición actual del marcador: queremos que el centro del segmento ganador coincida con el marcador.
+    // Calculamos la rotación necesaria: cada segmento tiene un offset inicial. 
+    // El marcador está fijo a 12 en punto (ángulo -90° en CSS?). Simplificamos: la rotación base.
+    // Para que gire de forma espectacular, sumamos vueltas extra.
+    const targetRotation = (winningIndex * segmentAngle) + (segmentAngle/2);
+    // Sentido horario: rotación final = (360 - targetRotation) + vueltas * 360
+    let finalRot = (360 - targetRotation) + (8 * 360); // 8 vueltas completas
+    
+    const wheel = document.getElementById('wheel-numbers');
+    if (!wheel) return;
+    // resetear transición
+    wheel.style.transition = 'transform 3s cubic-bezier(0.2, 0.9, 0.1, 1.1)';
+    wheel.style.transform = `rotate(${finalRot}deg)`;
+    
+    // esperar animación
+    await new Promise(resolve => setTimeout(resolve, 3100));
+    
+    // Verificar ganancia
+    const isWin = isBetWinner(resultNumber, currentGameState.betType, currentGameState.selectedValue);
+    let winAmount = 0;
+    if (isWin) {
+      winAmount = currentGameState.betAmount * currentGameState.winMultiplier;
+      await modifyUserMoney(winAmount, true);
+    }
+    
+    // Mostrar resultado
+    spinning = false;
+    if (spinBtn) spinBtn.disabled = false;
+    currentGameState.active = false;
+    
+    // Ocultar pantalla de juego y mostrar resultado
+    document.getElementById('ruleta-game').style.display = 'none';
+    document.getElementById('ruleta-result').style.display = 'block';
+    const resultTitle = document.getElementById('ruleta-result-title');
+    const resultDetail = document.getElementById('ruleta-result-detail');
+    
+    const colorBall = getNumberColor(resultNumber);
+    const colorEmoji = colorBall === 'rojo' ? '🔴' : (colorBall === 'negro' ? '⚫' : '🟢');
+    const numberText = `${resultNumber} ${colorEmoji}`;
+    
+    if (isWin) {
+      resultTitle.innerHTML = '🎉 ¡APUESTA GANADA! 🎉';
+      resultDetail.innerHTML = `
+        <div style="font-size:1.8rem; margin:12px 0;">✨ NÚMERO: ${numberText} ✨</div>
+        <div style="font-size:1.3rem;">💵 GANANCIA NETA: +$${winAmount.toFixed(2)}</div>
+        <div>💰 Nuevo saldo: $${currentUser.dinero.toFixed(2)}</div>
+        <div style="margin-top:12px;">🎯 ¡Tu apuesta fue acertada!</div>
+      `;
+    } else {
+      resultTitle.innerHTML = '😔 APUESTA PERDIDA';
+      resultDetail.innerHTML = `
+        <div style="font-size:1.8rem; margin:12px 0;">🎲 NÚMERO: ${numberText} 🎲</div>
+        <div style="font-size:1.2rem;">❌ Has perdido $${currentGameState.betAmount.toFixed(2)}</div>
+        <div>💰 Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+        <div>😢 La suerte no estuvo de tu lado.</div>
+      `;
+    }
+  }
+  
+  function cancelAndBack() {
+    if (!currentGameState.active) return;
+    // Restituir apuesta al cancelar antes de girar? Regla: al iniciar ya descontamos, si cancela sin jugar se devuelve integro.
+    if (currentGameState.betAmount > 0 && currentGameState.active) {
+      modifyUserMoney(currentGameState.betAmount, true).then(() => {
+        currentGameState.active = false;
+        resetRuletaToMenu();
+        showMsg('ruleta-msg', 'info', 'Cancelaste la partida. Se devolvió tu apuesta.');
+      }).catch(() => {
+        resetRuletaToMenu();
+      });
+    } else {
+      resetRuletaToMenu();
+    }
+  }
+  
+  function resetRuletaToMenu() {
+    document.getElementById('ruleta-result').style.display = 'none';
+    document.getElementById('ruleta-game').style.display = 'none';
+    document.getElementById('ruleta-selection').style.display = 'block';
+    const msgDiv = document.getElementById('ruleta-msg');
+    if (msgDiv) msgDiv.style.display = 'none';
+    const gameMsg = document.getElementById('ruleta-game-msg');
+    if (gameMsg) gameMsg.style.display = 'none';
+    currentGameState.active = false;
+    // limpiar ruleta visual
+    const wheelDiv = document.getElementById('wheel-numbers');
+    if (wheelDiv) wheelDiv.style.transform = 'rotate(0deg)';
+  }
+  
+  // inicializar evento de cambio de tipo de apuesta
+  document.addEventListener('DOMContentLoaded', () => {
+    const betTypeSelect = document.getElementById('bet-type');
+    if (betTypeSelect) {
+      betTypeSelect.addEventListener('change', renderDynamicSelector);
+    }
+    renderDynamicSelector();
+  });
+  
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    renderDynamicSelector();
+  }
+  
+  init();
+</script>
+</body>
+</html>
