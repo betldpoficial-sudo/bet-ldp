@@ -1,0 +1,23 @@
+Creame la funcion: "unSuscribe()":
+1. Agarra el correo del usuario (debe de estar en uno de los tantos cosnt que se determinan al loguarse).
+2. Se busca en: Base de Datos > cuentas > correo > [correo del usuario].
+3. Al encontrar el documento correcto, se ELIMINARA.
+4. El usaurio es desloguado.
+
+Creame la funcion: "verificarDestinatario()":
+1. Se busca en: Base de Datos > cuentas > correo > [correo del usuario].
+2.1. Si no se encuentra un documento con ese correo, marcara error.
+2.2. Al encontrar el documento correcto, se copiara el dato del campo: "user".
+3. Se pondra el correo del usuario en el <span>: "transfer-dest-email".
+4. Se pondra el dato del campo "user" en el <span>: "transfer-dest-username".
+5. Se pondra la cantidad de dinero que tiene el usuario en el <span>: "transfer-saldo-actual".
+6. Se ejecuta: "showTab('transferirdos')".
+
+Creame la funcion: "realizarTransferencia()":
+1. Se ubicaran los dos documentos de las cuentas (el que tranfiere y el que reciibe).
+2. Se verificara que el que tranfiere tenga el dinero que quiere tranferir.
+2.1. Si no lo tiene, marcara error.
+2.2. Si lo tiene, se realiza la cuenta: [dinero del que recibe] + [dinero que el usuario tranfirio] = [nuevo saldo del que recibe].
+3. Se realiza la cuenta: [dinero del usuario que tranfiere] - [dinero que tranfirio] = [nuevo saldo del que tranfiere].
+4. Se colocan los nuevos saldos a los usuarios.
+5. Al usuario le sale un cartel de que se tranfirio correctamente y un cachito despues, el usaurio es movido a la pestaña "inicio".

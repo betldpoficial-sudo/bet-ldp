@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bet LDP — Inicia Sesión</title>
+  <link rel="icon" type="image/png" href="./logo3.png">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="./styles/global.css">
+</head>
+<body>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<div class="particles" id="particles"></div>
+
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="goHome()">
+      <img src="./logo1.png" alt="Bet LDP Logo" style="height:32px; width:auto; margin-right:8px;">
+    </button>
+  </div>
+</nav>
+
+<div id="app">
+  <section class="tab-section" id="tab-unsuscribe">
+    <h2 class="section-title">Dar de Baja</h2>
+    <div class="card">
+        <label for="unsuscribe-email">Correo Electrónico</label>
+        <input type="email" id="unsuscribe-email" placeholder="tu@email.com">
+        
+        <label for="unsuscribe-clave">Ingrese su clave actual</label>
+        <input type="password" id="unsuscribe-clave" placeholder="Tu clave">
+      <button id="btn-send-code" class="btn-primary" onclick="darBaja()">Darme de baja</button>
+      <div class="alert" id="unsuscribe-msg1" style="display:none;"></div>
+    </div>
+  </section>
+</div>
+
+<footer class="game-footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h3>Bet LDP</h3>
+      <p>Tu casino de confianza</p>
+    </div>
+    <div class="footer-section">
+      <p>&copy; 2026 BetLDP. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.className = 'alert ' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  function clearMsg(containerId) {
+    const el = document.getElementById(containerId);
+    if (el) { el.style.display = 'none'; el.textContent = ''; el.className = 'alert'; }
+  }
+
+  function goHome() {
+    window.location.href = './index.html';
+  }
+
+  async function darBaja() {
+    const email = document.getElementById('unsuscribe-email').value.trim();
+    const clave = document.getElementById('unsuscribe-clave').value.trim();
+    clearMsg('unsuscribe-msg1');
+
+    if (!email || !clave) {
+      showMsg('unsuscribe-msg1', 'error', 'Completá todos los campos.');
+      return;
+    }
+
+    try {
+      const snap = await db.collection('cuentas').where('correo', '==', email).get();
+      if (snap.empty) {
+        showMsg('unsuscribe-msg1', 'error', 'Este correo no está registrado.');
+        return;
+      }
+
+      const doc = snap.docs[0];
+      if (doc.data().clave !== clave) {
+        showMsg('unsuscribe-msg1', 'error', 'Clave incorrecta.');
+        return;
+      }
+
+      await db.collection('cuentas').doc(doc.id).delete();
+      showMsg('unsuscribe-msg1', 'success', 'Cuenta dada de baja exitosamente.');
+      setTimeout(() => window.location.href = './index.html', 2000);
+    } catch(e) {
+      showMsg('unsuscribe-msg1', 'error', 'Error al darse de baja. Intentá nuevamente.');
+      console.error(e);
+    }
+  }
+
+  (function generateParticles() {
+    const container = document.getElementById('particles');
+    if (!container) return;
+    for (let i = 0; i < 22; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.setProperty('--dur',   (7 + Math.random() * 8) + 's');
+      p.style.setProperty('--delay', (Math.random() * 10)    + 's');
+      p.style.setProperty('--drift', ((Math.random() - 0.5) * 60) + 'px');
+      p.style.left = (Math.random() * 100) + '%';
+      p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+      container.appendChild(p);
+    }
+  })();
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('tab-unsuscribe').classList.add('active');
+    document.getElementById('tab-unsuscribe').classList.add('active');
+  });
+</script>
+</body>
+</html>

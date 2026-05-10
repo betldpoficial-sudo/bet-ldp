@@ -5,7 +5,9 @@ const characters = [
   { name: "Hitomi", img: "./personajes/Hitomi.png" },
   { name: "Kamiko", img: "./personajes/Kamiko.png" },
   { name: "Kaoru", img: "./personajes/Kaoru.png" },
-  { name: "Uiharu", img: "./personajes/Uiharu.png" }
+  { name: "Uiharu", img: "./personajes/Uiharu.png" },
+  { name: "Asuna", img: "./personajes/Asuna.png" },
+  { name: "Hinata", img: "./personajes/Hinata.png" }
 ];
   
 let currentCharacter = { name: "Akane", img: "./personajes/Akane.png" };

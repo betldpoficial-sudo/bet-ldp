@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a Bet LDP</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #000000;
+            padding: 30px 20px;
+            border: 1px solid #D4AF37;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-container img {
+            max-width: 125px;
+            height: 125px;
+            display: inline-block;
+        }
+        .content {
+            color: #ffffff;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .content p {
+            margin: 16px 0;
+        }
+        .content strong {
+            color: #D4AF37; 
+        }
+        .btn {
+            display: inline-block;
+            background-color: #D4AF37; 
+            color: #000000; 
+            font-weight: bold;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid #D4AF37;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background-color: #000000;
+            color: #D4AF37;
+            border: 1px solid #D4AF37;
+        }
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            margin: 24px 0;
+        }
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            color: #aaaaaa;
+            margin-top: 30px;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .link {
+            color: #D4AF37;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .link:hover {
+            color: #ffd966;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="https://betldpoficial-sudo.github.io/bet-ldp/logo3.png" alt="Bet LDP Logo">
+        </div>
+
+        <div class="content">
+            <p>Hola <strong>{{nombre}}</strong>,</p>
+            <p>¡Bienvenido/a a <strong>Bet LDP</strong>, tu casino de confianza!</p>
+            <p>Tu cuenta ha sido creada exitosamente el día {{fecha}}.</p>
+            <p>Ya puedes iniciar sesión y comenzar a jugar:</p>
+            
+            <div style="text-align: center;">
+                <a href="https://betldpoficial-sudo.github.io/bet-ldp/" class="btn">EMPEZAR A JUGAR</a>
+            </div>
+          <p>
+            Si tu no te creaste una cuenta en BetLDP o deseas desuscribirte de nosotros, dirígete a: 
+                <a href="https://betldpoficial-sudo.github.io/bet-ldp/unsuscribe.html" 
+                   class="link" 
+                   target="_blank" 
+                   rel="noopener noreferrer">
+                   https://betldpoficial-sudo.github.io/bet-ldp/unsuscribe.html
+                </a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no responder.</p>
+            &copy; 2026 - Sistema de seguridad de BetLDP
+        </div>
+    </div>
+</body>
+</html>

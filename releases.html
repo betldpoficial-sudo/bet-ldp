@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Bet LDP · Soporte · Centro de ayuda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="./logo3.png" type="image/png">
+  <link rel="stylesheet" href="./styles/support.css">
+  <link rel="stylesheet" href="./styles/global.css">
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<div class="character-selector-overlay" id="character-selector-overlay">
+  <div class="character-selector-modal">
+    <h2 class="selector-title">Selecciona a tu asesorador/a que te comentara las actualizaciones</h2>
+    <div class="characters-grid" id="characters-grid"></div>
+  </div>
+</div>
+
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='./index.html'">
+      <img src="./logo1.png" alt="Bet LDP">
+    </button>
+  </div>
+</nav>
+
+<div class="support-wrapper">
+  <div class="faq-section">
+    <div class="support-header">
+      <img class="mini-logo" src="./logo3.png" alt="icon" onerror="this.style.display='none'">
+      <h1>Centro de Ayuda</h1>
+      <p>Elige una actualizacion · Nuestro/a operador/a te responderá al instante</p>
+    </div>
+    <div id="faq-list-container"></div>
+  </div>
+
+<div id="global-response-area" class="character-response-area" style="display: none;">
+    <div class="response-inner">
+      <div class="tutorial-character" id="response-avatar-img">
+        <img id="response-avatar" src="" alt="Guía">
+      </div>
+      <div class="response-bubble">
+        <div class="character-name" id="response-char-name">✦ Akane ✦</div>
+        <div class="response-text" id="response-message-text">
+          Selecciona una pregunta para recibir asistencia.
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>© Bet LDP — Soporte personalizado</footer>
+</div>
+
+<script src="./script-support.js"></script>
+<script>
+  const FAQ_ITEMS = [
+    {
+      id: "release-1",
+      titulo: "Release 1.0 - Lanzamiento con la funcion de releases",
+      emoji: "🎉",
+      respuesta: "Nuestros desarrolladores han creado nuevas funciones como la de releases de la app, funcion para eliminar tu cuenta, funcion para restablecer tu contraseña, y muchas cosas mas. Para saber mas como funcionan algunas de ellas, las puedes encontrar en el sistema de soporte."
+    }
+  ];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSelectedCharacter();
+    renderCharacterSelector();
+    renderFaqList();
+    setInitialWelcomeMessage();
+  });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>

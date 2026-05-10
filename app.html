@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bet LDP — Tu casino de confianza</title>
+  <link rel="icon" type="image/png" href="./logo3.png">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/global.css">
+</head>
+<body>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<div class="particles" id="particles"></div>
+
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="showTab('inicio')">
+      <img src="./logo1.png" alt="Bet LDP" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <span style="display:none; font-family:'Cinzel',serif; font-size:18px; font-weight:900; color:var(--gold-light); letter-spacing:2px;">BET LDP</span>
+    </button>
+  </div>
+  
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+    <div class="nav-ornament"></div>
+    <button id="btn-account" onclick="toggleMenuAccount()">
+      <img src="./account.png" alt="Cuenta" onerror="this.outerHTML='<span style=\'font-size:18px;\'>👤</span>'">
+    </button>
+  </div>
+</nav>
+
+<div id="menu-account">
+  <div class="menu-user-info" id="menu-user-info" style="display:none">
+    <div class="mname" id="menu-uname">—</div>
+    <div class="memail" id="menu-uemail">—</div>
+  </div>
+  <button class="menu-item" onclick="showTab('inicio'); closeMenuAccount()">🏠 Inicio</button>
+  <button class="menu-item" onclick="showTab('recarga'); closeMenuAccount()">💰 Caja</button>
+  <button class="menu-item" onclick="showTab('ajustes'); closeMenuAccount()">⚙️ Ajustes</button>
+  <button class="menu-item" onclick="window.location.href='./support.html'; closeMenuAccount()">📩 Soporte</button>
+  <div class="menu-divider"></div>
+  <button class="menu-item danger" id="btn-logout" onclick="logout()" style="display:none">🚪 Cerrar sesión</button>
+  <button class="menu-item" id="btn-go-login" onclick="window.location.href = './index.html'" style="display:none">🔐 Iniciar sesión</button>
+</div>
+
+<div id="app">
+  <section class="tab-section active" id="tab-inicio">
+    <div class="inicio-hero">
+      <div class="coin-ring"><img style="max-width: 125px; height: 125px;"src="./logo3.png"></div>
+      <h1>BET LDP</h1>
+      <p>Tu casino de confianza</p>
+    </div>
+    <div class="inicio-cards" id="cards1">
+      <div class="game-card">
+        <span class="icon">↕</span>
+        <div class="name">Mayor/Menor</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/mayor-menor.html'">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🕹️</span>
+        <div class="name">TA-TE-TI</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/tata-ti.html'">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">⚔️</span>
+        <div class="name">Duelo de Lineas</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/duelo-lineas.html'">Jugar</button>
+      </div>
+			<div class="game-card">
+        <span class="icon">🎰</span>
+				<div class="name">Slots</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/slots.html'">Jugar</button>
+			</div>
+    </div>
+		<div class="inicio-cards">
+      <div class="game-card">
+        <span class="icon">🃏</span>
+				<div class="name">Blackjack</div>
+				<button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/Blackjack.html'">Jugar</button>
+			</div>
+      <div class="game-card">
+        <span class="icon">🎡</span>
+        <div class="name">Ruleta</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/ruleta.html'">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🎲</span>
+        <div class="name">Dados</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="window.location.href='./games/dados.html'">Jugar</button>
+      </div>
+    </div>
+  </section>
+  
+  <section class="tab-section" id="tab-recarga">
+    <h1 class="section-title" style="font-size:22px;">Configuracion de tu Caja</h1>
+    <div class="card">
+      <div class="card-subtitle">¿Deseas Solicitar una Recarga?</div>
+      <p>Antes que nada, recuerda que no es instantaneo y ninguno de nuestros operadores te va a solicitar un porcentaje mas para hacerlo, ya que lo que tu nos tranfieras, el 100% sera colocado. Ya sabiendo esto, para hacer una solicitud dale click al siguiente botón:</p>
+      <button class="btn-primary" onclick="window.open('https://wa.me/542216821334?text=Hola,%20solicito%20una%20recarga%20a%20mi%20cuenta%20de%20BetLDP')">Solicitar Recarga</button>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Deseas Solicitar un Retiro?</div>
+      <p>Recuerda que los retiros no son instantaneos, para solicitarlo, dale click al siguiente botón y el operador te pedira: Nombre y Apellido y el correo asociado a BetLDP.</p>
+      <button class="btn-primary" onclick="window.open('https://wa.me/542216821334?text=Hola,%20solicito%20un%20retiro%20de%20mi%20cuenta%20de%20BetLDP')">Solicitar Retiro</button>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">Código de cupón</div>
+      <label>Ingrese el código:</label>
+      <input type="text" id="cupon-input" placeholder="XXXXXXXX" style="text-transform:uppercase; letter-spacing:3px;">
+      <button class="btn-primary" onclick="cuponRec()" id="btn-cupon">Recargar</button>
+      <div id="cupon-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">Enlace de canje</div>
+      <button class="btn-gold" onclick="showTab('canjear-link')">Canjear por Link</button>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Quieres transferir dinero?</div>
+      <p>Si deseas transferir dinero a otro usuario, por favor dale click al siguiente boton:</p>
+      <button class="btn-primary" onclick="showTab('transferiruno')">Transferir Saldo</button>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-canjear-link" style="display:none;">
+    <h1 class="section-title" style="font-size:22px;">Canjear Cupón por Link</h1>
+  
+    <div id="link-cupon-container" style="display:flex; justify-content:center; align-items:center; min-height:300px;">
+      <div class="card" style="max-width:500px; width:100%; text-align:center; transition: all 0.3s ease;" id="cupon-result-card">
+        <h2 style="margin-bottom:15px;">Canjear un Cupón</h2>
+        <p id="link-cupon-status">Esperando cargar el cupón...</p>
+        <div id="cupon-display" style="margin-top:20px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-transferiruno" style="display:none;">
+    <h1 class="section-title" style="font-size:22px;">Transferir Saldo a otro Usuario</h1>
+    <div class="card">
+      <div class="card-inner">
+        <p>Correo del destinatario</p>
+        <input type="email" id="transfer-email" placeholder="destinatario@example.com">
+        <button class="btn-primary" onclick="verificarDestinatario()">Verificar destinatario</button>
+        <div id="transfer-msg-1"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-transferirdos" style="display: none;">
+    <h1 class="section-title" style="font-size:22px;">Transferir Saldo a otro Usuario</h1>
+    <div class="card">
+      <div class="card-inner">
+        <label><p>Usuario destinatario: <span id="transfer-dest-username"></span></p></label>
+        <label><p>Correo destinatario: <span id="transfer-dest-email"></span></p></label>
+        <label><p>Tu saldo actual: <span id="transfer-saldo-actual"></span></p></label>
+        <label><p>Ingresa el monto a transferir:</p></label>
+        <label><input type="number" id="transfer-monto" placeholder="Monto a transferir" min="1"></label>
+        <label><button class="btn-primary" onclick="realizarTransferencia()">Confirmar transferencia</button></label>
+        <label><div id="transfer-msg-2"></div></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-ajustes" style="display:none;">
+    <h1 class="section-title" style="font-size:22px;">Ajustes de tu cuenta</h1>
+    <div class="card">
+      <div class="card-subtitle">La informacion que tenemos de ti:</div>
+      <p id="ajustes-name"></p>
+      <p id="ajustes-email"></p>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Deseas eliminar tu cuenta?</div>
+      <p>Si deseas eliminar tu cuenta, por favor dale click al siguiente boton:</p>
+      <button class="btn-primary" onclick="window.location.href = './unsuscribe.html'">Eliminar Cuenta</button>
+      <div id="ajustes-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Deseas restablecer tu contraseña?</div>
+      <p>Si deseas restablecer tu contraseña, por favor dale click al siguiente boton:</p>
+      <button class="btn-primary" onclick="window.location.href = './reset-password.html'">Restablecer Contraseña</button>
+    </div>
+  </section>
+</div>
+
+<footer class="game-footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4>BetLDP Casino</h4>
+      <p>Juego responsable · Diversión garantizada</p>
+    </div>
+    <div class="footer-section">
+      <p>© 2026 BetLDP · Todos los derechos reservados</p>
+      <button class="btn-secondary" onclick="window.location.href='./support.html'">Solicitar Soporte</button>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  
+  let currentUser   = null;
+  let moneyInterval = null;
+  let emailDestinatarioTransferencia = '';
+  
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#menu-account') && !e.target.closest('#btn-account')) closeMenuAccount();
+  });
+
+  async function fetchMoney() {
+    if (!currentUser) return;
+    try {
+      const snap = await db.collection('cuentas').doc(currentUser.docId).get();
+      if (snap.exists) {
+        const d = snap.data();
+        currentUser.dinero = d.dinero;
+        setMoneyDisplay(d.dinero);
+      }
+    } catch(e) { console.warn('fetchMoney error', e); }
+  }
+
+  function startMoneyPolling() {
+    if (moneyInterval) clearInterval(moneyInterval);
+    moneyInterval = setInterval(fetchMoney, 120000);
+  }
+
+  function logout() {
+    currentUser = null;
+    localStorage.removeItem('betldp_user_id');
+    localStorage.removeItem('betldp_user_email');
+  
+    if (moneyInterval) { clearInterval(moneyInterval); moneyInterval = null; }
+    document.getElementById('money-display').style.opacity = '0';
+    document.getElementById('menu-user-info').style.display = 'none';
+    document.getElementById('btn-logout').style.display = 'none';
+    closeMenuAccount();
+    
+    window.location.href = './index.html';
+  }
+
+  async function autoLogin() {
+    const savedUserId = localStorage.getItem('betldp_user_id');
+    const savedEmail = localStorage.getItem('betldp_user_email');
+    
+    if (!savedUserId || !savedEmail) {
+      window.location.href = './index.html';
+      return false;
+    }
+    
+    try {
+      const doc = await db.collection('cuentas').doc(savedUserId).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.correo === savedEmail) {
+          currentUser = { docId: doc.id, ...data };
+          
+          document.getElementById('menu-uname').textContent = data.user;
+          document.getElementById('ajustes-name').textContent = data.user;
+          document.getElementById('menu-uemail').textContent = data.correo;
+          document.getElementById('ajustes-email').textContent = data.correo;
+          document.getElementById('menu-user-info').style.display = 'block';
+          document.getElementById('btn-logout').style.display = 'block';
+          document.getElementById('btn-go-login').style.display = 'none';
+          
+          setMoneyDisplay(data.dinero);
+          startMoneyPolling();
+          
+          return true;
+        }
+      }
+    } catch(e) {
+      console.warn('AutoLogin error:', e);
+    }
+    
+    window.location.href = './index.html';
+    return false;
+  }
+
+  (function(){ emailjs.init({ publicKey: "TSm2szahK3vNCAvH7" }); })();
+
+  async function cuponRec() {
+    if (!currentUser) { 
+      showMsg('cupon-msg', 'error', 'Debés estar logueado para usar cupones.'); 
+      return; 
+    }
+
+    const codigo = document.getElementById('cupon-input').value.trim().toUpperCase();
+    clearMsg('cupon-msg');
+
+    if (!codigo) { 
+      showMsg('cupon-msg', 'error', 'Ingresá un código de cupón.'); 
+      return; 
+    }
+
+    if (isCuponAlreadyRedeemed(codigo)) {
+      showMsg('cupon-msg', 'error', '❌ Este cupón ya lo has canjeado anteriormente. Solo se puede usar una vez por cuenta.');
+      document.getElementById('cupon-input').value = '';
+      return;
+    }
+
+    const btn = document.getElementById('btn-cupon');
+    btn.innerHTML = '<span class="spinner"></span>Verificando...';
+    btn.disabled = true;
+
+    try {
+      const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
+
+      if (snap.empty) {
+        showMsg('cupon-msg', 'error', 'Código inválido. No existe ese cupón.');
+        btn.innerHTML = 'Recargar'; 
+        btn.disabled = false; 
+        return;
+      }
+
+      const cuponDoc = snap.docs[0];
+      const cuponData = cuponDoc.data();
+
+      if (!cuponData.activo) {
+        showMsg('cupon-msg', 'error', 'Este cupón ya fue utilizado o está desactivado.');
+        btn.innerHTML = 'Recargar'; 
+        btn.disabled = false; 
+        return;
+      }
+
+      const monto = parseFloat(cuponData.ingreso) || 0;
+      const saldoActual = parseFloat(currentUser.dinero) || 0;
+      const nuevoSaldo = saldoActual + monto;
+
+      await db.collection('cuentas').doc(currentUser.docId).update({ dinero: nuevoSaldo });
+      saveRedeemedCupon(codigo);
+
+      currentUser.dinero = nuevoSaldo;
+      setMoneyDisplay(nuevoSaldo);
+      document.getElementById('cupon-input').value = '';
+      
+      showMsg('cupon-msg', 'success', `✅ ¡+$${monto.toFixed(2)} acreditados! Tu nuevo saldo: $${nuevoSaldo.toFixed(2)}`);
+      
+    } catch(e) {
+      showMsg('cupon-msg', 'error', 'Error al procesar el cupón. Intentá nuevamente.');
+      console.error(e);
+    } finally {
+      btn.innerHTML = 'Recargar'; 
+      btn.disabled = false;
+    }
+  }
+
+  async function verificarDestinatario() {
+    if (!currentUser) {
+      showMsg('transfer-msg-1', 'error', 'Debés estar logueado para transferir.');
+      return;
+    }
+
+    const correoDestinatario = document.getElementById('transfer-email').value.trim().toLowerCase();
+    clearMsg('transfer-msg-1');
+
+    if (!correoDestinatario) {
+      showMsg('transfer-msg-1', 'error', 'Ingresá el correo del destinatario.');
+      return;
+    }
+
+    if (correoDestinatario === currentUser.correo) {
+      showMsg('transfer-msg-1', 'error', 'No puedes transferir dinero a ti mismo.');
+      return;
+    }
+
+    try {
+      const snap = await db.collection('cuentas').where('correo', '==', correoDestinatario).get();
+
+      if (snap.empty) {
+        showMsg('transfer-msg-1', 'error', '❌ No existe ninguna cuenta con ese correo.');
+        return;
+      }
+
+      const destinatarioData = snap.docs[0].data();
+      emailDestinatarioTransferencia = correoDestinatario;
+
+      document.getElementById('transfer-dest-username').textContent = destinatarioData.user;
+      document.getElementById('transfer-dest-email').textContent = correoDestinatario;
+      document.getElementById('transfer-saldo-actual').textContent = '$' + parseFloat(currentUser.dinero).toFixed(2);
+
+      showMsg('transfer-msg-1', 'success', '✅ Destinatario verificado correctamente.');
+      
+      setTimeout(() => {
+        showTab('transferirdos');
+      }, 800);
+
+    } catch(e) {
+      showMsg('transfer-msg-1', 'error', 'Error al verificar el destinatario. Intentá nuevamente.');
+      console.error(e);
+    }
+  }
+
+  async function realizarTransferencia() {
+    if (!currentUser) {
+      showMsg('transfer-msg-2', 'error', 'No hay usuario logueado.');
+      return;
+    }
+
+    if (!emailDestinatarioTransferencia) {
+      showMsg('transfer-msg-2', 'error', 'Falta la información del destinatario.');
+      return;
+    }
+
+    const monto = parseFloat(document.getElementById('transfer-monto').value);
+    clearMsg('transfer-msg-2');
+
+    if (!monto || monto <= 0) {
+      showMsg('transfer-msg-2', 'error', 'Ingresá un monto válido.');
+      return;
+    }
+
+    if (monto > parseFloat(currentUser.dinero)) {
+      showMsg('transfer-msg-2', 'error', `❌ No tienes suficiente saldo. Tienes $${parseFloat(currentUser.dinero).toFixed(2)}.`);
+      return;
+    }
+
+    const btn = document.querySelector('#tab-transferirdos .btn-primary');
+    btn.innerHTML = '<span class="spinner"></span>Procesando transferencia...';
+    btn.disabled = true;
+
+    try {
+      const snapEmisor = await db.collection('cuentas').where('correo', '==', currentUser.correo).get();
+      if (snapEmisor.empty) throw new Error('Cuenta emisor no encontrada');
+
+      const snapDestinatario = await db.collection('cuentas').where('correo', '==', emailDestinatarioTransferencia).get();
+      if (snapDestinatario.empty) throw new Error('Cuenta destinatario no encontrada');
+
+      const docIdEmisor = snapEmisor.docs[0].id;
+      const docIdDestinatario = snapDestinatario.docs[0].id;
+      const datosDestinatario = snapDestinatario.docs[0].data();
+
+      const saldoEmisor = parseFloat(currentUser.dinero);
+      const saldoDestinatario = parseFloat(datosDestinatario.dinero);
+
+      if (saldoEmisor < monto) {
+        showMsg('transfer-msg-2', 'error', `❌ No tienes suficiente saldo para transferir $${monto.toFixed(2)}.`);
+        btn.innerHTML = 'Confirmar transferencia';
+        btn.disabled = false;
+        return;
+      }
+
+      const nuevoSaldoEmisor = saldoEmisor - monto;
+      const nuevoSaldoDestinatario = saldoDestinatario + monto;
+
+      await db.collection('cuentas').doc(docIdEmisor).update({ dinero: nuevoSaldoEmisor });
+      await db.collection('cuentas').doc(docIdDestinatario).update({ dinero: nuevoSaldoDestinatario });
+
+      currentUser.dinero = nuevoSaldoEmisor;
+      setMoneyDisplay(nuevoSaldoEmisor);
+
+      showMsg('transfer-msg-2', 'success', `✅ ¡Transferencia exitosa! Se transfirieron $${monto.toFixed(2)} a ${datosDestinatario.user}.`);
+      
+      document.getElementById('transfer-monto').value = '';
+      document.getElementById('transfer-email').value = '';
+      document.getElementById('transfer-dest-username').textContent = '';
+      document.getElementById('transfer-dest-email').textContent = '';
+      emailDestinatarioTransferencia = '';
+
+      setTimeout(() => {
+        showTab('inicio');
+      }, 2000);
+
+    } catch(e) {
+      showMsg('transfer-msg-2', 'error', 'Error al realizar la transferencia. Intentá nuevamente.');
+      console.error(e);
+    } finally {
+      btn.innerHTML = 'Confirmar transferencia';
+      btn.disabled = false;
+    }
+  }
+
+  generateParticles();
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    const loggedIn = await autoLogin();
+    if (loggedIn) {
+      showTab('inicio');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000; 
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #000000;
+            padding: 30px 20px;
+            border: 1px solid #D4AF37;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+        .content {
+            color: #ffffff;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .content p {
+            margin: 16px 0;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #D4AF37; 
+            font-size: 24px;
+            text-align: center;
+            background-color: #1a1a1a;
+            padding: 12px;
+            border-radius: 8px;
+            letter-spacing: 2px;
+        }
+        .link {
+            color: #D4AF37;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .link:hover {
+            color: #ffd966;
+        }
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            margin: 24px 0;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-container img {
+            max-width: 125px;
+            height: 125px;
+            display: inline-block;
+        }
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            color: #aaaaaa;
+            margin-top: 30px;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            .highlight {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="https://betldpoficial-sudo.github.io/bet-ldp/logo3.png" alt="Bet LDP Logo">
+        </div>
+        <div class="content">
+            <p>Hola {{nombre}},</p>
+            <p>Tu código para restablecer tu contraseña es:</p>
+            <p class="highlight">👉 {{codigo}}</p>
+            <hr>
+            <p>
+                Si tu no pediste este codigo, no se lo pases a nadie, porque tu cuenta podria estar vulnerable a ser robada y BetLDP ni nadie se responsabilizara. En caso de querer desuscribirte de nosotros, dirígete a: 
+                <a href="https://betldpoficial-sudo.github.io/bet-ldp/unsuscribe.html" 
+                   class="link" 
+                   target="_blank" 
+                   rel="noopener noreferrer">
+                   https://betldpoficial-sudo.github.io/bet-ldp/unsuscribe.html
+                </a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no responder.</p>
+            &copy; 2026 - Sistema de seguridad de BetLDP
+        </div>
+    </div>
+</body>
+</html>
