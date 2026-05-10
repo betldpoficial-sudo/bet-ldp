@@ -25,8 +25,6 @@
   
   <div id="navbar-right">
     <span id="money-display">$0.00</span>
-    <button class="btn-gold" onclick="showTab('recarga')">Recargar fondos</button>
-    <button class="btn-gold" onclick="showTab('canjear-link')">Canjear por Link</button>
     <div class="nav-ornament"></div>
     <button id="btn-account" onclick="toggleMenuAccount()">
       <img src="./account.png" alt="Cuenta" onerror="this.outerHTML='<span style=\'font-size:18px;\'>👤</span>'">
@@ -40,7 +38,8 @@
     <div class="memail" id="menu-uemail">—</div>
   </div>
   <button class="menu-item" onclick="showTab('inicio'); closeMenuAccount()">🏠 Inicio</button>
-  <button class="menu-item" onclick="showTab('recarga'); closeMenuAccount()">💰 Recargar fondos</button>
+  <button class="menu-item" onclick="showTab('recarga'); closeMenuAccount()">💰 Caja</button>
+  <button class="menu-item" onclick="showTab('ajustes'); closeMenuAccount()">⚙️ Ajustes</button>
   <div class="menu-divider"></div>
   <button class="menu-item danger" id="btn-logout" onclick="logout()" style="display:none">🚪 Cerrar sesión</button>
   <button class="menu-item" id="btn-go-login" onclick="showTab('login'); closeMenuAccount()">🔐 Iniciar sesión</button>
@@ -172,18 +171,17 @@
   </section>
   
   <section class="tab-section" id="tab-recarga">
-    <h1 class="section-title" style="font-size:22px;">Recargar dinero</h1>
-
+    <h1 class="section-title" style="font-size:22px;">Configuracion de tu Caja</h1>
     <div class="card">
-      <div class="card-subtitle">Billetera virtual</div>
-      <p class="unavailable-badge">No disponible actualmente</p>
+      <div class="card-subtitle">¿Deseas Solicitar una Recarga?</div>
+      <p>Antes que nada, recuerda que no es instantaneo y ninguno de nuestros operadores te va a solicitar un porcentaje mas para hacerlo, ya que lo que tu nos tranfieras, el 100% sera colocado. Ya sabiendo esto, para hacer una solicitud dale click al siguiente botón:</p>
+      <button class="btn-primary" onclick="window.open('https://wa.me/542216821334?text=Hola,%20solicito%20una%20recarga%20a%20mi%20cuenta%20de%20BetLDP')">Solicitar Recarga</button>
     </div>
-
     <div class="card">
-      <div class="card-subtitle">Tarjeta de Crédito / Débito</div>
-      <p class="unavailable-badge">No disponible actualmente</p>
+      <div class="card-subtitle">¿Deseas Solicitar un Retiro?</div>
+      <p>Recuerda que los retiros no son instantaneos, para solicitarlo, dale click al siguiente botón y el operador te pedira: Nombre y Apellido y el correo asociado a BetLDP.</p>
+      <button class="btn-primary" onclick="window.open('https://wa.me/542216821334?text=Hola,%20solicito%20un%20retiro%20de%20mi%20cuenta%20de%20BetLDP')">Solicitar Retiro</button>
     </div>
-
     <div class="card">
       <div class="card-subtitle">Código de cupón</div>
       <label>Ingrese el código:</label>
@@ -194,6 +192,11 @@
     <div class="card">
       <div class="card-subtitle">Enlace de canje</div>
       <button class="btn-gold" onclick="showTab('canjear-link')">Canjear por Link</button>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Quieres transferir dinero?</div>
+      <p>Si deseas transferir dinero a otro usuario, por favor dale click al siguiente boton:</p>
+      <button class="btn-primary" onclick="showTab('transferiruno')">Transferir Saldo</button>
     </div>
   </section>
 
@@ -208,7 +211,55 @@
       </div>
     </div>
   </section>
+
+  <section class="tab-section" id="tab-transferiruno" style="display:none;">
+    <h1 class="section-title" style="font-size:22px;">Transferir Saldo a otro Usuario</h1>
+    <div class="card">
+      <div class="card-inner">
+        <p>Correo del destinatario</p>
+        <input type="email" id="transfer-email" placeholder="destinatario@example.com">
+        <button class="btn-primary" onclick="verificarDestinatario()">Verificar destinatario</button>
+        <div id="transfer-msg-1"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-transferirdos" style="display: none;">
+    <h1 class="section-title" style="font-size:22px;">Transferir Saldo a otro Usuario</h1>
+    <div class="card">
+      <div class="card-inner">
+        <label><p>Usuario destinatario: <span id="transfer-dest-username"></span></p></label>
+        <label><p>Correo destinatario: <span id="transfer-dest-email"></span></p></label>
+        <label><p>Tu saldo actual: <span id="transfer-saldo-actual"></span></p></label>
+        <label><p>Ingresa el monto a transferir:</p></label>
+        <label><input type="number" id="transfer-monto" placeholder="Monto a transferir" min="1"></label>
+        <label><button class="btn-primary" onclick="realizarTransferencia()">Confirmar transferencia</button></label>
+        <label><div id="transfer-msg-2"></div></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-section" id="tab-ajustes" style="display:none;">
+    <h1 class="section-title" style="font-size:22px;">Ajustes de tu cuenta</h1>
+    <div class="card">
+      <div class="card-subtitle">La informacion que tenemos de ti:</div>
+      <p id="ajustes-name"></p>
+      <p id="ajustes-email"></p>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Deseas eliminar tu cuenta?</div>
+      <p>Si deseas eliminar tu cuenta, por favor dale click al siguiente boton:</p>
+      <button class="btn-primary" onclick="unsuscribeUser()">Eliminar Cuenta</button>
+      <div id="ajustes-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-subtitle">¿Deseas restablecer tu contraseña?</div>
+      <p>Si deseas restablecer tu contraseña, por favor dale click al siguiente boton:</p>
+      <button class="btn-primary" onclick="showTab('recuperacion')">Restablecer Contraseña</button>
+    </div>
+  </section>
 </div>
+
 <footer class="game-footer">
   <div class="footer-content">
     <div class="footer-section">
@@ -313,7 +364,9 @@
     localStorage.setItem('betldp_user_email', data.correo);   
     showMsg('login-msg', 'success', '¡Bienvenido/a, ' + data.user + '!');
     document.getElementById('menu-uname').textContent  = data.user;
+    document.getElementById('ajustes-name').textContent  = data.user;
     document.getElementById('menu-uemail').textContent = data.correo;
+    document.getElementById('ajustes-email').textContent = data.correo;
     document.getElementById('menu-user-info').style.display = 'block';
     document.getElementById('btn-logout').style.display      = 'block';
     document.getElementById('btn-go-login').style.display    = 'none';
@@ -450,6 +503,183 @@
 
   let codigoEnviado = '';
   let emailRecuperacion = '';
+  let emailDestinatarioTransferencia = '';
+
+  /* ============================================================
+     FUNCIONES DE TRANSFERENCIA Y DESUSCRIPCIÓN
+  ============================================================ */
+
+  async function unsuscribeUser() {
+    if (!currentUser) {
+      showMsg('ajustes-msg', 'error', 'No hay usuario logueado.');
+      return;
+    }
+
+    const confirmDelete = confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR tu cuenta? Esta acción no se puede deshacer.');
+    if (!confirmDelete) return;
+
+    try {
+      const email = currentUser.correo;
+      
+      // Buscar el documento por correo
+      const snap = await db.collection('cuentas').where('correo', '==', email).get();
+      
+      if (snap.empty) {
+        showMsg('ajustes-msg', 'error', 'No se encontró la cuenta para eliminar.');
+        return;
+      }
+
+      // Eliminar el documento
+      await db.collection('cuentas').doc(snap.docs[0].id).delete();
+      
+      showMsg('ajustes-msg', 'success', '❌ Tu cuenta ha sido eliminada. Serás desloguado...');
+      
+      // Desloguear al usuario después de 1.5 segundos
+      setTimeout(() => {
+        logout();
+      }, 1500);
+
+    } catch(e) {
+      showMsg('ajustes-msg', 'error', 'Error al eliminar la cuenta. Intentá nuevamente.');
+      console.error(e);
+    }
+  }
+
+  async function verificarDestinatario() {
+    if (!currentUser) {
+      showMsg('transfer-msg-1', 'error', 'Debés estar logueado para transferir.');
+      return;
+    }
+
+    const correoDestinatario = document.getElementById('transfer-email').value.trim().toLowerCase();
+    clearMsg('transfer-msg-1');
+
+    if (!correoDestinatario) {
+      showMsg('transfer-msg-1', 'error', 'Ingresá el correo del destinatario.');
+      return;
+    }
+
+    // Validar que no sea el mismo usuario
+    if (correoDestinatario === currentUser.correo) {
+      showMsg('transfer-msg-1', 'error', 'No puedes transferir dinero a ti mismo.');
+      return;
+    }
+
+    try {
+      const snap = await db.collection('cuentas').where('correo', '==', correoDestinatario).get();
+
+      if (snap.empty) {
+        showMsg('transfer-msg-1', 'error', '❌ No existe ninguna cuenta con ese correo.');
+        return;
+      }
+
+      const destinatarioData = snap.docs[0].data();
+      emailDestinatarioTransferencia = correoDestinatario;
+
+      // Llenar los spans con la información del destinatario
+      document.getElementById('transfer-dest-username').textContent = destinatarioData.user;
+      document.getElementById('transfer-dest-email').textContent = correoDestinatario;
+      document.getElementById('transfer-saldo-actual').textContent = '$' + parseFloat(currentUser.dinero).toFixed(2);
+
+      showMsg('transfer-msg-1', 'success', '✅ Destinatario verificado correctamente.');
+      
+      // Ir a la segunda pestaña después de 800ms
+      setTimeout(() => {
+        showTab('transferirdos');
+      }, 800);
+
+    } catch(e) {
+      showMsg('transfer-msg-1', 'error', 'Error al verificar el destinatario. Intentá nuevamente.');
+      console.error(e);
+    }
+  }
+
+  async function realizarTransferencia() {
+    if (!currentUser) {
+      showMsg('transfer-msg-2', 'error', 'No hay usuario logueado.');
+      return;
+    }
+
+    if (!emailDestinatarioTransferencia) {
+      showMsg('transfer-msg-2', 'error', 'Falta la información del destinatario.');
+      return;
+    }
+
+    const monto = parseFloat(document.getElementById('transfer-monto').value);
+    clearMsg('transfer-msg-2');
+
+    if (!monto || monto <= 0) {
+      showMsg('transfer-msg-2', 'error', 'Ingresá un monto válido.');
+      return;
+    }
+
+    if (monto > parseFloat(currentUser.dinero)) {
+      showMsg('transfer-msg-2', 'error', `❌ No tienes suficiente saldo. Tienes $${parseFloat(currentUser.dinero).toFixed(2)}.`);
+      return;
+    }
+
+    const btn = document.querySelector('#tab-transferirdos .btn-primary');
+    btn.innerHTML = '<span class="spinner"></span>Procesando transferencia...';
+    btn.disabled = true;
+
+    try {
+      // Buscar el documento del usuario actual
+      const snapEmisor = await db.collection('cuentas').where('correo', '==', currentUser.correo).get();
+      if (snapEmisor.empty) throw new Error('Cuenta emisor no encontrada');
+
+      // Buscar el documento del destinatario
+      const snapDestinatario = await db.collection('cuentas').where('correo', '==', emailDestinatarioTransferencia).get();
+      if (snapDestinatario.empty) throw new Error('Cuenta destinatario no encontrada');
+
+      const docIdEmisor = snapEmisor.docs[0].id;
+      const docIdDestinatario = snapDestinatario.docs[0].id;
+      const datosDestinatario = snapDestinatario.docs[0].data();
+
+      const saldoEmisor = parseFloat(currentUser.dinero);
+      const saldoDestinatario = parseFloat(datosDestinatario.dinero);
+
+      // Verificar nuevamente que el emisor tenga suficiente dinero
+      if (saldoEmisor < monto) {
+        showMsg('transfer-msg-2', 'error', `❌ No tienes suficiente saldo para transferir $${monto.toFixed(2)}.`);
+        btn.innerHTML = 'Confirmar transferencia';
+        btn.disabled = false;
+        return;
+      }
+
+      // Realizar los cálculos
+      const nuevoSaldoEmisor = saldoEmisor - monto;
+      const nuevoSaldoDestinatario = saldoDestinatario + monto;
+
+      // Actualizar los saldos en la base de datos
+      await db.collection('cuentas').doc(docIdEmisor).update({ dinero: nuevoSaldoEmisor });
+      await db.collection('cuentas').doc(docIdDestinatario).update({ dinero: nuevoSaldoDestinatario });
+
+      // Actualizar el saldo local del usuario
+      currentUser.dinero = nuevoSaldoEmisor;
+      setMoneyDisplay(nuevoSaldoEmisor);
+
+      showMsg('transfer-msg-2', 'success', `✅ ¡Transferencia exitosa! Se transfirieron $${monto.toFixed(2)} a ${datosDestinatario.user}.`);
+      
+      // Limpiar campos
+      document.getElementById('transfer-monto').value = '';
+      document.getElementById('transfer-email').value = '';
+      document.getElementById('transfer-dest-username').textContent = '';
+      document.getElementById('transfer-dest-email').textContent = '';
+      emailDestinatarioTransferencia = '';
+
+      // Ir al inicio después de 2 segundos
+      setTimeout(() => {
+        showTab('inicio');
+      }, 2000);
+
+    } catch(e) {
+      showMsg('transfer-msg-2', 'error', 'Error al realizar la transferencia. Intentá nuevamente.');
+      console.error(e);
+    } finally {
+      btn.innerHTML = 'Confirmar transferencia';
+      btn.disabled = false;
+    }
+  }
 
   async function enviarCodigo() {
     const nombre = document.getElementById('rec-nombre').value.trim();
