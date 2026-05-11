@@ -139,8 +139,7 @@
   <section class="tab-section" id="tab-transferiruno" style="display:none;">
     <h1 class="section-title" style="font-size:22px;">Transferir Saldo a otro Usuario</h1>
     <div class="card">
-      <div class="card-inner">
-        <p>Correo del destinatario</p>
+      <div class="card-inner"><p>Correo del destinatario</p>
         <input type="email" id="transfer-email" placeholder="destinatario@example.com">
         <button class="btn-primary" onclick="verificarDestinatario()">Verificar destinatario</button>
         <div id="transfer-msg-1"></div>
@@ -480,6 +479,110 @@
     }
   }
 
+async function procesarCuponPorLink() {
+  const codigo = getUrlParameter('codigo');
+
+  console.log('[DEBUG] procesarCuponPorLink - Iniciando con código:', codigo);
+
+  if (!codigo) {
+    console.log('[DEBUG] No hay código en URL');
+    const statusElement = document.getElementById('link-cupon-status');
+    if (statusElement) {
+      statusElement.innerHTML = 'No se encontró ningún cupón para canjear.';
+      statusElement.style.color = '#666';
+    }
+    return;
+  }
+
+  const tabElement = document.getElementById('tab-canjear-link');
+  const isInCanjeTab = tabElement && tabElement.classList.contains('active');
+
+  // Si no estamos en la pestaña de canje, nos movemos a ella
+  if (!isInCanjeTab) {
+    console.log('[DEBUG] No estamos en pestaña de canje, cambiando a ella...');
+    showTab('canjear-link');
+    
+    // Esperar a que la pestaña se muestre y luego procesar
+    setTimeout(() => {
+      procesarCuponPorLink();
+    }, 300);
+    return;
+  }
+
+  console.log('[DEBUG] Estamos en pestaña de canje, procesando...');
+
+  const statusElement = document.getElementById('link-cupon-status');
+  if (statusElement) {
+    statusElement.style.display = 'none';
+  }
+
+  const container = document.getElementById('cupon-display');
+  if (!container) {
+    console.error('[DEBUG] No se encontró cupon-display');
+    return;
+  }
+
+  if (!currentUser) {
+    console.log('[DEBUG] Usuario no logueado');
+    mostrarResultadoLink(false, codigo, 'Debés iniciar sesión para canjear este cupón.');
+    return;
+  }
+
+  console.log('[DEBUG] Usuario logueado:', currentUser.user);
+
+  if (isCuponAlreadyRedeemed(codigo)) {
+    console.log('[DEBUG] Cupón ya canjeado por este usuario');
+    mostrarResultadoLink(false, codigo, 'Ya has canjeado este cupón anteriormente. Solo se puede usar una vez por cuenta.');
+    return;
+  }
+
+  try {
+    console.log('[DEBUG] Buscando cupón en Firebase:', codigo);
+    const snap = await db.collection('cupones').where('cupon', '==', codigo).get();
+
+    if (snap.empty) {
+      console.log('[DEBUG] Cupón NO encontrado');
+      mostrarResultadoLink(false, codigo, 'Cupón inválido o no existe.');
+      return;
+    }
+
+    const cuponDoc = snap.docs[0];
+    const cuponData = cuponDoc.data();
+    console.log('[DEBUG] Cupón encontrado:', cuponData);
+
+    if (!cuponData.activo) {
+      console.log('[DEBUG] Cupón inactivo');
+      mostrarResultadoLink(false, codigo, 'Este cupón ya fue utilizado o está desactivado.');
+      return;
+    }
+
+    const monto = parseFloat(cuponData.ingreso) || 0;
+    
+    // Obtener saldo actual más reciente desde Firestore
+    const userSnap = await db.collection('cuentas').doc(currentUser.docId).get();
+    const saldoActual = parseFloat(userSnap.data().dinero) || 0;
+    const nuevoSaldo = saldoActual + monto;
+
+    console.log('[DEBUG] Procesando canje - Monto:', monto, 'Saldo anterior:', saldoActual, 'Nuevo saldo:', nuevoSaldo);
+
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: nuevoSaldo });
+    
+    // Guardar cupón como canjeado
+    saveRedeemedCupon(codigo);
+
+    // Actualizar usuario actual
+    currentUser.dinero = nuevoSaldo;
+    setMoneyDisplay(nuevoSaldo);
+
+    console.log('[DEBUG] Canje exitoso');
+    mostrarResultadoLink(true, codigo, `¡+$${monto.toFixed(2)} acreditados! Nuevo saldo: $${nuevoSaldo.toFixed(2)}`);
+
+  } catch (e) {
+    console.error('[DEBUG] Error en procesarCuponPorLink:', e);
+    mostrarResultadoLink(false, codigo, 'Error al procesar el cupón. Intentá nuevamente.');
+  }
+}
+
   generateParticles();
 
   document.addEventListener('DOMContentLoaded', async function() {
@@ -487,7 +590,30 @@
     if (loggedIn) {
       showTab('inicio');
     }
-  });
+    // Llamar a procesarCuponPorLink si hay un código en la URL
+    if (window.location.search.includes('codigo=')) {
+      // Asegurar que currentUser esté cargado antes de procesar
+      const checkUser = setInterval(() => {
+        if (currentUser) {
+          clearInterval(checkUser);
+          setTimeout(() => {
+            procesarCuponPorLink();
+          }, 500);
+        }
+      }, 100);
+      // Timeout por si algo falla
+      setTimeout(() => {
+      clearInterval(checkUser);
+      if (!currentUser) {
+        console.log('[DEBUG] Timeout esperando usuario');
+        const statusElement = document.getElementById('link-cupon-status');
+        if (statusElement) {
+          statusElement.innerHTML = 'Debés iniciar sesión para canjear este cupón.';
+          statusElement.style.color = '#f44336';
+        }
+      }
+    }, 10000);
+  }});
 </script>
 </body>
 </html>

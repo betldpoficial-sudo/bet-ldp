@@ -31,6 +31,13 @@ function showTab(name) {
   closeMenuAccount();
 }
 
+function getUrlParameter(name) {
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  const results = regex.exec(location.search);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
 function toggleMenuAccount() {
   document.getElementById('menu-account').classList.toggle('open');
 }
@@ -67,5 +74,66 @@ function generateParticles() {
     p.style.left = (Math.random() * 100) + '%';
     p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
     container.appendChild(p);
+  }
+}
+
+function resetCardDisplay() {
+  const card = document.getElementById('cupon-result-card');
+  const container = document.getElementById('cupon-display');
+  const statusElement = document.getElementById('link-cupon-status');
+
+  if (card) {
+    card.style.border = '';
+    card.style.borderRadius = '';
+  }
+
+  if (container) {
+    container.innerHTML = '';
+  }
+
+  if (statusElement) {
+    statusElement.style.display = 'block';
+    statusElement.innerHTML = 'Esperando cargar el cupón...';
+    statusElement.style.color = '';
+  }
+}
+
+function mostrarResultadoLink(exitoso, codigo, mensaje) {
+  const container = document.getElementById('cupon-display');
+  const card = document.getElementById('cupon-result-card');
+  const statusElement = document.getElementById('link-cupon-status');
+
+  if (!container || !card) return;
+
+  if (exitoso) {
+    card.style.border = '3px solid #4CAF50';
+    card.style.borderRadius = '10px';
+    container.innerHTML = `
+      <div style="padding:20px; text-align:center;">
+        <div style="font-size:32px; font-weight:bold; color:#4CAF50; text-transform:uppercase; letter-spacing:3px; margin-bottom:15px;">
+          ${codigo}
+        </div>
+        <div style="color:#4CAF50; margin-top:10px;">
+          ✓ ${mensaje}
+        </div>
+      </div>
+    `;
+  } else {
+    card.style.border = '3px solid #f44336';
+    card.style.borderRadius = '10px';
+    container.innerHTML = `
+      <div style="padding:20px; text-align:center;">
+        <div style="font-size:32px; font-weight:bold; color:#f44336; text-transform:uppercase; letter-spacing:3px; margin-bottom:15px;">
+          ${codigo}
+        </div>
+        <div style="color:#f44336; margin-top:10px;">
+          ✗ ${mensaje}
+        </div>
+      </div>
+    `;
+  }
+
+  if (statusElement) {
+    statusElement.style.display = 'none';
   }
 }

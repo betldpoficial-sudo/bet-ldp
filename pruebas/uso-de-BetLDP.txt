@@ -1,0 +1,15 @@
+Creame un documento PDF de los terminos, condiciones, poliiticas de privacidad y demas:
+Informacion:
+1. No utilices emojis ni nada no formal.
+2. Habla de manera formal.
+3. BetLDP es un proyecto que viene directamente desde LoDePedro Studios que pertenece a LoDePedro S.A.
+4. El dueño de LoDePedro S.A. es Pedro Gabriel Ojeda.
+5. El medio de contacto a BetLDP es: betldpoficial@gmail.com.
+6. El usuario puede utilizar cupones o dinero real para cargar dinero dentro de la web.
+7. El usuario no puede retirar todo su dinero, ya que no esta disponible, pero puede negociar con el operador por que le pague un monto por el uso de la app.
+8. Las cookies (los LocalStorage) los utilizamos de manera sistematica, es decir, que solo la utilizamos para hacer funcionar nuestros sistemas de login, cupones y constates temporales.
+9. Las cookies (los LocalStorage) y los datos en la base de datos no salen de alli. Ya que nunguno de nuestros desarrolladores puede utilizar tus datos para nada fuera de LoDePedro.
+10. Los logos y las personajes del soporte, del tutorial y de las actualizaciones son de nuestra propiedad.
+11. En 35% de nuestra web es potenciada por AI.
+
+Ahora ya sabiendo esto, podes crear el documento y en modo de texto "justificado".
