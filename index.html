@@ -213,6 +213,37 @@
     }
   }
 
+    async function autoLogin() {
+    const savedUserId = localStorage.getItem('betldp_user_id');
+    const savedEmail = localStorage.getItem('betldp_user_email');
+    
+    if (!savedUserId || !savedEmail) {
+      showTab('login');
+      return false;
+    }
+    
+    try {
+      const doc = await db.collection('cuentas').doc(savedUserId).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.correo === savedEmail) {
+          currentUser = { docId: doc.id, ...data };
+          window.location.href = './app.html';
+          
+          setMoneyDisplay(data.dinero);
+          startMoneyPolling();
+          
+          return true;
+        }
+      }
+    } catch(e) {
+      console.warn('AutoLogin error:', e);
+    }
+    
+    showTab('login');
+    return false;
+  }
+
   async function register() {
     const name  = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
