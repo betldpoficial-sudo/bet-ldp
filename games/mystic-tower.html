@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Mystic Tower - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    .game-master {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #0a0e1a 0%, #0c1020 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+
+    .game-container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .game-container h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      background: linear-gradient(135deg, #c9a03d, #e8c76b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 25px rgba(201,160,61,0.4);
+      margin-bottom: 1.5rem;
+      font-size: 2.1rem;
+      letter-spacing: 3px;
+    }
+
+    .card {
+      background: rgba(18, 22, 40, 0.92);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(201, 160, 61, 0.4);
+      box-shadow: 0 30px 45px -12px rgba(0,0,0,0.8);
+      transition: all 0.3s;
+    }
+
+    .balance-card {
+      background: linear-gradient(115deg, #0f1322, #080b16);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e8b34b;
+    }
+
+    .balance-card div:first-child {
+      color: #9aa3b9;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    #saldo-display, #money-display {
+      background: linear-gradient(135deg, #ffdf9c, #e8b34b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 900;
+    }
+
+    #saldo-display {
+      font-size: 2.8rem;
+    }
+
+    .bet-options-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .bet-chip {
+      background: #1e2642;
+      border: none;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      color: #ffefcf;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Raleway', monospace;
+    }
+
+    .bet-chip:hover {
+      background: #e8b34b;
+      color: #0c0f1a;
+      transform: translateY(-3px);
+    }
+
+    #custom-bet-input {
+      background: #0c0f1e;
+      border: 1px solid #e8b34b;
+      padding: 0.7rem 1rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffefcf;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(95deg, #c9a03d, #e8c46b);
+      border: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.9rem;
+      border-radius: 3rem;
+      color: #0c0f1a;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: scale(0.98);
+      box-shadow: 0 0 18px rgba(232,180,75,0.7);
+    }
+
+    .btn-secondary {
+      background: #2a3457;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 2rem;
+      color: #e0e6f0;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .btn-secondary:hover {
+      background: #3f4c78;
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.2rem;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      text-align: center;
+      font-weight: 600;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-5px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    .alert.success {
+      background: #1e3a2e;
+      color: #c6f7d0;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .alert.error {
+      background: #441e25;
+      color: #ffb7b7;
+      border-left: 4px solid #e74c3c;
+    }
+
+    /* TOWER GAME - PANEL ANIMADO */
+    .tower-panel {
+      background: #070b17;
+      border-radius: 2rem;
+      padding: 1.2rem;
+      margin: 1rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tower-visual {
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 0.2rem;
+      margin: 1rem 0;
+      min-height: 320px;
+    }
+
+    .floor {
+      width: 70%;
+      background: linear-gradient(145deg, #2a2f4b, #1b1f36);
+      border-radius: 12px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #e8b34b;
+      transition: all 0.25s ease;
+      box-shadow: 0 5px 0 #0a0d18;
+      border: 1px solid #e8b34b55;
+    }
+
+    .floor.revealed {
+      background: linear-gradient(145deg, #3d2e1a, #2c1f0e);
+      box-shadow: 0 0 12px rgba(232,179,75,0.6);
+    }
+
+    .floor.active-glow {
+      animation: pulseGold 0.8s ease;
+    }
+
+    @keyframes pulseGold {
+      0% { background: #e8b34b; color: #0f0f1a; transform: scale(1);}
+      50% { background: #ffdf8c; box-shadow: 0 0 25px gold; transform: scale(1.02);}
+      100% { background: linear-gradient(145deg, #3d2e1a, #2c1f0e); transform: scale(1);}
+    }
+
+    .tower-stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0b0e1c;
+      padding: 0.8rem;
+      border-radius: 1.5rem;
+      margin-top: 0.8rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: bold;
+      color: #e8b34b;
+    }
+
+    .action-btn {
+      background: linear-gradient(95deg, #4a2e1a, #6b4626);
+      border: none;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 0.8rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffefcf;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 1rem;
+    }
+
+    .action-btn:active {
+      transform: scale(0.97);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .legend {
+      font-size: 0.7rem;
+      text-align: center;
+      margin-top: 0.8rem;
+      color: #9aa3b9;
+    }
+
+    .history-box {
+      max-height: 110px;
+      overflow-y: auto;
+      background: #080b16;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+      border-bottom: 1px solid #232842;
+    }
+
+    .win-text {
+      color: #e8b34b;
+    }
+  </style>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display" style="font-weight: bold; font-size: 1.3rem;">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🗼 MYSTIC TOWER 🗼</h1>
+
+    <!-- PANEL DE APUESTA INICIAL -->
+    <div id="bet-panel" class="card">
+      <div class="balance-card">
+        <div>🏰 SALDO MÍSTICO</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options-row">
+        <button class="bet-chip" data-bet="5">$5</button>
+        <button class="bet-chip" data-bet="10">$10</button>
+        <button class="bet-chip" data-bet="25">$25</button>
+        <button class="bet-chip" data-bet="50">$50</button>
+        <button class="bet-chip" data-bet="100">$100</button>
+      </div>
+      <input type="number" id="custom-bet-input" placeholder="Monto personalizado" min="1" step="1">
+      <button class="btn-secondary" id="apply-custom" style="margin-top: 0.5rem; width:100%">✅ Aplicar monto</button>
+      <button class="btn-primary" id="enter-tower-btn" style="margin-top: 1.5rem;">🔮 ENTRAR A LA TORRE 🔮</button>
+      <div id="bet-alert" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- PANEL DE JUEGO: TOWER CLIMB (MAS LENTO, ANIMACIONES REALES) -->
+    <div id="game-panel" style="display:none;">
+      <div class="card">
+        <div class="balance-card" style="padding: 0.7rem;">
+          <div>🏆 APUESTA ACTUAL</div>
+          <div style="font-size: 1.4rem; font-weight: bold; color:#e8b34b;" id="current-bet-display">$0</div>
+        </div>
+
+        <div class="tower-panel">
+          <div class="tower-visual" id="tower-visual">
+            <!-- Los pisos se generan dinámicamente con JS -->
+          </div>
+          <div class="tower-stats">
+            <div class="stat">
+              <div>📊 PISO ACTUAL</div>
+              <div class="stat-value" id="current-floor">0</div>
+            </div>
+            <div class="stat">
+              <div>✨ MULTIPLICADOR</div>
+              <div class="stat-value" id="multiplier-value">1.00x</div>
+            </div>
+            <div class="stat">
+              <div>💰 POTENCIAL</div>
+              <div class="stat-value" id="potential-win">$0</div>
+            </div>
+          </div>
+          <button id="climb-btn" class="action-btn">⬆️ ASCENDER PISO ⬆️</button>
+          <button id="collect-btn" class="action-btn" style="background: linear-gradient(95deg, #2a5f3a, #3d8f55); margin-top: 0.5rem;">💎 RETIRAR GANANCIA 💎</button>
+          <div class="legend">⚡ Riesgo/recompensa: cada ascenso puede revelar un «ESPÍRITU» que termina el juego</div>
+          <div id="game-message-area" class="alert" style="display:none;"></div>
+        </div>
+
+        <div class="flex-buttons">
+          <button class="btn-secondary" id="exit-game-btn">🔄 SALIR DE TORRE</button>
+          <button class="btn-secondary" id="casino-home-btn">🏠 CASINO</button>
+        </div>
+
+        <!-- Historial de partidas -->
+        <div style="margin-top: 0.8rem;">
+          <div style="font-size:0.7rem; color:#aaa; text-align:center;">📜 Últimas subidas</div>
+          <div id="history-container" class="history-box">
+            <div style="text-align:center;">— Sin registros —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- FIREBASE ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 10;
+  let gameActive = false;
+  let currentFloorIndex = 0;
+  let currentMultiplier = 1.00;
+  let gameRiskArray = [];     // almacena si cada piso tiene "espíritu" (game over) o es seguro
+  let totalFloors = 8;        // torre de 8 pisos
+  let gameHistory = [];       // registros de partidas anteriores
+
+  // ----- funciones auxiliares firebase -----
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
+    }
+  }
+
+  async function updateGlobalBalanceDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'tower_mystic@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "TowerSeeker", correo: "tower_mystic@demo.com", clave: "mystic123", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // ---------- LÓGICA MYSTIC TOWER (MÁS LENTA Y ANIMADA) ----------
+  function generateTowerRisk() {
+    // Genera los peligros para cada piso (excepto el piso 0 inicial)
+    // incrementa gradualmente la posibilidad de espíritu a medida que sube, pero con ritmo justo.
+    let risks = [];
+    for (let i = 1; i <= totalFloors; i++) {
+      let baseRisk = 0.12 + (i * 0.045); // riesgo más notorio pero justo, máximo ~0.48 en piso 8
+      if (baseRisk > 0.52) baseRisk = 0.52;
+      const isHaunted = Math.random() < baseRisk;
+      risks.push(isHaunted);
+    }
+    return risks;
+  }
+
+  async function startTowerGame() {
+    if (!currentUser) {
+      showMsg('bet-alert', 'error', 'Error de usuario');
+      return;
+    }
+    if (currentBet <= 0 || currentBet > currentUser.dinero) {
+      showMsg('bet-alert', 'error', `Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+    // Descontar apuesta (riesgo base)
+    const deduct = await modifyUserMoney(currentBet, false);
+    if (!deduct) {
+      showMsg('bet-alert', 'error', 'No se pudo iniciar');
+      return;
+    }
+
+    // Ocultar bet panel y mostrar juego
+    document.getElementById('bet-panel').style.display = 'none';
+    document.getElementById('game-panel').style.display = 'block';
+    document.getElementById('current-bet-display').textContent = `$${currentBet.toFixed(2)}`;
+
+    // Reiniciar estado de la torre
+    gameActive = true;
+    currentFloorIndex = 0;
+    currentMultiplier = 1.00;
+    gameRiskArray = generateTowerRisk(); // riesgos desde piso 1 hasta totalFloors
+    
+    // Construir visualmente la torre (pisos apilados)
+    renderTowerVisual();
+    updateStatsAndUI();
+    
+    const climbBtn = document.getElementById('climb-btn');
+    const collectBtn = document.getElementById('collect-btn');
+    climbBtn.disabled = false;
+    collectBtn.disabled = false;
+    const msgDiv = document.getElementById('game-message-area');
+    if (msgDiv) msgDiv.style.display = 'none';
+  }
+
+  function renderTowerVisual() {
+    const container = document.getElementById('tower-visual');
+    if (!container) return;
+    container.innerHTML = '';
+    // mostrar desde el piso más alto hacia abajo (por estética)
+    for (let i = totalFloors; i >= 0; i--) {
+      const floorDiv = document.createElement('div');
+      floorDiv.className = 'floor';
+      if (i === 0) {
+        floorDiv.innerHTML = '🗝️ BASE';
+      } else {
+        floorDiv.innerHTML = `🏛️ PISO ${i}`;
+      }
+      if (i <= currentFloorIndex && i !== 0) {
+        floorDiv.classList.add('revealed');
+        if (i === currentFloorIndex && currentFloorIndex > 0) {
+          floorDiv.style.boxShadow = '0 0 15px #e8b34b';
+        }
+      } else if (i === currentFloorIndex && currentFloorIndex === 0) {
+        floorDiv.style.border = '2px solid #e8b34b';
+      }
+      floorDiv.setAttribute('data-floor', i);
+      container.appendChild(floorDiv);
+    }
+  }
+
+  function animateFloorReveal(floorNumber) {
+    const container = document.getElementById('tower-visual');
+    if (!container) return;
+    // buscar el elemento con data-floor = floorNumber (visual invertido)
+    const floors = document.querySelectorAll('.floor');
+    for (let i = 0; i < floors.length; i++) {
+      const txt = floors[i].innerHTML;
+      if (floorNumber === 0 && txt.includes('BASE')) {
+        floors[i].classList.add('active-glow');
+        setTimeout(() => floors[i].classList.remove('active-glow'), 700);
+        break;
+      } else if (floorNumber !== 0 && txt.includes(`PISO ${floorNumber}`)) {
+        floors[i].classList.add('active-glow');
+        floors[i].classList.add('revealed');
+        setTimeout(() => floors[i].classList.remove('active-glow'), 800);
+        break;
+      }
+    }
+  }
+
+  function updateStatsAndUI() {
+    document.getElementById('current-floor').textContent = currentFloorIndex;
+    document.getElementById('multiplier-value').textContent = currentMultiplier.toFixed(2) + 'x';
+    let potential = currentBet * currentMultiplier;
+    document.getElementById('potential-win').textContent = `$${potential.toFixed(2)}`;
+  }
+
+  async function climbFloor() {
+    if (!gameActive) {
+      showMsg('game-message-area', 'error', 'La partida ha terminado');
+      return;
+    }
+    if (currentFloorIndex >= totalFloors) {
+      showMsg('game-message-area', 'error', '¡Ya alcanzaste la cima! Retira tu premio.');
+      return;
+    }
+    // Deshabilitar botones momentáneamente para evitar spam y dar sensación lenta
+    const climbBtn = document.getElementById('climb-btn');
+    const collectBtn = document.getElementById('collect-btn');
+    climbBtn.disabled = true;
+    collectBtn.disabled = true;
+    
+    // Efecto de animación delay (slow)
+    climbBtn.innerHTML = '⏳ ASCENDIENDO... ⏳';
+    await new Promise(resolve => setTimeout(resolve, 650)); // más lento y real
+    
+    const nextFloor = currentFloorIndex + 1;
+    const isHaunted = gameRiskArray[nextFloor - 1]; // array index 0 = piso 1
+    
+    if (isHaunted) {
+      // GAME OVER: el espíritu termina el juego, pierde la apuesta ya descontada
+      gameActive = false;
+      animateFloorReveal(nextFloor);
+      await new Promise(resolve => setTimeout(resolve, 400));
+      showMsg('game-message-area', 'error', `👻 ¡ESPÍRITU MALIGNO en piso ${nextFloor}! Has perdido la apuesta de $${currentBet.toFixed(2)}. 👻`);
+      // agregar historial de derrota
+      addHistoryRecord(`❌ Perdido en piso ${nextFloor}`, -currentBet);
+      // finalizar juego, activar botones de salida pero deshabilitar climb/collect
+      climbBtn.disabled = true;
+      collectBtn.disabled = true;
+      climbBtn.innerHTML = '⬆️ ASCENDER PISO ⬆️';
+      // mostrar opción para salir
+    } else {
+      // SUBIDA EXITOSA
+      currentFloorIndex = nextFloor;
+      // Multiplicador base: aumenta según piso (0.4x extra por piso + bonificación)
+      let increment = 0.45 + (Math.random() * 0.25);
+      currentMultiplier = parseFloat((currentMultiplier + increment).toFixed(2));
+      if (currentMultiplier > 7.5) currentMultiplier = 7.5;
+      updateStatsAndUI();
+      animateFloorReveal(nextFloor);
+      showMsg('game-message-area', 'success', `✨ ¡Piso ${nextFloor} seguro! Multiplicador ${currentMultiplier.toFixed(2)}x ✨`);
+      
+      if (currentFloorIndex === totalFloors) {
+        showMsg('game-message-area', 'success', '🏆 ¡Llegaste a la cima! Retira tu recompensa. 🏆');
+        climbBtn.disabled = true;
+        collectBtn.disabled = false;
+        climbBtn.innerHTML = '⬆️ ASCENDER PISO ⬆️';
+        await new Promise(resolve => setTimeout(resolve, 200));
+        climbBtn.disabled = true;
+        collectBtn.disabled = false;
+        return;
+      }
+    }
+    // re-habilitar botones si el juego aún está activo y no se murió
+    if (gameActive) {
+      climbBtn.disabled = false;
+      collectBtn.disabled = false;
+    } else {
+      // si perdió, deshabilitar y mostrar opción para reset
+      collectBtn.disabled = true;
+    }
+    climbBtn.innerHTML = '⬆️ ASCENDER PISO ⬆️';
+    renderTowerVisual();  // refrescar visual para pisos revelados
+  }
+
+  async function collectWin() {
+    if (!gameActive && currentFloorIndex === 0) {
+      showMsg('game-message-area', 'error', 'No hay ganancia activa.');
+      return;
+    }
+    if (!gameActive && currentFloorIndex > 0 && !gameActive) {
+      // ya perdió, no se puede cobrar
+      showMsg('game-message-area', 'error', 'La partida ya terminó.');
+      return;
+    }
+    if (currentFloorIndex === 0 && currentMultiplier === 1.00) {
+      showMsg('game-message-area', 'error', 'Asciende al menos un piso para cobrar.');
+      return;
+    }
+    const winAmount = currentBet * currentMultiplier;
+    const roundedWin = Math.round(winAmount * 100) / 100;
+    const success = await modifyUserMoney(roundedWin, true);
+    if (!success) {
+      showMsg('game-message-area', 'error', 'Error al entregar ganancia');
+      return;
+    }
+    showMsg('game-message-area', 'success', `💎 ¡Has cobrado $${roundedWin.toFixed(2)} (${currentMultiplier.toFixed(2)}x)! 💎`);
+    addHistoryRecord(`✅ Ganancia: $${roundedWin} (piso ${currentFloorIndex})`, roundedWin);
+    gameActive = false;
+    const climbBtn = document.getElementById('climb-btn');
+    const collectBtn = document.getElementById('collect-btn');
+    climbBtn.disabled = true;
+    collectBtn.disabled = true;
+    // ofrecer reset manual con botón salir
+  }
+
+  function addHistoryRecord(text, amount) {
+    gameHistory.unshift({ text, amount, timestamp: Date.now() });
+    if (gameHistory.length > 6) gameHistory.pop();
+    updateHistoryUI();
+  }
+
+  function updateHistoryUI() {
+    const historyDiv = document.getElementById('history-container');
+    if (!historyDiv) return;
+    if (gameHistory.length === 0) {
+      historyDiv.innerHTML = '<div style="text-align:center;">— Sin registros —</div>';
+      return;
+    }
+    let html = '';
+    gameHistory.forEach(rec => {
+      const isWin = rec.amount > 0;
+      html += `<div class="history-item">
+                <span>🗼</span>
+                <span class="${isWin ? 'win-text' : ''}">${rec.text}</span>
+                <span>${isWin ? '✨' : '💀'}</span>
+              </div>`;
+    });
+    historyDiv.innerHTML = html;
+  }
+
+  function resetToBetMenu() {
+    if (document.getElementById('game-panel')) {
+      document.getElementById('game-panel').style.display = 'none';
+    }
+    document.getElementById('bet-panel').style.display = 'block';
+    gameActive = false;
+    const msgGame = document.getElementById('game-message-area');
+    if (msgGame) msgGame.style.display = 'none';
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  function setBet(amount) {
+    currentBet = amount;
+    showMsg('bet-alert', 'success', `💰 Apuesta: $${currentBet.toFixed(2)}`);
+    document.getElementById('custom-bet-input').value = '';
+  }
+
+  function setCustomBet() {
+    const val = parseFloat(document.getElementById('custom-bet-input').value);
+    if (isNaN(val) || val <= 0) {
+      showMsg('bet-alert', 'error', 'Monto inválido');
+      return;
+    }
+    currentBet = Math.floor(val * 100) / 100;
+    showMsg('bet-alert', 'success', `✅ Apuesta personalizada: $${currentBet.toFixed(2)}`);
+    document.getElementById('custom-bet-input').value = '';
+  }
+
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    // Eventos
+    document.querySelectorAll('.bet-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const betVal = parseFloat(btn.getAttribute('data-bet'));
+        if (!isNaN(betVal)) setBet(betVal);
+      });
+    });
+    document.getElementById('apply-custom').addEventListener('click', setCustomBet);
+    document.getElementById('enter-tower-btn').addEventListener('click', startTowerGame);
+    document.getElementById('climb-btn').addEventListener('click', climbFloor);
+    document.getElementById('collect-btn').addEventListener('click', collectWin);
+    document.getElementById('exit-game-btn').addEventListener('click', resetToBetMenu);
+    document.getElementById('casino-home-btn').addEventListener('click', () => window.location.href = '../app.html');
+    document.getElementById('bet-panel').style.display = 'block';
+    document.getElementById('game-panel').style.display = 'none';
+  }
+
+  init();
+</script>
+</body>
+</html>

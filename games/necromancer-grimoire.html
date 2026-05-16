@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Necromancer's Grimoire - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .game-master {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 40% 30%, #0e0a16, #04020a);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+
+    .game-container {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .game-container h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      background: linear-gradient(135deg, #6b2e5a, #9b4b7a, #c96aa8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 30px rgba(155,75,122,0.5);
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      letter-spacing: 4px;
+      animation: titleBreath 3s ease-in-out infinite;
+    }
+
+    @keyframes titleBreath {
+      0%, 100% { opacity: 0.9; text-shadow: 0 0 10px #9b4b7a; }
+      50% { opacity: 1; text-shadow: 0 0 25px #c96aa8; }
+    }
+
+    .card {
+      background: rgba(10, 8, 18, 0.96);
+      backdrop-filter: blur(16px);
+      border-radius: 2rem;
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(155, 75, 122, 0.5);
+      box-shadow: 0 30px 50px -15px rgba(0,0,0,0.9), inset 0 1px 0 rgba(201,106,168,0.1);
+    }
+
+    .balance-card {
+      background: linear-gradient(145deg, #140f1e, #090612);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid #9b4b7a;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
+    }
+
+    .balance-card div:first-child {
+      color: #c97aa8;
+      font-weight: 500;
+      letter-spacing: 2px;
+      font-size: 0.8rem;
+    }
+
+    #saldo-display, #money-display {
+      background: linear-gradient(135deg, #f0a6d0, #c96aa8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 900;
+    }
+
+    #saldo-display {
+      font-size: 2.8rem;
+    }
+
+    .bet-options-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .bet-chip {
+      background: #1e1635;
+      border: 1px solid #9b4b7a55;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      color: #f0d9e8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bet-chip:hover {
+      background: #9b4b7a;
+      color: #0c0a16;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(155,75,122,0.5);
+    }
+
+    #custom-bet-input {
+      background: #0c0a16;
+      border: 1px solid #9b4b7a;
+      padding: 0.7rem 1rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #f0d9e8;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(95deg, #6b2e5a, #9b4b7a, #c96aa8);
+      border: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.9rem;
+      border-radius: 3rem;
+      color: #0c0a16;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: scale(0.98);
+      box-shadow: 0 0 20px rgba(201,106,168,0.6);
+    }
+
+    .btn-secondary {
+      background: #2a1f3a;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 2rem;
+      color: #e0d6ee;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .btn-secondary:hover {
+      background: #4a3570;
+      transform: translateY(-2px);
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.2rem;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      text-align: center;
+      font-weight: 600;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-8px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    .alert.success {
+      background: #1e3a2e;
+      color: #c6f7d0;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .alert.error {
+      background: #441e25;
+      color: #ffb7b7;
+      border-left: 4px solid #e74c3c;
+    }
+
+    /* GRIMOIRE - MAIN GAME PANEL */
+    .grimoire {
+      background: #05030c;
+      border-radius: 2rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      border: 1px solid #9b4b7a66;
+      position: relative;
+    }
+
+    .pages {
+      background: #0f0a18;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .rune-circle {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .rune {
+      background: #1a1228;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid #6b2e5a;
+      font-size: 2.2rem;
+    }
+
+    .rune:hover {
+      transform: scale(1.08);
+      border-color: #c96aa8;
+      box-shadow: 0 0 20px rgba(201,106,168,0.6);
+    }
+
+    .rune.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(0.3);
+      transform: none;
+    }
+
+    .rune-name {
+      font-size: 0.6rem;
+      margin-top: 0.3rem;
+      color: #c97aa8;
+    }
+
+    .soul-meter {
+      background: #07040e;
+      border-radius: 1rem;
+      padding: 0.5rem 1rem;
+      margin: 0.8rem 0;
+    }
+
+    .soul-bar {
+      background: #2a1a30;
+      border-radius: 2rem;
+      height: 24px;
+      overflow: hidden;
+      margin: 0.5rem 0;
+    }
+
+    .soul-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #6b2e5a, #c96aa8, #e8a0c8);
+      border-radius: 2rem;
+      transition: width 0.9s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      box-shadow: 0 0 8px #c96aa8;
+    }
+
+    .soul-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #c97aa8;
+    }
+
+    .ritual-area {
+      background: #0c0715;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      text-align: center;
+      margin: 0.8rem 0;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed #9b4b7a;
+    }
+
+    .ritual-animation {
+      font-size: 3rem;
+      filter: drop-shadow(0 0 8px #c96aa8);
+      animation: floatSpirit 2s ease-in-out infinite;
+    }
+
+    @keyframes floatSpirit {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .ritual-text {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      color: #c97aa8;
+    }
+
+    .grimoire-btn {
+      background: linear-gradient(95deg, #3a1e4a, #5a2e6a);
+      border: none;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #f0d9e8;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .grimoire-btn:active {
+      transform: scale(0.97);
+    }
+
+    .grimoire-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .history-grimoire {
+      max-height: 110px;
+      overflow-y: auto;
+      background: #03020a;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+    }
+
+    .hist-entry {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.2rem 0.4rem;
+      border-bottom: 1px solid #2a1a3a;
+    }
+  </style>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display" style="font-weight: bold; font-size: 1.3rem;">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>📖 NECROMANCER'S GRIMOIRE 📖</h1>
+
+    <!-- BET PANEL -->
+    <div id="bet-panel" class="card">
+      <div class="balance-card">
+        <div>🕯️ ALMAS DEL INVOCADOR</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options-row">
+        <button class="bet-chip" data-bet="5">$5</button>
+        <button class="bet-chip" data-bet="10">$10</button>
+        <button class="bet-chip" data-bet="25">$25</button>
+        <button class="bet-chip" data-bet="50">$50</button>
+        <button class="bet-chip" data-bet="100">$100</button>
+      </div>
+      <input type="number" id="custom-bet-input" placeholder="Monto personalizado" min="1" step="1">
+      <button class="btn-secondary" id="apply-custom" style="margin-top: 0.5rem; width:100%">✅ Aplicar monto</button>
+      <button class="btn-primary" id="open-grimoire-btn" style="margin-top: 1.5rem;">🔮 ABRIR EL GRIMORIO 🔮</button>
+      <div id="bet-alert" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- GAME PANEL: RITUAL DE ALMAS (LENTO + VISUAL) -->
+    <div id="game-panel" style="display:none;">
+      <div class="card">
+        <div class="balance-card" style="padding: 0.7rem;">
+          <div>⚰️ OFRENDA INICIAL</div>
+          <div style="font-size: 1.5rem; font-weight: bold; color:#c96aa8;" id="current-bet-display">$0</div>
+        </div>
+
+        <div class="grimoire">
+          <div class="pages">
+            <div class="rune-circle" id="rune-container">
+              <div class="rune" data-rune="hueso">
+                <span>🦴</span>
+                <span class="rune-name">Hueso Maldito</span>
+              </div>
+              <div class="rune" data-rune="sangre">
+                <span>🩸</span>
+                <span class="rune-name">Sangre Eterna</span>
+              </div>
+              <div class="rune" data-rune="ceniza">
+                <span>🌫️</span>
+                <span class="rune-name">Ceniza Espectral</span>
+              </div>
+              <div class="rune" data-rune="vela">
+                <span>🕯️</span>
+                <span class="rune-name">Vela Negra</span>
+              </div>
+              <div class="rune" data-rune="calavera">
+                <span>💀</span>
+                <span class="rune-name">Cráneo Óseo</span>
+              </div>
+            </div>
+
+            <div class="soul-meter">
+              <div class="soul-stats">
+                <span>🌑 ALMAS ACUMULADAS</span>
+                <span id="soul-percent">0%</span>
+              </div>
+              <div class="soul-bar">
+                <div class="soul-fill" id="soul-fill"></div>
+              </div>
+            </div>
+
+            <div class="ritual-area" id="ritual-area">
+              <div class="ritual-animation" id="ritual-icon">📜</div>
+              <div class="ritual-text" id="ritual-text">Invoca runas para cargar el grimorio...</div>
+            </div>
+
+            <button id="invoke-ritual-btn" class="grimoire-btn">🔮 REALIZAR RITUAL DE ALMAS 🔮</button>
+            <button id="collect-souls-btn" class="grimoire-btn" style="background: linear-gradient(95deg, #2e4a3a, #4a6e5a);">💀 RECOGER ESENCIAS 💀</button>
+          </div>
+        </div>
+
+        <div class="flex-buttons">
+          <button class="btn-secondary" id="close-grimoire-btn">📖 CERRAR GRIMORIO</button>
+          <button class="btn-secondary" id="casino-home-btn">🏠 CASINO</button>
+        </div>
+
+        <div style="margin-top: 0.8rem;">
+          <div style="font-size:0.7rem; color:#c97aa8; text-align:center;">📜 BITÁCORA DE INVOCACIONES</div>
+          <div id="ritual-history" class="history-grimoire">
+            <div style="text-align:center;">— Sin rituales —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 10;
+  let gameActive = false;
+  let soulEnergy = 0;           // 0 - 100%
+  let currentMultiplier = 1.00;
+  let ritualHistory = [];
+  
+  // Cada runa otorga alma pero puede invocar "Espíritu Vengador" (riesgo)
+  const runeData = {
+    hueso: { soulGain: 12, risk: 0.15, name: "🦴 Hueso Maldito" },
+    sangre: { soulGain: 16, risk: 0.20, name: "🩸 Sangre Eterna" },
+    ceniza: { soulGain: 10, risk: 0.10, name: "🌫️ Ceniza Espectral" },
+    vela: { soulGain: 14, risk: 0.18, name: "🕯️ Vela Negra" },
+    calavera: { soulGain: 22, risk: 0.25, name: "💀 Cráneo Óseo" }
+  };
+
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3800);
+    }
+  }
+
+  async function updateGlobalBalanceDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'necromancer@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "Nigromante", correo: "necromancer@demo.com", clave: "grimoire123", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // GAME LOGIC
+  async function startNecromancy() {
+    if (!currentUser) { showMsg('bet-alert', 'error', 'Error de usuario'); return; }
+    if (currentBet <= 0 || currentBet > currentUser.dinero) {
+      showMsg('bet-alert', 'error', `Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+    const deducted = await modifyUserMoney(currentBet, false);
+    if (!deducted) return;
+    
+    document.getElementById('bet-panel').style.display = 'none';
+    document.getElementById('game-panel').style.display = 'block';
+    document.getElementById('current-bet-display').textContent = `$${currentBet.toFixed(2)}`;
+    
+    gameActive = true;
+    soulEnergy = 0;
+    currentMultiplier = 1.00;
+    updateSoulUI(0);
+    enableRunes(true);
+    document.getElementById('invoke-ritual-btn').disabled = false;
+    document.getElementById('collect-souls-btn').disabled = true;
+    document.getElementById('ritual-text').innerHTML = "Invoca runas para acumular almas...";
+    document.getElementById('ritual-icon').innerHTML = "📜";
+    const msgDiv = document.getElementById('game-message-area');
+    if (msgDiv) msgDiv.style.display = 'none';
+  }
+
+  function updateSoulUI(percent) {
+    const fill = document.getElementById('soul-fill');
+    const percentSpan = document.getElementById('soul-percent');
+    if (fill) fill.style.width = `${percent}%`;
+    if (percentSpan) percentSpan.textContent = `${Math.floor(percent)}%`;
+    let multiplier = 1 + (percent / 100) * 4.5;
+    multiplier = Math.min(multiplier, 7.0);
+    currentMultiplier = parseFloat(multiplier.toFixed(2));
+    const potential = currentBet * currentMultiplier;
+    const ritualTextDiv = document.getElementById('ritual-text');
+    if (ritualTextDiv && percent > 0) {
+      ritualTextDiv.innerHTML = `⚡ Almas: ${Math.floor(percent)}% | Multiplicador ${currentMultiplier}x | Recompensa potencial: $${potential.toFixed(2)}`;
+    } else if (ritualTextDiv) {
+      ritualTextDiv.innerHTML = "⬇️ Invoca runas para acumular poder ⬇️";
+    }
+  }
+
+  function enableRunes(enable) {
+    const runes = document.querySelectorAll('.rune');
+    runes.forEach(r => {
+      if (enable) r.classList.remove('disabled');
+      else r.classList.add('disabled');
+    });
+  }
+
+  async function invokeRune(runeKey) {
+    if (!gameActive) { showMsg('game-message-area', 'error', 'El grimorio está sellado'); return; }
+    const rune = runeData[runeKey];
+    if (!rune) return;
+    
+    enableRunes(false);
+    const ritualIcon = document.getElementById('ritual-icon');
+    const originalIcon = ritualIcon.innerHTML;
+    ritualIcon.innerHTML = "🔮✨";
+    await new Promise(resolve => setTimeout(resolve, 550)); // slow invocation
+    
+    let gain = rune.soulGain;
+    let newEnergy = soulEnergy + gain;
+    if (newEnergy > 100) newEnergy = 100;
+    
+    // riesgo de invocar un espíritu vengador (pérdida de almas)
+    const riskRoll = Math.random();
+    let spiritAttack = false;
+    if (riskRoll < rune.risk && soulEnergy > 8) {
+      spiritAttack = true;
+      const lostPercent = Math.floor(soulEnergy * 0.4);
+      newEnergy = Math.max(0, soulEnergy - lostPercent);
+      showMsg('game-message-area', 'error', `👻 ¡ESPÍRITU VENGADOR! ${rune.name} invoca un espectro y pierdes ${lostPercent}% de almas. 👻`);
+      addRitualLog(`❌ ${rune.name} → Espíritu vengador: -${lostPercent}% almas`);
+    } else {
+      showMsg('game-message-area', 'success', `✨ ${rune.name} concede +${gain}% de poder espiritual ✨`);
+      addRitualLog(`🧙 ${rune.name} → +${gain}% almas`);
+    }
+    
+    soulEnergy = newEnergy;
+    updateSoulUI(soulEnergy);
+    
+    ritualIcon.innerHTML = rune.name.split(' ')[0];
+    await new Promise(resolve => setTimeout(resolve, 400));
+    ritualIcon.innerHTML = "📜";
+    enableRunes(true);
+    
+    if (soulEnergy >= 100) {
+      showMsg('game-message-area', 'success', '💀 ¡PODER MÁXIMO! El grimorio brilla con energía oscura. Realiza el ritual mayor. 💀');
+      document.getElementById('invoke-ritual-btn').style.background = "linear-gradient(95deg, #9b4b7a, #c96aa8)";
+    }
+  }
+
+  async function performRitual() {
+    if (!gameActive) return;
+    if (soulEnergy < 30) {
+      showMsg('game-message-area', 'error', 'Necesitas al menos 30% de almas para realizar el ritual');
+      return;
+    }
+    enableRunes(false);
+    const ritualBtn = document.getElementById('invoke-ritual-btn');
+    const collectBtn = document.getElementById('collect-souls-btn');
+    ritualBtn.disabled = true;
+    collectBtn.disabled = true;
+    const ritualIcon = document.getElementById('ritual-icon');
+    const ritualText = document.getElementById('ritual-text');
+    
+    ritualIcon.innerHTML = "💀🔥💀";
+    ritualText.innerHTML = "⚰️ Invocando a los ancestros... canalizando almas... ⚰️";
+    await new Promise(resolve => setTimeout(resolve, 1300)); // slow ritual
+    
+    let finalMultiplier = 1 + (soulEnergy / 100) * 5.2;
+    finalMultiplier = Math.min(finalMultiplier, 8.0);
+    finalMultiplier = parseFloat(finalMultiplier.toFixed(2));
+    let winAmount = currentBet * finalMultiplier;
+    winAmount = Math.floor(winAmount * 100) / 100;
+    
+    ritualIcon.innerHTML = "🏆💎🏆";
+    ritualText.innerHTML = `¡RITUAL EXITOSO! Multiplicador ${finalMultiplier}x → +$${winAmount.toFixed(2)}`;
+    
+    const success = await modifyUserMoney(winAmount, true);
+    if (success) {
+      addRitualLog(`🏆 RITUAL DE ALMAS → $${winAmount} (${finalMultiplier}x) con ${Math.floor(soulEnergy)}% poder`);
+      showMsg('game-message-area', 'success', `✨ ¡El grimorio te recompensa! +$${winAmount.toFixed(2)} ✨`);
+    } else {
+      addRitualLog(`❌ Error en el ritual`);
+    }
+    
+    gameActive = false;
+    ritualBtn.disabled = true;
+    collectBtn.disabled = true;
+    enableRunes(false);
+    await new Promise(resolve => setTimeout(resolve, 700));
+    ritualIcon.innerHTML = "🏁";
+    ritualText.innerHTML = "Ritual completado. Puedes cerrar el grimorio.";
+  }
+
+  async function collectEarlySouls() {
+    if (!gameActive) return;
+    if (soulEnergy < 15) {
+      showMsg('game-message-area', 'error', 'Almas insuficientes (mínimo 15%) para recolectar esencias');
+      return;
+    }
+    enableRunes(false);
+    const ritualIcon = document.getElementById('ritual-icon');
+    ritualIcon.innerHTML = "💀✨💀";
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    let earlyMulti = 1 + (soulEnergy / 100) * 2.8;
+    earlyMulti = parseFloat(earlyMulti.toFixed(2));
+    let winAmount = currentBet * earlyMulti;
+    winAmount = Math.floor(winAmount * 100) / 100;
+    const success = await modifyUserMoney(winAmount, true);
+    if (success) {
+      showMsg('game-message-area', 'success', `💀 Recolectaste esencias temprano: $${winAmount} (${earlyMulti}x) 💀`);
+      addRitualLog(`🔮 Recolección anticipada → $${winAmount} (${earlyMulti}x) con ${Math.floor(soulEnergy)}% almas`);
+    } else {
+      showMsg('game-message-area', 'error', 'Error al recolectar');
+    }
+    gameActive = false;
+    ritualIcon.innerHTML = "🏁";
+    document.getElementById('ritual-text').innerHTML = "Recolección finalizada.";
+    enableRunes(false);
+    document.getElementById('invoke-ritual-btn').disabled = true;
+    document.getElementById('collect-souls-btn').disabled = true;
+  }
+
+  function addRitualLog(text) {
+    ritualHistory.unshift({ text, ts: Date.now() });
+    if (ritualHistory.length > 7) ritualHistory.pop();
+    const logDiv = document.getElementById('ritual-history');
+    if (!logDiv) return;
+    if (ritualHistory.length === 0) {
+      logDiv.innerHTML = '<div style="text-align:center;">— Sin rituales —</div>';
+      return;
+    }
+    let html = '';
+    ritualHistory.forEach(entry => {
+      html += `<div class="hist-entry"><span>📖</span><span>${entry.text}</span><span>⚰️</span></div>`;
+    });
+    logDiv.innerHTML = html;
+  }
+
+  function resetToBetMenu() {
+    if (document.getElementById('game-panel')) document.getElementById('game-panel').style.display = 'none';
+    document.getElementById('bet-panel').style.display = 'block';
+    gameActive = false;
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  function setBet(amount) { currentBet = amount; showMsg('bet-alert', 'success', `💰 Apuesta: $${currentBet}`); document.getElementById('custom-bet-input').value = ''; }
+  function setCustomBet() { let v = parseFloat(document.getElementById('custom-bet-input').value); if (v > 0) { currentBet = v; showMsg('bet-alert', 'success', `✅ Apuesta personalizada: $${currentBet}`); } else showMsg('bet-alert', 'error', 'Monto inválido'); }
+
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    document.querySelectorAll('.bet-chip').forEach(btn => btn.addEventListener('click', (e) => { let val = parseFloat(btn.getAttribute('data-bet')); if (!isNaN(val)) setBet(val); }));
+    document.getElementById('apply-custom').addEventListener('click', setCustomBet);
+    document.getElementById('open-grimoire-btn').addEventListener('click', startNecromancy);
+    document.getElementById('close-grimoire-btn').addEventListener('click', resetToBetMenu);
+    document.getElementById('casino-home-btn').addEventListener('click', () => window.location.href = '../app.html');
+    document.getElementById('invoke-ritual-btn').addEventListener('click', performRitual);
+    document.getElementById('collect-souls-btn').addEventListener('click', collectEarlySouls);
+    
+    document.querySelectorAll('.rune').forEach(rune => {
+      rune.addEventListener('click', (e) => {
+        if (gameActive && !rune.classList.contains('disabled')) {
+          invokeRune(rune.getAttribute('data-rune'));
+        }
+      });
+    });
+    
+    document.getElementById('bet-panel').style.display = 'block';
+    document.getElementById('game-panel').style.display = 'none';
+  }
+  init();
+</script>
+</body>
+</html>

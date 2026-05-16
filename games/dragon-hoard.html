@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Dragon's Hoard - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .game-master {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 30%, #1a1208, #0a0602);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+
+    .game-container {
+      max-width: 850px;
+      width: 100%;
+      margin: 0 auto;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .game-container h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      background: linear-gradient(135deg, #cd7f32, #ffac4a, #e8961e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 30px rgba(205,127,50,0.5);
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      letter-spacing: 4px;
+    }
+
+    .card {
+      background: rgba(20, 14, 8, 0.96);
+      backdrop-filter: blur(16px);
+      border-radius: 2rem;
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(205, 127, 50, 0.5);
+      box-shadow: 0 30px 50px -15px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,172,74,0.1);
+    }
+
+    .balance-card {
+      background: linear-gradient(145deg, #1f160c, #0f0a04);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid #cd7f32;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
+    }
+
+    .balance-card div:first-child {
+      color: #ffac4a;
+      font-weight: 500;
+      letter-spacing: 2px;
+      font-size: 0.8rem;
+    }
+
+    #saldo-display, #money-display {
+      background: linear-gradient(135deg, #ffd699, #ffac4a);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 900;
+    }
+
+    #saldo-display {
+      font-size: 2.8rem;
+    }
+
+    .bet-options-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .bet-chip {
+      background: #2a1e0f;
+      border: 1px solid #cd7f3255;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      color: #ffddb0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bet-chip:hover {
+      background: #cd7f32;
+      color: #0f0a04;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(205,127,50,0.5);
+    }
+
+    #custom-bet-input {
+      background: #0f0a04;
+      border: 1px solid #cd7f32;
+      padding: 0.7rem 1rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffddb0;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(95deg, #8b5a2b, #cd7f32, #e8961e);
+      border: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.9rem;
+      border-radius: 3rem;
+      color: #0f0a04;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: scale(0.98);
+      box-shadow: 0 0 20px rgba(205,127,50,0.6);
+    }
+
+    .btn-secondary {
+      background: #2a1e0f;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 2rem;
+      color: #ffddb0;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .btn-secondary:hover {
+      background: #5a3a1a;
+      transform: translateY(-2px);
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.2rem;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      text-align: center;
+      font-weight: 600;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-8px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    .alert.success {
+      background: #1e3a2e;
+      color: #c6f7d0;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .alert.error {
+      background: #441e25;
+      color: #ffb7b7;
+      border-left: 4px solid #e74c3c;
+    }
+
+    /* DRAGON'S HOARD - MAIN GAME */
+    .lair {
+      background: #0a0602;
+      border-radius: 2rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      border: 1px solid #cd7f3266;
+    }
+
+    .dragon-den {
+      background: #150e06;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      min-height: 380px;
+    }
+
+    .treasure-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .hoard-card {
+      background: #2a1c0c;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #cd7f3255;
+      position: relative;
+    }
+
+    .hoard-card:hover {
+      transform: scale(1.05);
+      border-color: #ffac4a;
+      background: #3a2a14;
+    }
+
+    .hoard-card.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(0.3);
+      transform: none;
+    }
+
+    .hoard-card.revealed {
+      background: #4a3518;
+      border-color: #ffac4a;
+    }
+
+    .card-icon {
+      font-size: 2.2rem;
+      display: block;
+    }
+
+    .card-value {
+      font-size: 0.7rem;
+      margin-top: 0.3rem;
+      color: #ffac4a;
+    }
+
+    .treasure-meter {
+      background: #1a1008;
+      border-radius: 1rem;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+    }
+
+    .meter-bar {
+      background: #3a2818;
+      border-radius: 2rem;
+      height: 22px;
+      overflow: hidden;
+      margin: 0.3rem 0;
+    }
+
+    .meter-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #cd7f32, #ffac4a, #ffd699);
+      border-radius: 2rem;
+      transition: width 0.9s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      box-shadow: 0 0 6px #ffac4a;
+    }
+
+    .dragon-area {
+      background: #1a0e05;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      text-align: center;
+      margin: 0.8rem 0;
+      border: 1px dashed #cd7f32;
+    }
+
+    .dragon-animation {
+      font-size: 3rem;
+      filter: drop-shadow(0 0 8px #ffac4a);
+      animation: dragonGlide 2s ease-in-out infinite;
+    }
+
+    @keyframes dragonGlide {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(2deg); }
+    }
+
+    .dragon-text {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      color: #ffac4a;
+    }
+
+    .game-action-btn {
+      background: linear-gradient(95deg, #4a2a12, #6b3a1a);
+      border: none;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffddb0;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .game-action-btn:active {
+      transform: scale(0.97);
+    }
+
+    .game-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .history-hoard {
+      max-height: 110px;
+      overflow-y: auto;
+      background: #060402;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.2rem 0.4rem;
+      border-bottom: 1px solid #2a1a0a;
+    }
+  </style>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display" style="font-weight: bold; font-size: 1.3rem;">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🐉 DRAGON'S HOARD 🐉</h1>
+
+    <!-- BET PANEL -->
+    <div id="bet-panel" class="card">
+      <div class="balance-card">
+        <div>💰 TESORO DEL AVENTURERO</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options-row">
+        <button class="bet-chip" data-bet="5">$5</button>
+        <button class="bet-chip" data-bet="10">$10</button>
+        <button class="bet-chip" data-bet="25">$25</button>
+        <button class="bet-chip" data-bet="50">$50</button>
+        <button class="bet-chip" data-bet="100">$100</button>
+      </div>
+      <input type="number" id="custom-bet-input" placeholder="Monto personalizado" min="1" step="1">
+      <button class="btn-secondary" id="apply-custom" style="margin-top: 0.5rem; width:100%">✅ Aplicar monto</button>
+      <button class="btn-primary" id="enter-hoard-btn" style="margin-top: 1.5rem;">⚔️ EXPLORAR EL GUARIDA ⚔️</button>
+      <div id="bet-alert" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- GAME PANEL: DRAGON'S HOARD -->
+    <div id="game-panel" style="display:none;">
+      <div class="card">
+        <div class="balance-card" style="padding: 0.7rem;">
+          <div>🏹 APUESTA DEL HÉROE</div>
+          <div style="font-size: 1.5rem; font-weight: bold; color:#ffac4a;" id="current-bet-display">$0</div>
+        </div>
+
+        <div class="lair">
+          <div class="dragon-den">
+            <div class="treasure-grid" id="treasure-grid">
+              <!-- 8 cofres generados dinámicamente -->
+            </div>
+
+            <div class="treasure-meter">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #ffac4a;">
+                <span>🔥 FURIA DEL DRAGÓN</span>
+                <span id="wrath-percent">0%</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill" id="wrath-fill"></div>
+              </div>
+            </div>
+
+            <div class="dragon-area" id="dragon-area">
+              <div class="dragon-animation" id="dragon-icon">🐉</div>
+              <div class="dragon-text" id="dragon-text">El dragón duerme sobre su tesoro...</div>
+            </div>
+
+            <button id="loot-btn" class="game-action-btn">🗝️ SAQUEAR TESORO 🗝️</button>
+            <button id="escape-btn" class="game-action-btn" style="background: linear-gradient(95deg, #2a4a3a, #3a6a4a);">🏃 ESCAPAR CON BOTÍN 🏃</button>
+          </div>
+        </div>
+
+        <div class="flex-buttons">
+          <button class="btn-secondary" id="leave-hoard-btn">🚪 ABANDONAR GUARIDA</button>
+          <button class="btn-secondary" id="casino-home-btn">🏠 CASINO</button>
+        </div>
+
+        <div style="margin-top: 0.8rem;">
+          <div style="font-size:0.7rem; color:#ffac4a; text-align:center;">📜 CRÓNICAS DE SAQUEOS</div>
+          <div id="hoard-history" class="history-hoard">
+            <div style="text-align:center;">— Sin aventuras —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 10;
+  let gameActive = false;
+  let dragonWrath = 0;          // 0-100%
+  let lootMultiplier = 1.00;
+  let openedChests = [];
+  let totalChests = 8;
+  let chestValues = [];
+  let gameHistory = [];
+
+  // Valores de los cofres (joyas ocultas)
+  const chestBaseValues = [1.2, 1.5, 1.8, 2.2, 2.8, 3.5, 4.5, 6.0];
+
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3800);
+    }
+  }
+
+  async function updateGlobalBalanceDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'dragonhunter@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "Dragonslayer", correo: "dragonhunter@demo.com", clave: "hoard123", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // GAME LOGIC
+  async function enterHoard() {
+    if (!currentUser) { showMsg('bet-alert', 'error', 'Error de usuario'); return; }
+    if (currentBet <= 0 || currentBet > currentUser.dinero) {
+      showMsg('bet-alert', 'error', `Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+    const deducted = await modifyUserMoney(currentBet, false);
+    if (!deducted) return;
+    
+    document.getElementById('bet-panel').style.display = 'none';
+    document.getElementById('game-panel').style.display = 'block';
+    document.getElementById('current-bet-display').textContent = `$${currentBet.toFixed(2)}`;
+    
+    gameActive = true;
+    dragonWrath = 0;
+    lootMultiplier = 1.00;
+    openedChests = [];
+    
+    // Mezclar valores de cofres
+    chestValues = [...chestBaseValues];
+    for (let i = chestValues.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chestValues[i], chestValues[j]] = [chestValues[j], chestValues[i]];
+    }
+    
+    renderTreasureGrid();
+    updateWrathUI();
+    document.getElementById('dragon-text').innerHTML = "El dragón ruge débilmente... abre cofres con cuidado.";
+    document.getElementById('dragon-icon').innerHTML = "🐉";
+    document.getElementById('loot-btn').disabled = false;
+    document.getElementById('escape-btn').disabled = true;
+    const msgDiv = document.getElementById('game-message-area');
+    if (msgDiv) msgDiv.style.display = 'none';
+  }
+
+  function renderTreasureGrid() {
+    const grid = document.getElementById('treasure-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let i = 0; i < totalChests; i++) {
+      const isOpened = openedChests.includes(i);
+      const chestDiv = document.createElement('div');
+      chestDiv.className = 'hoard-card';
+      if (isOpened) chestDiv.classList.add('revealed');
+      if (!gameActive || isOpened) chestDiv.classList.add('disabled');
+      chestDiv.setAttribute('data-index', i);
+      chestDiv.innerHTML = `
+        <span class="card-icon">${isOpened ? '💎' : '📦'}</span>
+        <span class="card-value">${isOpened ? `x${chestValues[i].toFixed(1)}` : '???'}</span>
+      `;
+      chestDiv.addEventListener('click', () => {
+        if (gameActive && !openedChests.includes(i) && !chestDiv.classList.contains('disabled')) {
+          openChest(i);
+        }
+      });
+      grid.appendChild(chestDiv);
+    }
+  }
+
+  async function openChest(index) {
+    if (!gameActive) return;
+    if (openedChests.includes(index)) return;
+    
+    // Deshabilitar temporalmente para dar lentitud
+    const allChests = document.querySelectorAll('.hoard-card');
+    allChests.forEach(c => c.classList.add('disabled'));
+    
+    const dragonIcon = document.getElementById('dragon-icon');
+    const originalDragon = dragonIcon.innerHTML;
+    dragonIcon.innerHTML = "🐲🔥";
+    await new Promise(resolve => setTimeout(resolve, 550));
+    
+    const chestMulti = chestValues[index];
+    openedChests.push(index);
+    
+    // La furia aumenta con cada cofre abierto
+    let wrathIncrease = 8 + Math.floor(Math.random() * 12);
+    dragonWrath = Math.min(100, dragonWrath + wrathIncrease);
+    
+    // Multiplicador acumulado basado en cofres abiertos
+    let totalMultiplier = 1.00;
+    for (let i = 0; i < openedChests.length; i++) {
+      totalMultiplier += chestValues[openedChests[i]] * 0.12;
+    }
+    totalMultiplier = Math.min(totalMultiplier, 7.5);
+    lootMultiplier = parseFloat(totalMultiplier.toFixed(2));
+    
+    updateWrathUI();
+    renderTreasureGrid();
+    
+    const potentialWin = currentBet * lootMultiplier;
+    const dragonText = document.getElementById('dragon-text');
+    dragonText.innerHTML = `⚠️ ¡Abriste un cofre! Multiplicador actual ${lootMultiplier}x | Posible botín: $${potentialWin.toFixed(2)} ⚠️`;
+    
+    showMsg('game-message-area', 'success', `📦 Cofre abierto: +${chestMulti.toFixed(1)}x al multiplicador. Furia del dragón: ${dragonWrath}%`);
+    addHistoryEntry(`📦 Cofre abierto → Multiplicador ${lootMultiplier}x`);
+    
+    dragonIcon.innerHTML = "🐉";
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Si la furia llega al 100%, el dragón despierta y termina el juego
+    if (dragonWrath >= 100) {
+      dragonIcon.innerHTML = "🐲💢";
+      dragonText.innerHTML = "🔥¡EL DRAGÓN DESPIERTA! Quemas todo tu botín potencial...🔥";
+      showMsg('game-message-area', 'error', `💀 El dragón te ataca con furia! Pierdes la apuesta de $${currentBet.toFixed(2)} 💀`);
+      addHistoryEntry(`💀 DRAGÓN DESPIERTO → Pérdida total`);
+      gameActive = false;
+      document.getElementById('loot-btn').disabled = true;
+      document.getElementById('escape-btn').disabled = true;
+      allChests.forEach(c => c.classList.add('disabled'));
+      return;
+    }
+    
+    // Habilitar nuevamente cofres no abiertos
+    if (gameActive) {
+      const updatedChests = document.querySelectorAll('.hoard-card');
+      updatedChests.forEach(c => {
+        const idx = parseInt(c.getAttribute('data-index'));
+        if (!openedChests.includes(idx)) {
+          c.classList.remove('disabled');
+        }
+      });
+      document.getElementById('escape-btn').disabled = false;
+      if (openedChests.length >= totalChests) {
+        document.getElementById('loot-btn').disabled = false;
+        dragonText.innerHTML = "✨ ¡Has abierto todos los cofres! Usa SAQUEAR para reclamar tu recompensa ✨";
+      } else {
+        document.getElementById('loot-btn').disabled = false;
+      }
+    }
+  }
+
+  async function lootTreasure() {
+    if (!gameActive) return;
+    if (openedChests.length === 0) {
+      showMsg('game-message-area', 'error', 'Abre al menos un cofre antes de saquear');
+      return;
+    }
+    
+    // Deshabilitar todo durante el saqueo lento
+    const allChests = document.querySelectorAll('.hoard-card');
+    allChests.forEach(c => c.classList.add('disabled'));
+    document.getElementById('loot-btn').disabled = true;
+    document.getElementById('escape-btn').disabled = true;
+    
+    const dragonIcon = document.getElementById('dragon-icon');
+    const dragonText = document.getElementById('dragon-text');
+    dragonIcon.innerHTML = "💎🐉💎";
+    dragonText.innerHTML = "¡Saqueando el tesoro del dragón!";
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    let winAmount = currentBet * lootMultiplier;
+    winAmount = Math.floor(winAmount * 100) / 100;
+    
+    const success = await modifyUserMoney(winAmount, true);
+    if (success) {
+      showMsg('game-message-area', 'success', `🏆 ¡Saqueaste el tesoro! Ganaste $${winAmount.toFixed(2)} (${lootMultiplier}x) 🏆`);
+      addHistoryEntry(`🏆 SAQUEO → +$${winAmount} (${lootMultiplier}x) con ${dragonWrath}% furia`);
+      dragonText.innerHTML = `¡Tesoro obtenido! +$${winAmount.toFixed(2)}. El dragón huye enfurecido.`;
+    } else {
+      addHistoryEntry(`❌ Error al saquear`);
+    }
+    
+    gameActive = false;
+    dragonIcon.innerHTML = "🏁";
+    document.getElementById('loot-btn').disabled = true;
+    document.getElementById('escape-btn').disabled = true;
+  }
+
+  async function escapeWithLoot() {
+    if (!gameActive) return;
+    if (openedChests.length === 0) {
+      showMsg('game-message-area', 'error', 'No hay botín para escapar, abre al menos un cofre');
+      return;
+    }
+    
+    const allChests = document.querySelectorAll('.hoard-card');
+    allChests.forEach(c => c.classList.add('disabled'));
+    document.getElementById('loot-btn').disabled = true;
+    document.getElementById('escape-btn').disabled = true;
+    
+    const dragonIcon = document.getElementById('dragon-icon');
+    const dragonText = document.getElementById('dragon-text');
+    dragonIcon.innerHTML = "🏃💨";
+    dragonText.innerHTML = "¡Escapas con lo que llevas!";
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Penalización por escape temprano: multiplicador reducido
+    let escapeMulti = lootMultiplier * 0.7;
+    escapeMulti = Math.max(escapeMulti, 1.0);
+    escapeMulti = parseFloat(escapeMulti.toFixed(2));
+    let winAmount = currentBet * escapeMulti;
+    winAmount = Math.floor(winAmount * 100) / 100;
+    
+    const success = await modifyUserMoney(winAmount, true);
+    if (success) {
+      showMsg('game-message-area', 'success', `💨 Escapaste con $${winAmount.toFixed(2)} (${escapeMulti}x) 💨`);
+      addHistoryEntry(`💨 ESCAPE → +$${winAmount} (${escapeMulti}x) con ${openedChests.length} cofres`);
+      dragonText.innerHTML = `Escapaste con $${winAmount.toFixed(2)}. El dragón rugirá en otra ocasión.`;
+    } else {
+      addHistoryEntry(`❌ Error al escapar`);
+    }
+    
+    gameActive = false;
+    dragonIcon.innerHTML = "🏁";
+  }
+
+  function updateWrathUI() {
+    const fill = document.getElementById('wrath-fill');
+    const percentSpan = document.getElementById('wrath-percent');
+    if (fill) fill.style.width = `${dragonWrath}%`;
+    if (percentSpan) percentSpan.textContent = `${Math.floor(dragonWrath)}%`;
+  }
+
+  function addHistoryEntry(text) {
+    gameHistory.unshift({ text, ts: Date.now() });
+    if (gameHistory.length > 7) gameHistory.pop();
+    const logDiv = document.getElementById('hoard-history');
+    if (!logDiv) return;
+    if (gameHistory.length === 0) {
+      logDiv.innerHTML = '<div style="text-align:center;">— Sin aventuras —</div>';
+      return;
+    }
+    let html = '';
+    gameHistory.forEach(entry => {
+      html += `<div class="history-item"><span>🐉</span><span>${entry.text}</span><span>⚔️</span></div>`;
+    });
+    logDiv.innerHTML = html;
+  }
+
+  function resetToBetMenu() {
+    if (document.getElementById('game-panel')) document.getElementById('game-panel').style.display = 'none';
+    document.getElementById('bet-panel').style.display = 'block';
+    gameActive = false;
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  function setBet(amount) { currentBet = amount; showMsg('bet-alert', 'success', `💰 Apuesta: $${currentBet}`); document.getElementById('custom-bet-input').value = ''; }
+  function setCustomBet() { let v = parseFloat(document.getElementById('custom-bet-input').value); if (v > 0) { currentBet = v; showMsg('bet-alert', 'success', `✅ Apuesta personalizada: $${currentBet}`); } else showMsg('bet-alert', 'error', 'Monto inválido'); }
+
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    document.querySelectorAll('.bet-chip').forEach(btn => btn.addEventListener('click', (e) => { let val = parseFloat(btn.getAttribute('data-bet')); if (!isNaN(val)) setBet(val); }));
+    document.getElementById('apply-custom').addEventListener('click', setCustomBet);
+    document.getElementById('enter-hoard-btn').addEventListener('click', enterHoard);
+    document.getElementById('leave-hoard-btn').addEventListener('click', resetToBetMenu);
+    document.getElementById('casino-home-btn').addEventListener('click', () => window.location.href = '../app.html');
+    document.getElementById('loot-btn').addEventListener('click', lootTreasure);
+    document.getElementById('escape-btn').addEventListener('click', escapeWithLoot);
+    
+    document.getElementById('bet-panel').style.display = 'block';
+    document.getElementById('game-panel').style.display = 'none';
+  }
+  init();
+</script>
+</body>
+</html>

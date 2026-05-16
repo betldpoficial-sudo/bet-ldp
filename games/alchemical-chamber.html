@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Alchemical Chamber - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .game-master {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 30% 40%, #0e0f1c, #05070f);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+
+    .game-container {
+      max-width: 850px;
+      width: 100%;
+      margin: 0 auto;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .game-container h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      background: linear-gradient(135deg, #b8860b, #ffd700, #daa520);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 30px rgba(218,165,32,0.5);
+      margin-bottom: 1.5rem;
+      font-size: 2.2rem;
+      letter-spacing: 4px;
+      animation: titlePulse 3s infinite;
+    }
+
+    @keyframes titlePulse {
+      0% { opacity: 0.9; text-shadow: 0 0 10px gold; }
+      50% { opacity: 1; text-shadow: 0 0 25px #ffd700; }
+      100% { opacity: 0.9; text-shadow: 0 0 10px gold; }
+    }
+
+    .card {
+      background: rgba(10, 12, 22, 0.95);
+      backdrop-filter: blur(16px);
+      border-radius: 2rem;
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(218, 165, 32, 0.5);
+      box-shadow: 0 30px 50px -15px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,215,0,0.1);
+      transition: all 0.3s;
+    }
+
+    .balance-card {
+      background: linear-gradient(145deg, #11162b, #090c1a);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid #daa520;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
+    }
+
+    .balance-card div:first-child {
+      color: #c9b16b;
+      font-weight: 500;
+      letter-spacing: 2px;
+      font-size: 0.8rem;
+    }
+
+    #saldo-display, #money-display {
+      background: linear-gradient(135deg, #ffeaac, #daa520);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 900;
+    }
+
+    #saldo-display {
+      font-size: 2.8rem;
+    }
+
+    .bet-options-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .bet-chip {
+      background: #1e2645;
+      border: 1px solid #daa52055;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      color: #ffefcf;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Raleway', monospace;
+    }
+
+    .bet-chip:hover {
+      background: #daa520;
+      color: #0c0f1a;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(218,165,32,0.4);
+    }
+
+    #custom-bet-input {
+      background: #0c0f1e;
+      border: 1px solid #daa520;
+      padding: 0.7rem 1rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffefcf;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(95deg, #b8860b, #daa520, #f0b82e);
+      border: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.9rem;
+      border-radius: 3rem;
+      color: #0c0f1a;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: scale(0.98);
+      box-shadow: 0 0 20px rgba(218,165,32,0.7);
+    }
+
+    .btn-secondary {
+      background: #2a3457;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 2rem;
+      color: #e0e6f0;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+
+    .btn-secondary:hover {
+      background: #3f4c78;
+      transform: translateY(-2px);
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.2rem;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      text-align: center;
+      font-weight: 600;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-8px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    .alert.success {
+      background: #1e3a2e;
+      color: #c6f7d0;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .alert.error {
+      background: #441e25;
+      color: #ffb7b7;
+      border-left: 4px solid #e74c3c;
+    }
+
+    /* ALCHEMICAL CHAMBER - MAIN GAME PANEL */
+    .chamber {
+      background: #060914;
+      border-radius: 2rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #daa52066;
+    }
+
+    .cauldron {
+      background: radial-gradient(circle at 30% 20%, #2a2418, #0e0b06);
+      border-radius: 2rem;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      position: relative;
+      border: 2px solid #b8860b;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 5px 20px rgba(0,0,0,0.5);
+    }
+
+    .essence-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #00000066;
+      border-radius: 1.5rem;
+      padding: 0.5rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .essence-label {
+      font-size: 0.8rem;
+      color: #daa520;
+    }
+
+    .essence-value {
+      font-size: 2rem;
+      font-weight: bold;
+      font-family: 'Cinzel', monospace;
+      color: #ffd966;
+    }
+
+    .reaction-chamber {
+      background: #0c0a12;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 1px dashed #daa520;
+    }
+
+    .reaction-animation {
+      font-size: 4rem;
+      filter: drop-shadow(0 0 10px #ffd700);
+      animation: floatGem 2s ease-in-out infinite;
+    }
+
+    @keyframes floatGem {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      background: #1a1428;
+      border-radius: 2rem;
+      height: 20px;
+      margin: 0.8rem 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #daa520, #ffd966, #f0c674);
+      border-radius: 2rem;
+      transition: width 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      box-shadow: 0 0 8px gold;
+    }
+
+    .ingredient-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      margin: 1rem 0;
+    }
+
+    .ingredient {
+      background: #151d2f;
+      border-radius: 1.2rem;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #daa52033;
+    }
+
+    .ingredient:hover {
+      background: #2a3457;
+      transform: scale(1.02);
+      border-color: #daa520;
+    }
+
+    .ingredient.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(0.3);
+    }
+
+    .ingredient-icon {
+      font-size: 2rem;
+      display: block;
+    }
+
+    .ingredient-name {
+      font-size: 0.7rem;
+      margin-top: 0.3rem;
+      color: #c9b16b;
+    }
+
+    .action-chamber-btn {
+      background: linear-gradient(95deg, #3a2a1a, #5a3f20);
+      border: none;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 0.8rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffefcf;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .action-chamber-btn:active {
+      transform: scale(0.97);
+    }
+
+    .action-chamber-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .history-log {
+      max-height: 110px;
+      overflow-y: auto;
+      background: #03050c;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+    }
+
+    .log-entry {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.2rem 0.4rem;
+      border-bottom: 1px solid #232842;
+    }
+
+    .win-glow {
+      text-shadow: 0 0 8px gold;
+    }
+  </style>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display" style="font-weight: bold; font-size: 1.3rem;">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>⚗️ ALCHEMICAL CHAMBER ⚗️</h1>
+
+    <!-- BET PANEL -->
+    <div id="bet-panel" class="card">
+      <div class="balance-card">
+        <div>🧪 ESENCIA DEL ALQUIMISTA</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options-row">
+        <button class="bet-chip" data-bet="5">$5</button>
+        <button class="bet-chip" data-bet="10">$10</button>
+        <button class="bet-chip" data-bet="25">$25</button>
+        <button class="bet-chip" data-bet="50">$50</button>
+        <button class="bet-chip" data-bet="100">$100</button>
+      </div>
+      <input type="number" id="custom-bet-input" placeholder="Monto personalizado" min="1" step="1">
+      <button class="btn-secondary" id="apply-custom" style="margin-top: 0.5rem; width:100%">✅ Aplicar monto</button>
+      <button class="btn-primary" id="enter-chamber-btn" style="margin-top: 1.5rem;">🔮 INGRESAR A LA CÁMARA 🔮</button>
+      <div id="bet-alert" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- GAME PANEL: ALCHEMICAL PROCESS (SLOW + VISUAL) -->
+    <div id="game-panel" style="display:none;">
+      <div class="card">
+        <div class="balance-card" style="padding: 0.7rem;">
+          <div>💎 APUESTA VITAL</div>
+          <div style="font-size: 1.5rem; font-weight: bold; color:#daa520;" id="current-bet-display">$0</div>
+        </div>
+
+        <div class="chamber">
+          <div class="cauldron">
+            <div class="essence-display">
+              <span class="essence-label">🌀 ENERGÍA MÍSTICA</span>
+              <span class="essence-value" id="energy-value">0%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-fill" id="energy-fill"></div>
+            </div>
+            <div style="font-size: 0.7rem; text-align:center; color:#aaa;">⬇️ Selecciona ingredientes para cargar ⬇️</div>
+          </div>
+
+          <div class="reaction-chamber" id="reaction-chamber">
+            <div class="reaction-animation" id="reaction-icon">🧪</div>
+            <div id="reaction-text" style="font-size: 0.8rem; margin-top: 0.5rem; color:#daa520;">Esperando ingredientes...</div>
+          </div>
+
+          <div class="ingredient-grid" id="ingredient-grid">
+            <div class="ingredient" data-ing="azufre">
+              <span class="ingredient-icon">🪨</span>
+              <span class="ingredient-name">Azufre Bruto</span>
+            </div>
+            <div class="ingredient" data-ing="mercurio">
+              <span class="ingredient-icon">💧</span>
+              <span class="ingredient-name">Mercurio Líquido</span>
+            </div>
+            <div class="ingredient" data-ing="sal">
+              <span class="ingredient-icon">⚪</span>
+              <span class="ingredient-name">Sal Filosofal</span>
+            </div>
+            <div class="ingredient" data-ing="cobre">
+              <span class="ingredient-icon">🔶</span>
+              <span class="ingredient-name">Cobre Astral</span>
+            </div>
+            <div class="ingredient" data-ing="plata">
+              <span class="ingredient-icon">✨</span>
+              <span class="ingredient-name">Plata Lunar</span>
+            </div>
+            <div class="ingredient" data-ing="oro">
+              <span class="ingredient-icon">🌟</span>
+              <span class="ingredient-name">Oro Solar</span>
+            </div>
+          </div>
+
+          <button id="transmute-btn" class="action-chamber-btn">⚡ TRANSMUTAR ESENCIA ⚡</button>
+          <button id="collect-essence-btn" class="action-chamber-btn" style="background: linear-gradient(95deg, #2a5f3a, #3d8f55);">💎 RECOGER RECOMPENSA 💎</button>
+          
+          <div id="game-message-area" class="alert" style="display:none; margin-top:0.8rem;"></div>
+        </div>
+
+        <div class="flex-buttons">
+          <button class="btn-secondary" id="exit-chamber-btn">🔄 ABANDONAR CÁMARA</button>
+          <button class="btn-secondary" id="casino-home-btn">🏠 CASINO</button>
+        </div>
+
+        <!-- Historial de transmutaciones -->
+        <div style="margin-top: 0.8rem;">
+          <div style="font-size:0.7rem; color:#c9b16b; text-align:center;">📜 BITÁCORA ALCHEMICA</div>
+          <div id="history-log" class="history-log">
+            <div style="text-align:center;">— Sin experimentos —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 10;
+  let gameActive = false;
+  let currentEnergy = 0;         // 0-100%
+  let multiplierValue = 1.00;
+  let riskActive = false;
+  let experimentLog = [];
+  
+  // Ingredientes y sus efectos (cada ingrediente suma energía pero puede desencadenar "reacción violenta")
+  const ingredientsEffect = {
+    azufre: { energy: 12, risk: 0.18, flavor: "🪨 Azufre" },
+    mercurio: { energy: 15, risk: 0.22, flavor: "💧 Mercurio" },
+    sal: { energy: 10, risk: 0.08, flavor: "⚪ Sal" },
+    cobre: { energy: 18, risk: 0.12, flavor: "🔶 Cobre" },
+    plata: { energy: 22, risk: 0.14, flavor: "✨ Plata" },
+    oro: { energy: 28, risk: 0.20, flavor: "🌟 Oro" }
+  };
+
+  function showMsg(containerId, type, text) {
+    const el = document.getElementById(containerId);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3800);
+    }
+  }
+
+  async function updateGlobalBalanceDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    const moneySpan = document.getElementById('money-display');
+    if (moneySpan) moneySpan.textContent = `$${newAmount.toFixed(2)}`;
+    const saldoSpan = document.getElementById('saldo-display');
+    if (saldoSpan) saldoSpan.textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'alchemist@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "Alquimista", correo: "alchemist@demo.com", clave: "philosopher", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // GAME LOGIC
+  async function startAlchemy() {
+    if (!currentUser) { showMsg('bet-alert', 'error', 'Error usuario'); return; }
+    if (currentBet <= 0 || currentBet > currentUser.dinero) {
+      showMsg('bet-alert', 'error', `Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+    const deducted = await modifyUserMoney(currentBet, false);
+    if (!deducted) return;
+    
+    document.getElementById('bet-panel').style.display = 'none';
+    document.getElementById('game-panel').style.display = 'block';
+    document.getElementById('current-bet-display').textContent = `$${currentBet.toFixed(2)}`;
+    
+    gameActive = true;
+    currentEnergy = 0;
+    multiplierValue = 1.00;
+    updateEnergyUI(0);
+    enableIngredients(true);
+    document.getElementById('transmute-btn').disabled = false;
+    document.getElementById('collect-essence-btn').disabled = true;
+    document.getElementById('reaction-text').innerHTML = "✨ Agrega ingredientes a la cámara ✨";
+    document.getElementById('reaction-icon').innerHTML = "🧪";
+    const msgDiv = document.getElementById('game-message-area');
+    if (msgDiv) msgDiv.style.display = 'none';
+  }
+
+  function updateEnergyUI(energyPercent) {
+    const fill = document.getElementById('energy-fill');
+    const energySpan = document.getElementById('energy-value');
+    if (fill) fill.style.width = `${energyPercent}%`;
+    if (energySpan) energySpan.textContent = `${Math.floor(energyPercent)}%`;
+    // ajustar multiplicador visual
+    let multi = 1 + (energyPercent / 100) * 3.5;
+    multiplierValue = parseFloat(multi.toFixed(2));
+    const potentialWin = currentBet * multiplierValue;
+    const reactionText = document.getElementById('reaction-text');
+    if (reactionText && energyPercent > 0) {
+      reactionText.innerHTML = `🌀 Energía: ${Math.floor(energyPercent)}% | Multiplicador ${multiplierValue}x | Posible: $${potentialWin.toFixed(2)}`;
+    } else if (reactionText && energyPercent === 0) {
+      reactionText.innerHTML = "⬇️ Agrega ingredientes para cargar la transmutación...";
+    }
+  }
+
+  function enableIngredients(enable) {
+    const ingredients = document.querySelectorAll('.ingredient');
+    ingredients.forEach(ing => {
+      if (enable) ing.classList.remove('disabled');
+      else ing.classList.add('disabled');
+    });
+  }
+
+  async function addIngredient(ingredientKey) {
+    if (!gameActive) {
+      showMsg('game-message-area', 'error', 'La cámara ya no está activa');
+      return;
+    }
+    const effect = ingredientsEffect[ingredientKey];
+    if (!effect) return;
+    
+    // deshabilitar temporalmente para evitar spam y dar lentitud
+    enableIngredients(false);
+    const reactionDiv = document.getElementById('reaction-icon');
+    const originalIcon = reactionDiv.innerHTML;
+    reactionDiv.innerHTML = "✨⚡✨";
+    await new Promise(resolve => setTimeout(resolve, 480)); // slow motion
+    
+    let energyGain = effect.energy;
+    let newEnergy = currentEnergy + energyGain;
+    if (newEnergy > 100) newEnergy = 100;
+    currentEnergy = newEnergy;
+    updateEnergyUI(currentEnergy);
+    
+    // riesgo de reacción violenta (fracaso parcial/pérdida de energía)
+    const riskRoll = Math.random();
+    let riskTriggered = false;
+    if (riskRoll < effect.risk && currentEnergy > 15) {
+      riskTriggered = true;
+      const lostEnergy = Math.floor(currentEnergy * 0.35);
+      currentEnergy = Math.max(0, currentEnergy - lostEnergy);
+      updateEnergyUI(currentEnergy);
+      showMsg('game-message-area', 'error', `⚠️ ¡REACCIÓN INESTABLE! El ${effect.flavor} explota y pierdes ${lostEnergy}% de energía. ⚠️`);
+      addLogEntry(`❌ Inestabilidad con ${effect.flavor} → -${lostEnergy}% energía`);
+    } else {
+      addLogEntry(`🧪 Agregaste ${effect.flavor} +${energyGain}% energía`);
+      showMsg('game-message-area', 'success', `🔬 ¡${effect.flavor} se disuelve! +${energyGain}% energía`);
+    }
+    
+    reactionDiv.innerHTML = effect.flavor.split(' ')[0];
+    await new Promise(resolve => setTimeout(resolve, 400));
+    reactionDiv.innerHTML = "🧪";
+    enableIngredients(true);
+    
+    if (currentEnergy >= 100) {
+      showMsg('game-message-area', 'success', '✨ ¡ENERGÍA MÁXIMA! Puedes transmutar para obtener gran recompensa ✨');
+      document.getElementById('transmute-btn').style.background = "linear-gradient(95deg, #daa520, #ffd700)";
+    }
+  }
+
+  async function transmuteEssence() {
+    if (!gameActive) return;
+    if (currentEnergy < 25) {
+      showMsg('game-message-area', 'error', 'Necesitas al menos 25% de energía para transmutar');
+      return;
+    }
+    // Deshabilitar ingredientes y botones durante la transmutación lenta
+    enableIngredients(false);
+    const transmuteBtn = document.getElementById('transmute-btn');
+    const collectBtn = document.getElementById('collect-essence-btn');
+    transmuteBtn.disabled = true;
+    collectBtn.disabled = true;
+    const reactionDiv = document.getElementById('reaction-icon');
+    const reactionText = document.getElementById('reaction-text');
+    
+    reactionDiv.innerHTML = "🔥⚗️🔥";
+    reactionText.innerHTML = "🌀 Transmutando esencia alquímica... 🌀";
+    await new Promise(resolve => setTimeout(resolve, 1000)); // slow transmutation
+    
+    // Basado en energía, determinar multiplicador final y bonus
+    let finalMultiplier = 1 + (currentEnergy / 100) * 4.2;
+    finalMultiplier = parseFloat(finalMultiplier.toFixed(2));
+    if (finalMultiplier > 6.0) finalMultiplier = 6.0;
+    multiplierValue = finalMultiplier;
+    let winAmount = currentBet * multiplierValue;
+    winAmount = Math.floor(winAmount * 100) / 100;
+    
+    // Mostrar resultado de la transmutación
+    reactionDiv.innerHTML = "💎✨💎";
+    reactionText.innerHTML = `¡TRANSMUTACIÓN EXITOSA! Multiplicador ${multiplierValue}x → +$${winAmount.toFixed(2)}`;
+    
+    // Agregar ganancias
+    const success = await modifyUserMoney(winAmount, true);
+    if (success) {
+      addLogEntry(`🏆 TRANSMUTACIÓN → $${winAmount} (${multiplierValue}x) con ${Math.floor(currentEnergy)}% energía`);
+      showMsg('game-message-area', 'success', `✨ ¡Has transmutado la esencia! Ganaste $${winAmount.toFixed(2)} ✨`);
+    } else {
+      addLogEntry(`❌ Falla al entregar recompensa`);
+    }
+    
+    // Finalizar juego: ya se cobró automáticamente
+    gameActive = false;
+    transmuteBtn.disabled = true;
+    collectBtn.disabled = true;
+    enableIngredients(false);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    reactionDiv.innerHTML = "🏁";
+    reactionText.innerHTML = "Experimento completado. Puedes salir de la cámara.";
+  }
+  
+  async function collectEarly() {
+    if (!gameActive) return;
+    if (currentEnergy < 10) {
+      showMsg('game-message-area', 'error', 'Energía insuficiente para recolectar (mínimo 10%)');
+      return;
+    }
+    enableIngredients(false);
+    const collectBtn = document.getElementById('collect-essence-btn');
+    const transmuteBtn = document.getElementById('transmute-btn');
+    collectBtn.disabled = true;
+    transmuteBtn.disabled = true;
+    const reactionDiv = document.getElementById('reaction-icon');
+    reactionDiv.innerHTML = "💧💎💧";
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    let earlyMultiplier = 1 + (currentEnergy / 100) * 2.2;
+    earlyMultiplier = parseFloat(earlyMultiplier.toFixed(2));
+    let winAmount = currentBet * earlyMultiplier;
+    winAmount = Math.floor(winAmount * 100) / 100;
+    const success = await modifyUserMoney(winAmount, true);
+    if (success) {
+      showMsg('game-message-area', 'success', `💎 Recolectaste esencia temprano: $${winAmount} (${earlyMultiplier}x) 💎`);
+      addLogEntry(`🔮 Recolección anticipada → $${winAmount} (${earlyMultiplier}x) con ${Math.floor(currentEnergy)}% energía`);
+    } else {
+      showMsg('game-message-area', 'error', 'Error al recolectar');
+    }
+    gameActive = false;
+    reactionDiv.innerHTML = "🏁";
+    document.getElementById('reaction-text').innerHTML = "Experimento finalizado.";
+    enableIngredients(false);
+  }
+
+  function addLogEntry(text) {
+    experimentLog.unshift({ text, time: Date.now() });
+    if (experimentLog.length > 7) experimentLog.pop();
+    const logDiv = document.getElementById('history-log');
+    if (!logDiv) return;
+    if (experimentLog.length === 0) {
+      logDiv.innerHTML = '<div style="text-align:center;">— Sin experimentos —</div>';
+      return;
+    }
+    let html = '';
+    experimentLog.forEach(entry => {
+      html += `<div class="log-entry"><span>⚗️</span><span>${entry.text}</span><span>✨</span></div>`;
+    });
+    logDiv.innerHTML = html;
+  }
+
+  function resetToBetMenu() {
+    if (document.getElementById('game-panel')) document.getElementById('game-panel').style.display = 'none';
+    document.getElementById('bet-panel').style.display = 'block';
+    gameActive = false;
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+
+  function setBet(amount) { currentBet = amount; showMsg('bet-alert', 'success', `💰 Apuesta: $${currentBet}`); document.getElementById('custom-bet-input').value = ''; }
+  function setCustomBet() { let v = parseFloat(document.getElementById('custom-bet-input').value); if (v > 0) { currentBet = v; showMsg('bet-alert', 'success', `✅ Apuesta personalizada: $${currentBet}`); } else showMsg('bet-alert', 'error', 'Monto inválido'); }
+
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    document.querySelectorAll('.bet-chip').forEach(btn => btn.addEventListener('click', (e) => { let val = parseFloat(btn.getAttribute('data-bet')); if (!isNaN(val)) setBet(val); }));
+    document.getElementById('apply-custom').addEventListener('click', setCustomBet);
+    document.getElementById('enter-chamber-btn').addEventListener('click', startAlchemy);
+    document.getElementById('exit-chamber-btn').addEventListener('click', resetToBetMenu);
+    document.getElementById('casino-home-btn').addEventListener('click', () => window.location.href = '../app.html');
+    document.getElementById('transmute-btn').addEventListener('click', transmuteEssence);
+    document.getElementById('collect-essence-btn').addEventListener('click', collectEarly);
+    document.querySelectorAll('.ingredient').forEach(ing => {
+      ing.addEventListener('click', (e) => { if (gameActive && !ing.classList.contains('disabled')) addIngredient(ing.getAttribute('data-ing')); });
+    });
+    document.getElementById('bet-panel').style.display = 'block';
+    document.getElementById('game-panel').style.display = 'none';
+  }
+  init();
+</script>
+</body>
+</html>
