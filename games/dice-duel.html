@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Dice Duel - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    .game-master {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #1a1a3a, #0a0a2a);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .game-container {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .game-container h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      background: linear-gradient(135deg, #c9a03d, #e8c76b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(201,160,61,0.3);
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      letter-spacing: 3px;
+    }
+
+    .card {
+      background: rgba(10, 10, 30, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(201, 160, 61, 0.5);
+      box-shadow: 0 25px 40px rgba(0,0,0,0.5);
+    }
+
+    .balance-card {
+      background: linear-gradient(145deg, #15153a, #0a0a25);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid #c9a03d;
+    }
+
+    .balance-card div:first-child {
+      color: #c9a03d;
+      font-weight: 500;
+    }
+
+    #saldo-display, #money-display {
+      background: linear-gradient(135deg, #ffdf9c, #e8b34b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 900;
+      font-size: 2.5rem;
+    }
+
+    .bet-options-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .bet-chip {
+      background: #1e1e4a;
+      border: 1px solid #c9a03d;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      color: #ffefcf;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bet-chip:hover {
+      background: #c9a03d;
+      color: #0a0a25;
+      transform: translateY(-2px);
+    }
+
+    #custom-bet-input {
+      background: #0a0a25;
+      border: 1px solid #c9a03d;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffefcf;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(95deg, #c9a03d, #e8c76b);
+      border: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.8rem;
+      border-radius: 3rem;
+      color: #0a0a25;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: scale(0.98);
+      box-shadow: 0 0 15px #e8c76b;
+    }
+
+    .btn-secondary {
+      background: #1e1e4a;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 2rem;
+      color: #ffefcf;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #2e2e5a;
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .alert.success {
+      background: #1e5a3a;
+      color: #c6f7d0;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .alert.error {
+      background: #5a1e2a;
+      color: #ffb7b7;
+      border-left: 4px solid #e74c3c;
+    }
+
+    /* DICE DUEL ARENA */
+    .arena {
+      background: #0a0a20;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      margin: 1rem 0;
+    }
+
+    .versus-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .player-area, .house-area {
+      flex: 1;
+      text-align: center;
+      background: #15153a;
+      border-radius: 1.5rem;
+      padding: 1rem;
+    }
+
+    .player-label {
+      font-size: 0.8rem;
+      color: #c9a03d;
+      letter-spacing: 2px;
+    }
+
+    .dice-value {
+      font-size: 4rem;
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+
+    .dice-history {
+      font-size: 0.7rem;
+      color: #aaa;
+    }
+
+    .vs-divider {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #c9a03d;
+      font-family: 'Cinzel';
+    }
+
+    .dice-selection {
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+
+    .dice-options {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+
+    .dice-card {
+      background: #1e1e4a;
+      border: 2px solid #c9a03d55;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      width: 100px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .dice-card:hover {
+      transform: translateY(-5px);
+      border-color: #c9a03d;
+    }
+
+    .dice-card.selected {
+      border-color: #c9a03d;
+      background: #2e2e6a;
+      box-shadow: 0 0 15px #c9a03d;
+    }
+
+    .dice-card.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .dice-icon {
+      font-size: 2.5rem;
+    }
+
+    .dice-name {
+      font-size: 0.7rem;
+      margin-top: 0.3rem;
+      color: #ffefcf;
+    }
+
+    .dice-stats {
+      font-size: 0.6rem;
+      color: #c9a03d;
+    }
+
+    .duel-info {
+      background: #0a0a20;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      margin: 1rem 0;
+      text-align: center;
+    }
+
+    .round-info {
+      font-weight: bold;
+      color: #c9a03d;
+    }
+
+    .history-list {
+      max-height: 120px;
+      overflow-y: auto;
+      background: #050515;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.2rem;
+      border-bottom: 1px solid #1e1e4a;
+    }
+
+    .win-gold {
+      color: #e8c76b;
+      font-weight: bold;
+    }
+
+    .challenge-btn {
+      background: linear-gradient(95deg, #6b2e5a, #9b4b7a);
+    }
+  </style>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display" style="font-weight: bold;">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🎲 DICE DUEL 🎲</h1>
+
+    <!-- PANEL DE APUESTAS -->
+    <div id="bet-panel" class="card">
+      <div class="balance-card">
+        <div>💰 FONDO DEL DUELISTA</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options-row">
+        <button class="bet-chip" data-bet="5">$5</button>
+        <button class="bet-chip" data-bet="10">$10</button>
+        <button class="bet-chip" data-bet="25">$25</button>
+        <button class="bet-chip" data-bet="50">$50</button>
+        <button class="bet-chip" data-bet="100">$100</button>
+      </div>
+      <input type="number" id="custom-bet-input" placeholder="Monto personalizado">
+      <button class="btn-secondary" id="apply-custom" style="margin-top: 0.5rem;">✅ Aplicar</button>
+      <button class="btn-primary" id="enter-duel-btn" style="margin-top: 1rem;">⚔️ ENTRAR AL DUELO ⚔️</button>
+      <div id="bet-alert" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- PANEL DE DUELO -->
+    <div id="duel-panel" style="display:none;">
+      <div class="card">
+        <div class="balance-card" style="padding: 0.5rem;">
+          <div>🏆 APUESTA EN JUEGO</div>
+          <div style="font-size: 1.3rem; font-weight: bold; color:#e8c76b;" id="current-bet-display">$0</div>
+        </div>
+
+        <div class="arena">
+          <div class="versus-container">
+            <div class="player-area">
+              <div class="player-label">⚔️ TU DADO ⚔️</div>
+              <div class="dice-value" id="player-dice">🎲</div>
+              <div class="dice-history" id="player-history"></div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div class="house-area">
+              <div class="player-label">🏰 CASA ⚔️</div>
+              <div class="dice-value" id="house-dice">🎲</div>
+              <div class="dice-history" id="house-history"></div>
+            </div>
+          </div>
+
+          <div class="dice-selection">
+            <div style="font-size: 0.8rem; color:#c9a03d;">🎯 SELECCIONA TU DADO</div>
+            <div class="dice-options" id="dice-options"></div>
+          </div>
+
+          <div class="duel-info" id="duel-info">
+            <div class="round-info">🏁 Presiona "LANZAR DADO" para comenzar el duelo 🏁</div>
+          </div>
+
+          <button id="roll-btn" class="btn-primary">🎲 LANZAR DADO 🎲</button>
+          
+          <div class="flex-buttons">
+            <button class="btn-secondary" id="exit-duel-btn">🚪 SALIR DEL DUELO</button>
+            <button class="btn-secondary" id="casino-home-btn">🏠 CASINO</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.8rem;">
+          <div style="font-size:0.7rem; color:#c9a03d; text-align:center;">📜 HISTORIAL DE DUELOS</div>
+          <div id="duel-history" class="history-list">
+            <div style="text-align:center;">— Sin duelos —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // FIREBASE
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 10;
+  let gameActive = false;
+  let duelActive = false;
+  let selectedDiceId = null;
+  let playerScore = 0;
+  let houseScore = 0;
+  let roundCount = 0;
+  let historyDuels = [];
+
+  // DADOS DISPONIBLES (cada uno tiene rango y probabilidad diferente)
+  const diceList = [
+    { id: 0, name: "Dado Básico", icon: "🎲", min: 1, max: 6, avg: 3.5, desc: "1-6" },
+    { id: 1, name: "Dado Audaz", icon: "⚡", min: 1, max: 8, avg: 4.5, desc: "1-8" },
+    { id: 2, name: "Dado Seguro", icon: "🛡️", min: 3, max: 6, avg: 4.5, desc: "3-6" },
+    { id: 3, name: "Dado Extremo", icon: "💀", min: 1, max: 12, avg: 6.5, desc: "1-12" },
+    { id: 4, name: "Dado Místico", icon: "🔮", min: 2, max: 10, avg: 6.0, desc: "2-10" }
+  ];
+
+  // DADO DE LA CASA (aleatorio pero con ventaja dinámica)
+  function rollHouseDice() {
+    // La casa tiene un dado que escala según la ronda (más difícil avanzadas)
+    let baseMin = 1;
+    let baseMax = 7;
+    if (roundCount >= 3) baseMax = 8;
+    if (roundCount >= 5) baseMax = 9;
+    if (roundCount >= 7) baseMax = 10;
+    return Math.floor(Math.random() * (baseMax - baseMin + 1)) + baseMin;
+  }
+
+  function rollPlayerDice(diceId) {
+    const dice = diceList.find(d => d.id === diceId);
+    if (!dice) return 1;
+    return Math.floor(Math.random() * (dice.max - dice.min + 1)) + dice.min;
+  }
+
+  function showMsg(container, type, text) {
+    const el = document.getElementById(container);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
+    }
+  }
+
+  async function updateGlobalBalanceDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    document.getElementById('money-display').textContent = `$${newAmount.toFixed(2)}`;
+    document.getElementById('saldo-display').textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'duelista@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "Duelista", correo: "duelista@demo.com", clave: "dice123", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // RENDER DADOS
+  function renderDiceOptions() {
+    const container = document.getElementById('dice-options');
+    if (!container) return;
+    container.innerHTML = '';
+    diceList.forEach(dice => {
+      const div = document.createElement('div');
+      div.className = 'dice-card';
+      if (selectedDiceId === dice.id) div.classList.add('selected');
+      div.innerHTML = `
+        <div class="dice-icon">${dice.icon}</div>
+        <div class="dice-name">${dice.name}</div>
+        <div class="dice-stats">${dice.desc}</div>
+      `;
+      div.addEventListener('click', () => {
+        if (!duelActive && gameActive) {
+          selectedDiceId = dice.id;
+          renderDiceOptions();
+        }
+      });
+      container.appendChild(div);
+    });
+  }
+
+  // ENTRAR AL DUELO
+  async function enterDuel() {
+    if (!currentUser) { showMsg('bet-alert', 'error', 'Error de usuario'); return; }
+    if (currentBet <= 0 || currentBet > currentUser.dinero) {
+      showMsg('bet-alert', 'error', `Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+    
+    const deducted = await modifyUserMoney(currentBet, false);
+    if (!deducted) return;
+    
+    document.getElementById('bet-panel').style.display = 'none';
+    document.getElementById('duel-panel').style.display = 'block';
+    document.getElementById('current-bet-display').textContent = `$${currentBet.toFixed(2)}`;
+    
+    gameActive = true;
+    duelActive = false;
+    selectedDiceId = null;
+    playerScore = 0;
+    houseScore = 0;
+    roundCount = 0;
+    
+    renderDiceOptions();
+    document.getElementById('player-dice').innerHTML = '🎲';
+    document.getElementById('house-dice').innerHTML = '🎲';
+    document.getElementById('player-history').innerHTML = '';
+    document.getElementById('house-history').innerHTML = '';
+    document.getElementById('duel-info').innerHTML = '<div class="round-info">🎯 Selecciona un dado y presiona "LANZAR DADO" 🎯</div>';
+    
+    const rollBtn = document.getElementById('roll-btn');
+    rollBtn.disabled = false;
+    rollBtn.innerHTML = "🎲 LANZAR DADO 🎲";
+  }
+
+  // LANZAR Y DUELO
+  async function rollDice() {
+    if (!gameActive) return;
+    if (selectedDiceId === null) {
+      showMsg('duel-info', 'error', 'Selecciona un dado antes de lanzar');
+      return;
+    }
+    
+    if (duelActive) {
+      showMsg('duel-info', 'error', 'El duelo ya está en curso. Finaliza la ronda actual');
+      return;
+    }
+    
+    duelActive = true;
+    const rollBtn = document.getElementById('roll-btn');
+    rollBtn.disabled = true;
+    rollBtn.innerHTML = "🎲 LANZANDO... 🎲";
+    
+    // Animación de lanzamiento
+    let rollInterval = 0;
+    let rollCount = 0;
+    const maxRolls = 8;
+    
+    const animateRoll = setInterval(() => {
+      const tempPlayer = Math.floor(Math.random() * 6) + 1;
+      const tempHouse = Math.floor(Math.random() * 7) + 1;
+      document.getElementById('player-dice').innerHTML = tempPlayer;
+      document.getElementById('house-dice').innerHTML = tempHouse;
+      rollCount++;
+      if (rollCount >= maxRolls) {
+        clearInterval(animateRoll);
+        finalizeRoll();
+      }
+    }, 120);
+    
+    async function finalizeRoll() {
+      const playerValue = rollPlayerDice(selectedDiceId);
+      const houseValue = rollHouseDice();
+      
+      document.getElementById('player-dice').innerHTML = playerValue;
+      document.getElementById('house-dice').innerHTML = houseValue;
+      
+      // Actualizar historial visual
+      const playerHist = document.getElementById('player-history');
+      const houseHist = document.getElementById('house-history');
+      playerHist.innerHTML = `Último: ${playerValue}`;
+      houseHist.innerHTML = `Último: ${houseValue}`;
+      
+      roundCount++;
+      
+      let roundResult = '';
+      let roundWin = false;
+      
+      if (playerValue > houseValue) {
+        playerScore++;
+        roundResult = '✅ ¡Ganaste esta ronda!';
+        roundWin = true;
+      } else if (playerValue < houseValue) {
+        houseScore++;
+        roundResult = '❌ La casa ganó esta ronda';
+        roundWin = false;
+      } else {
+        roundResult = '🤝 Empate. Nadie suma punto';
+        roundWin = false;
+      }
+      
+      const duelInfo = document.getElementById('duel-info');
+      duelInfo.innerHTML = `<div class="round-info">🏆 RONDA ${roundCount} 🏆<br>${roundResult}<br>PUNTUACIÓN: TÚ ${playerScore} - ${houseScore} CASA</div>`;
+      
+      // Verificar si alguien llegó a 3 puntos (fin del duelo)
+      if (playerScore >= 3) {
+        // VICTORIA DEL JUGADOR
+        const winAmount = currentBet * 2.2;
+        const roundedWin = Math.floor(winAmount * 100) / 100;
+        await modifyUserMoney(roundedWin, true);
+        duelInfo.innerHTML = `<div class="round-info" style="color:#e8c76b;">🏆 ¡VICTORIA! Ganaste el duelo ${playerScore}-${houseScore}. Reclamas $${roundedWin} 🏆</div>`;
+        showMsg('duel-info', 'success', `🎉 ¡DUELO GANADO! +$${roundedWin} (${playerScore}-${houseScore}) 🎉`);
+        addToHistory(true, playerScore, houseScore, roundedWin);
+        endDuel();
+      } else if (houseScore >= 3) {
+        // DERROTA
+        duelInfo.innerHTML = `<div class="round-info" style="color:#ffaaaa;">💀 DERROTA... La casa ganó ${houseScore}-${playerScore}. Pierdes $${currentBet} 💀</div>`;
+        showMsg('duel-info', 'error', `💔 Perdiste el duelo ${houseScore}-${playerScore}`);
+        addToHistory(false, playerScore, houseScore, 0);
+        endDuel();
+      } else {
+        // Continuar duelo
+        duelActive = false;
+        rollBtn.disabled = false;
+        rollBtn.innerHTML = "🎲 LANZAR DADO 🎲";
+      }
+    }
+  }
+  
+  function endDuel() {
+    gameActive = false;
+    duelActive = false;
+    const rollBtn = document.getElementById('roll-btn');
+    rollBtn.disabled = true;
+    rollBtn.innerHTML = "🎲 DUELO FINALIZADO 🎲";
+  }
+  
+  function addToHistory(isWin, playerPts, housePts, winAmount) {
+    const resultText = isWin 
+      ? `🏆 Victoria ${playerPts}-${housePts} | +$${winAmount}`
+      : `💀 Derrota ${playerPts}-${housePts} | -$${currentBet}`;
+    
+    historyDuels.unshift({ text: resultText, isWin });
+    if (historyDuels.length > 8) historyDuels.pop();
+    
+    const historyDiv = document.getElementById('duel-history');
+    if (!historyDiv) return;
+    if (historyDuels.length === 0) {
+      historyDiv.innerHTML = '<div style="text-align:center;">— Sin duelos —</div>';
+      return;
+    }
+    let html = '';
+    historyDuels.forEach(entry => {
+      html += `<div class="history-item">
+        <span>🎲</span>
+        <span class="${entry.isWin ? 'win-gold' : ''}">${entry.text}</span>
+        <span>⚔️</span>
+      </div>`;
+    });
+    historyDiv.innerHTML = html;
+  }
+  
+  function resetToBetMenu() {
+    document.getElementById('duel-panel').style.display = 'none';
+    document.getElementById('bet-panel').style.display = 'block';
+    gameActive = false;
+    duelActive = false;
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+  
+  function setBet(amount) { currentBet = amount; showMsg('bet-alert', 'success', `💰 Apuesta: $${currentBet}`); document.getElementById('custom-bet-input').value = ''; }
+  function setCustomBet() { let v = parseFloat(document.getElementById('custom-bet-input').value); if (v > 0) { currentBet = v; showMsg('bet-alert', 'success', `✅ Apuesta: $${currentBet}`); } else showMsg('bet-alert', 'error', 'Monto inválido'); }
+  
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    document.querySelectorAll('.bet-chip').forEach(btn => btn.addEventListener('click', (e) => { let val = parseFloat(btn.getAttribute('data-bet')); if (!isNaN(val)) setBet(val); }));
+    document.getElementById('apply-custom').addEventListener('click', setCustomBet);
+    document.getElementById('enter-duel-btn').addEventListener('click', enterDuel);
+    document.getElementById('exit-duel-btn').addEventListener('click', resetToBetMenu);
+    document.getElementById('casino-home-btn').addEventListener('click', () => window.location.href = '../app.html');
+    document.getElementById('roll-btn').addEventListener('click', rollDice);
+    document.getElementById('bet-panel').style.display = 'block';
+    document.getElementById('duel-panel').style.display = 'none';
+  }
+  
+  init();
+</script>
+</body>
+</html>

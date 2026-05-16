@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Horse Racing - Bet LDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../logo3.png">
+  <link rel="stylesheet" href="../styles/global.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    .game-master {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #1a6d2f, #0a3a18);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .game-container {
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .game-container h1 {
+      font-family: 'Cinzel', serif;
+      text-align: center;
+      color: #ffd966;
+      text-shadow: 3px 3px 0 #8b5a2b;
+      margin-bottom: 1.5rem;
+      font-size: 2.2rem;
+      letter-spacing: 3px;
+    }
+
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 2rem;
+      padding: 1.5rem;
+      border: 2px solid #ffd966;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .balance-card {
+      background: #1a3a1a;
+      border-radius: 1.5rem;
+      padding: 0.8rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid #ffd966;
+    }
+
+    .balance-card div:first-child {
+      color: #ffd966;
+      font-weight: 500;
+    }
+
+    #saldo-display, #money-display {
+      color: #ffd966;
+      font-weight: 900;
+      font-size: 2.5rem;
+    }
+
+    .bet-options-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+
+    .bet-chip {
+      background: #2a5a2a;
+      border: 1px solid #ffd966;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      color: #ffefcf;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .bet-chip:hover {
+      background: #ffd966;
+      color: #1a3a1a;
+      transform: translateY(-2px);
+    }
+
+    #custom-bet-input {
+      background: #1a3a1a;
+      border: 1px solid #ffd966;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      width: 100%;
+      color: #ffefcf;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #ffd966;
+      border: none;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.8rem;
+      border-radius: 3rem;
+      color: #1a3a1a;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Cinzel', serif;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #ffed9e;
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #2a5a2a;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 2rem;
+      color: #ffefcf;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #3a7a3a;
+    }
+
+    .flex-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .alert {
+      margin-top: 1rem;
+      padding: 0.7rem;
+      border-radius: 2rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .alert.success {
+      background: #1e5a2e;
+      color: #c6f7d0;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .alert.error {
+      background: #5a1e25;
+      color: #ffb7b7;
+      border-left: 4px solid #e74c3c;
+    }
+
+    /* HIPÓDROMO */
+    .race-track {
+      background: #3a8a3a;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .horses-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .horse-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #2a5a2a;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+
+    .horse-row.selected {
+      border-color: #ffd966;
+      background: #3a7a3a;
+      box-shadow: 0 0 10px #ffd966;
+    }
+
+    .horse-row:hover:not(.racing) {
+      transform: scale(1.01);
+      background: #3a7a3a;
+    }
+
+    .horse-avatar {
+      font-size: 2.5rem;
+      width: 60px;
+      text-align: center;
+    }
+
+    .horse-info {
+      flex: 1;
+    }
+
+    .horse-name {
+      font-weight: bold;
+      color: #ffd966;
+    }
+
+    .horse-odds {
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+
+    .horse-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.7rem;
+    }
+
+    .track-container {
+      background: #8b5a2b;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .track {
+      background: #5a3a1a;
+      border-radius: 2rem;
+      height: 60px;
+      position: relative;
+      margin: 0.5rem 0;
+      overflow: hidden;
+    }
+
+    .horse-runner {
+      position: absolute;
+      left: 0%;
+      top: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      transition: left 0.05s linear;
+      font-size: 2rem;
+      width: 60px;
+      justify-content: center;
+    }
+
+    .finish-line {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      width: 8px;
+      background: repeating-linear-gradient(45deg, #fff, #fff 10px, #000 10px, #000 20px);
+    }
+
+    .race-status {
+      text-align: center;
+      margin: 1rem 0;
+      font-weight: bold;
+      color: #ffd966;
+    }
+
+    .results-panel {
+      background: #1a3a1a;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .history-list {
+      max-height: 120px;
+      overflow-y: auto;
+      background: #0a2a0a;
+      border-radius: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.2rem;
+      border-bottom: 1px solid #3a7a3a;
+    }
+
+    .win-gold {
+      color: #ffd966;
+      font-weight: bold;
+    }
+
+    .racing .horse-row {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display" style="font-weight: bold;">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🏇 DERBY DEL HIPÓDROMO 🏇</h1>
+
+    <!-- PANEL DE APUESTAS -->
+    <div id="bet-panel" class="card">
+      <div class="balance-card">
+        <div>💰 FONDO DEL JINETE</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options-row">
+        <button class="bet-chip" data-bet="5">$5</button>
+        <button class="bet-chip" data-bet="10">$10</button>
+        <button class="bet-chip" data-bet="25">$25</button>
+        <button class="bet-chip" data-bet="50">$50</button>
+        <button class="bet-chip" data-bet="100">$100</button>
+      </div>
+      <input type="number" id="custom-bet-input" placeholder="Monto personalizado">
+      <button class="btn-secondary" id="apply-custom" style="margin-top: 0.5rem;">✅ Aplicar</button>
+      <button class="btn-primary" id="enter-race-btn" style="margin-top: 1rem;">🐎 ENTRAR AL HIPÓDROMO 🐎</button>
+      <div id="bet-alert" class="alert" style="display:none;"></div>
+    </div>
+
+    <!-- PANEL DE CARRERA -->
+    <div id="race-panel" style="display:none;">
+      <div class="card">
+        <div class="balance-card" style="padding: 0.5rem;">
+          <div>🏆 APUESTA EN JUEGO</div>
+          <div style="font-size: 1.3rem; font-weight: bold; color:#ffd966;" id="current-bet-display">$0</div>
+        </div>
+
+        <div class="race-track">
+          <div class="horses-container" id="horses-container"></div>
+
+          <div class="track-container" id="track-container">
+            <div id="track-status" class="race-status">⚡ Selecciona un caballo y presiona CORRER ⚡</div>
+          </div>
+
+          <button id="start-race-btn" class="btn-primary" style="margin-top: 1rem;">🏁 COMENZAR CARRERA 🏁</button>
+          <div class="flex-buttons">
+            <button class="btn-secondary" id="exit-race-btn">🚪 SALIR DEL HIPÓDROMO</button>
+            <button class="btn-secondary" id="casino-home-btn">🏠 CASINO</button>
+          </div>
+        </div>
+
+        <div class="results-panel" id="results-panel" style="display:none;">
+          <div id="result-message" style="text-align:center; font-weight:bold;"></div>
+        </div>
+
+        <div style="margin-top: 0.8rem;">
+          <div style="font-size:0.7rem; color:#ffd966; text-align:center;">📜 HISTORIAL DE CARRERAS</div>
+          <div id="race-history" class="history-list">
+            <div style="text-align:center;">— Sin carreras —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // FIREBASE
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 10;
+  let selectedHorseId = null;
+  let raceActive = false;
+  let raceInterval = null;
+  let historyRaces = [];
+
+  // CABALLOS
+  const horses = [
+    { id: 0, name: "Relámpago", icon: "⚡🐎", odds: 3.5, speedBase: 5 },
+    { id: 1, name: "Tormenta", icon: "🌩️🐎", odds: 4.0, speedBase: 4.8 },
+    { id: 2, name: "Furia", icon: "🔥🐎", odds: 4.5, speedBase: 4.5 },
+    { id: 3, name: "Sombra", icon: "🌑🐎", odds: 5.0, speedBase: 4.2 },
+    { id: 4, name: "Viento", icon: "💨🐎", odds: 6.0, speedBase: 3.9 }
+  ];
+
+  function showMsg(container, type, text) {
+    const el = document.getElementById(container);
+    if (el) {
+      el.className = 'alert ' + type;
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
+    }
+  }
+
+  async function updateGlobalBalanceDisplay(newAmount) {
+    if (!currentUser) return;
+    currentUser.dinero = newAmount;
+    document.getElementById('money-display').textContent = `$${newAmount.toFixed(2)}`;
+    document.getElementById('saldo-display').textContent = `$${newAmount.toFixed(2)}`;
+  }
+
+  async function syncToFirestore() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  async function modifyUserMoney(delta, isAdding) {
+    if (!currentUser) return false;
+    let newMoney = currentUser.dinero;
+    if (isAdding) newMoney += delta;
+    else newMoney -= delta;
+    if (newMoney < 0) return false;
+    currentUser.dinero = newMoney;
+    await updateGlobalBalanceDisplay(newMoney);
+    await syncToFirestore();
+    return true;
+  }
+
+  async function autoLoginAndLoadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        await updateGlobalBalanceDisplay(currentUser.dinero);
+        return true;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo', '==', 'jockey@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const newUser = { user: "Jockey", correo: "jockey@demo.com", clave: "racing123", dinero: 2500, verificado: true };
+      const docRef = await db.collection('cuentas').add(newUser);
+      currentUser = { docId: docRef.id, ...newUser };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+    await updateGlobalBalanceDisplay(currentUser.dinero);
+    return true;
+  }
+
+  // RENDER CABALLOS
+  function renderHorses() {
+    const container = document.getElementById('horses-container');
+    if (!container) return;
+    container.innerHTML = '';
+    horses.forEach(horse => {
+      const div = document.createElement('div');
+      div.className = 'horse-row';
+      if (selectedHorseId === horse.id) div.classList.add('selected');
+      div.innerHTML = `
+        <div class="horse-avatar">${horse.icon}</div>
+        <div class="horse-info">
+          <div class="horse-name">${horse.name}</div>
+          <div class="horse-odds">Gana: ${horse.odds}x tu apuesta</div>
+          <div class="horse-stats">🏆 Velocidad: ${horse.speedBase}/10</div>
+        </div>
+      `;
+      div.addEventListener('click', () => {
+        if (!raceActive) {
+          selectedHorseId = horse.id;
+          renderHorses();
+        }
+      });
+      container.appendChild(div);
+    });
+  }
+
+  // ENTRAR AL HIPÓDROMO
+  async function enterRaceTrack() {
+    if (!currentUser) { showMsg('bet-alert', 'error', 'Error de usuario'); return; }
+    if (currentBet <= 0 || currentBet > currentUser.dinero) {
+      showMsg('bet-alert', 'error', `Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`);
+      return;
+    }
+    
+    const deducted = await modifyUserMoney(currentBet, false);
+    if (!deducted) return;
+    
+    document.getElementById('bet-panel').style.display = 'none';
+    document.getElementById('race-panel').style.display = 'block';
+    document.getElementById('current-bet-display').textContent = `$${currentBet.toFixed(2)}`;
+    document.getElementById('results-panel').style.display = 'none';
+    
+    selectedHorseId = null;
+    raceActive = false;
+    renderHorses();
+    document.getElementById('track-container').innerHTML = `
+      <div id="track-status" class="race-status">🏇 Selecciona un caballo y presiona CORRER 🏇</div>
+    `;
+    const startBtn = document.getElementById('start-race-btn');
+    startBtn.disabled = false;
+    startBtn.textContent = "🏁 COMENZAR CARRERA 🏁";
+  }
+
+  // INICIAR CARRERA
+  async function startRace() {
+    if (raceActive) return;
+    if (selectedHorseId === null) {
+      showMsg('race-message-area', 'error', 'Selecciona un caballo antes de correr');
+      return;
+    }
+    
+    raceActive = true;
+    const startBtn = document.getElementById('start-race-btn');
+    startBtn.disabled = true;
+    startBtn.textContent = "🏃 ¡CORRIENDO! 🏃";
+    
+    // Crear pistas para cada caballo
+    const trackContainer = document.getElementById('track-container');
+    trackContainer.innerHTML = '<div id="track-status" class="race-status">🐎 ¡Y YA SALEN! 🐎</div>';
+    
+    const positions = {};
+    const speeds = {};
+    horses.forEach(horse => {
+      positions[horse.id] = 0;
+      // Velocidad aleatoria con base en estadísticas
+      speeds[horse.id] = (horse.speedBase + Math.random() * 3) / 100;
+    });
+    
+    // Crear las pistas visuales
+    horses.forEach(horse => {
+      const trackDiv = document.createElement('div');
+      trackDiv.className = 'track';
+      trackDiv.id = `track-${horse.id}`;
+      trackDiv.innerHTML = `
+        <div class="horse-runner" id="runner-${horse.id}" style="left: 0%;">${horse.icon}</div>
+        <div class="finish-line"></div>
+      `;
+      trackContainer.appendChild(trackDiv);
+    });
+    
+    let finished = [];
+    let finishOrder = [];
+    
+    // Animación de carrera (más lenta y realista)
+    const interval = setInterval(() => {
+      if (!raceActive) return;
+      
+      let allFinished = true;
+      horses.forEach(horse => {
+        if (!finished.includes(horse.id)) {
+          allFinished = false;
+          let increment = speeds[horse.id] + (Math.random() * 0.02);
+          positions[horse.id] = Math.min(100, positions[horse.id] + increment);
+          const runner = document.getElementById(`runner-${horse.id}`);
+          if (runner) runner.style.left = `${positions[horse.id]}%`;
+          
+          if (positions[horse.id] >= 100 && !finished.includes(horse.id)) {
+            finished.push(horse.id);
+            finishOrder.push(horse.id);
+          }
+        }
+      });
+      
+      if (allFinished || finished.length === horses.length) {
+        clearInterval(interval);
+        finalizeRace(finishOrder);
+      }
+    }, 60);
+    
+    raceInterval = interval;
+  }
+  
+  async function finalizeRace(finishOrder) {
+    raceActive = false;
+    if (raceInterval) clearInterval(raceInterval);
+    
+    const firstPlaceId = finishOrder[0];
+    const selectedHorse = horses.find(h => h.id === selectedHorseId);
+    const winnerHorse = horses.find(h => h.id === firstPlaceId);
+    
+    let winAmount = 0;
+    let message = '';
+    let winType = 'error';
+    
+    if (selectedHorseId === firstPlaceId) {
+      // GANÓ
+      winAmount = currentBet * selectedHorse.odds;
+      winAmount = Math.floor(winAmount * 100) / 100;
+      await modifyUserMoney(winAmount, true);
+      message = `🏆 ¡VICTORIA! ${selectedHorse.name} GANÓ la carrera. Reclamas $${winAmount.toFixed(2)} (${selectedHorse.odds}x) 🏆`;
+      winType = 'success';
+    } else {
+      // PERDIÓ
+      message = `💔 Derrota... ${selectedHorse.name} quedó en ${getPositionText(finishOrder, selectedHorseId)}. Perdiste $${currentBet.toFixed(2)}. Ganador: ${winnerHorse.name} 💔`;
+      winType = 'error';
+    }
+    
+    // Mostrar resultados
+    const resultsPanel = document.getElementById('results-panel');
+    const resultMsg = document.getElementById('result-message');
+    resultsPanel.style.display = 'block';
+    resultMsg.innerHTML = message;
+    resultMsg.style.color = winType === 'success' ? '#ffd966' : '#ffaaaa';
+    
+    // Cambiar color del ganador en la pista
+    const winnerTrack = document.getElementById(`track-${firstPlaceId}`);
+    if (winnerTrack) winnerTrack.style.border = '3px solid #ffd966';
+    
+    showMsg('race-message-area', winType, message);
+    addToHistory(selectedHorse, winnerHorse, winAmount);
+    
+    const startBtn = document.getElementById('start-race-btn');
+    startBtn.disabled = false;
+    startBtn.textContent = "🏁 NUEVA CARRERA 🏁";
+    
+    // Opción para reiniciar selección
+    selectedHorseId = null;
+    renderHorses();
+  }
+  
+  function getPositionText(order, horseId) {
+    const pos = order.indexOf(horseId) + 1;
+    if (pos === 1) return "1° LUGAR";
+    if (pos === 2) return "2° LUGAR";
+    if (pos === 3) return "3° LUGAR";
+    return `${pos}° LUGAR`;
+  }
+  
+  function addToHistory(selected, winner, winAmount) {
+    const resultText = winAmount > 0 
+      ? `✅ Apostaste a ${selected.name} | Ganó ${winner.name} | +$${winAmount}`
+      : `❌ Apostaste a ${selected.name} | Ganó ${winner.name} | -$${currentBet}`;
+    
+    historyRaces.unshift({ text: resultText, win: winAmount > 0 });
+    if (historyRaces.length > 8) historyRaces.pop();
+    
+    const historyDiv = document.getElementById('race-history');
+    if (!historyDiv) return;
+    if (historyRaces.length === 0) {
+      historyDiv.innerHTML = '<div style="text-align:center;">— Sin carreras —</div>';
+      return;
+    }
+    let html = '';
+    historyRaces.forEach(entry => {
+      html += `<div class="history-item">
+        <span>🏇</span>
+        <span class="${entry.win ? 'win-gold' : ''}">${entry.text}</span>
+        <span>🏁</span>
+      </div>`;
+    });
+    historyDiv.innerHTML = html;
+  }
+  
+  function resetToBetMenu() {
+    if (raceInterval) clearInterval(raceInterval);
+    document.getElementById('race-panel').style.display = 'none';
+    document.getElementById('bet-panel').style.display = 'block';
+    raceActive = false;
+    if (currentUser) {
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+  }
+  
+  function setBet(amount) { currentBet = amount; showMsg('bet-alert', 'success', `💰 Apuesta: $${currentBet}`); document.getElementById('custom-bet-input').value = ''; }
+  function setCustomBet() { let v = parseFloat(document.getElementById('custom-bet-input').value); if (v > 0) { currentBet = v; showMsg('bet-alert', 'success', `✅ Apuesta: $${currentBet}`); } else showMsg('bet-alert', 'error', 'Monto inválido'); }
+  
+  async function init() {
+    await autoLoginAndLoadUser();
+    if (currentUser) {
+      document.getElementById('money-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+      document.getElementById('saldo-display').textContent = `$${currentUser.dinero.toFixed(2)}`;
+    }
+    document.querySelectorAll('.bet-chip').forEach(btn => btn.addEventListener('click', (e) => { let val = parseFloat(btn.getAttribute('data-bet')); if (!isNaN(val)) setBet(val); }));
+    document.getElementById('apply-custom').addEventListener('click', setCustomBet);
+    document.getElementById('enter-race-btn').addEventListener('click', enterRaceTrack);
+    document.getElementById('exit-race-btn').addEventListener('click', resetToBetMenu);
+    document.getElementById('casino-home-btn').addEventListener('click', () => window.location.href = '../app.html');
+    document.getElementById('start-race-btn').addEventListener('click', startRace);
+    document.getElementById('bet-panel').style.display = 'block';
+    document.getElementById('race-panel').style.display = 'none';
+  }
+  
+  init();
+</script>
+</body>
+</html>
