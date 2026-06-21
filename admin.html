@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bet LDP — Panel Admin</title>
+  <link rel="icon" type="image/png" href="./logo3.png">
+  <link rel="stylesheet" href="./styles/global.css">
+  <link rel="stylesheet" href="./styles/admin.css">
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='./app.html'">
+      <img src="./logo1.png" alt="Bet LDP" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <span style="display:none; font-family:'Cinzel',serif; font-size:18px; font-weight:900; color:var(--gold-light); letter-spacing:2px;">BET LDP</span>
+    </button>
+  </div>
+  <div id="navbar-right">
+    <button class="btn-secondary" onclick="logout()">🚪 Cerrar sesión</button>
+  </div>
+</nav>
+
+<main class="admin-page">
+  <div class="admin-header">
+    <div>
+      <h1>Panel de Administración</h1>
+      <p class="admin-note">Acceso restringido solo para usuarios con <strong>verificado: true</strong>.</p>
+    </div>
+    <button class="btn-primary" onclick="window.location.href='./app.html'">Volver a la App</button>
+  </div>
+
+  <div class="admin-summary">
+    <div class="admin-card">
+      <h2>Usuario</h2>
+      <p id="admin-user-name">—</p>
+    </div>
+    <div class="admin-card">
+      <h2>Correo</h2>
+      <p id="admin-user-email">—</p>
+    </div>
+    <div class="admin-card">
+      <h2>Dinero actual</h2>
+      <p id="admin-user-money">$0.00</p>
+    </div>
+  </div>
+
+  <section class="admin-section">
+    <h2>Buscar usuario</h2>
+    <div class="admin-controls">
+      <input id="admin-search-input" type="text" placeholder="Buscar correo o usuario...">
+      <select id="admin-search-field">
+        <option value="correo">MAIL</option>
+        <option value="user">USUARIO</option>
+      </select>
+      <button onclick="buscarUsuario()">Buscar</button>
+    </div>
+    <p class="admin-alert" id="admin-search-msg"></p>
+  </section>
+
+  <section class="admin-section">
+    <h2>TOP 3 usuarios por dinero</h2>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Posición</th>
+          <th>Usuario</th>
+          <th>Correo</th>
+          <th>Dinero</th>
+          <th>Verificado</th>
+        </tr>
+      </thead>
+      <tbody id="admin-top-table">
+        <tr><td colspan="5">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let currentUser = null;
+
+  function formatMoney(amount) {
+    return '$' + parseFloat(amount || 0).toFixed(2);
+  }
+
+  function showAdminMsg(text) {
+    const el = document.getElementById('admin-search-msg');
+    el.textContent = text;
+  }
+
+  function logout() {
+    localStorage.removeItem('betldp_user_id');
+    localStorage.removeItem('betldp_user_email');
+    localStorage.removeItem('betldp_is_admin');
+    window.location.href = './index.html';
+  }
+
+  async function cargarAdmin() {
+    const userId = localStorage.getItem('betldp_user_id');
+    const isAdmin = localStorage.getItem('betldp_is_admin') === 'true';
+
+    if (!userId || !isAdmin) {
+      window.location.href = './index.html';
+      return;
+    }
+
+    try {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (!doc.exists) {
+        window.location.href = './index.html';
+        return;
+      }
+
+      const data = doc.data();
+      if (!data.verificado) {
+        window.location.href = './index.html';
+        return;
+      }
+
+      currentUser = { docId: doc.id, ...data };
+      document.getElementById('admin-user-name').textContent = data.user || '—';
+      document.getElementById('admin-user-email').textContent = data.correo || '—';
+      document.getElementById('admin-user-money').textContent = formatMoney(data.dinero);
+      cargarTop3();
+    } catch (error) {
+      console.error(error);
+      window.location.href = './index.html';
+    }
+  }
+
+  async function buscarUsuario() {
+    const queryValue = document.getElementById('admin-search-input').value.trim();
+    const searchField = document.getElementById('admin-search-field').value;
+    showAdminMsg('');
+
+    if (!queryValue) {
+      showAdminMsg('Ingrese un valor para buscar.');
+      return;
+    }
+
+    try {
+      const snap = await db.collection('cuentas').where(searchField, '==', queryValue).get();
+      if (snap.empty) {
+        showAdminMsg('No se encontró ningún usuario con ese ' + (searchField === 'correo' ? 'correo.' : 'usuario.'));
+        return;
+      }
+
+      const userData = snap.docs[0].data();
+      showAdminMsg(`ID: ${snap.docs[0].id} · Usuario: ${userData.user} · Correo: ${userData.correo} · Dinero: ${formatMoney(userData.dinero)} · Verificado: ${userData.verificado}`);
+    } catch (error) {
+      console.error(error);
+      showAdminMsg('Error al buscar el usuario.');
+    }
+  }
+
+  async function cargarTop3() {
+    const tbody = document.getElementById('admin-top-table');
+    tbody.innerHTML = '<tr><td colspan="5">Cargando...</td></tr>';
+
+    try {
+      const snap = await db.collection('cuentas').orderBy('dinero', 'desc').limit(3).get();
+      if (snap.empty) {
+        tbody.innerHTML = '<tr><td colspan="5">No hay usuarios registrados.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      let position = 1;
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${position++}</td>
+          <td>${data.user || '—'}</td>
+          <td>${data.correo || '—'}</td>
+          <td>${formatMoney(data.dinero)}</td>
+          <td>${data.verificado ? 'Sí' : 'No'}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (error) {
+      console.error(error);
+      tbody.innerHTML = '<tr><td colspan="5">Error al cargar los TOP 3.</td></tr>';
+    }
+  }
+
+  cargarAdmin();
+</script>
+</body>
+</html>

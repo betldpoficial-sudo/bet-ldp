@@ -1,0 +1,16 @@
+.admin-page { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+.admin-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.admin-header h1 { margin: 0; font-size: 28px; }
+.admin-summary { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; margin-top: 24px; }
+.admin-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 20px; }
+.admin-card h2 { margin: 0 0 10px; font-size: 18px; }
+.admin-card p { margin: 0; color: #ddd; }
+.admin-section { margin-top: 32px; }
+.admin-section h2 { margin-bottom: 16px; }
+.admin-controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.admin-controls input, .admin-controls select { min-width: 220px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.16); background: rgba(0,0,0,.35); color: #fff; }
+.admin-controls button { padding: 12px 18px; border: none; border-radius: 12px; cursor: pointer; background: #d4af37; color: #111; font-weight: 700; }
+.admin-table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }    .admin-table th, .admin-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
+.admin-table th { background: rgba(255,255,255,.08); }
+.admin-alert { margin-top: 14px; color: #ffdd57; }
+.admin-note { margin-top: 8px; color: #ccc; font-size: 14px; }

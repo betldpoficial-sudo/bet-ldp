@@ -137,7 +137,7 @@
     if (!testSnap.empty) {
       currentUser = { docId: testSnap.docs[0].id, ...testSnap.docs[0].data() };
     } else {
-      const newUser = { user: "HighRoller", correo: "mayor_menor@demo.com", clave: "demo123", dinero: 1250, verificado: true };
+      const newUser = { user: "HighRoller", correo: "mayor_menor@demo.com", clave: "demo123", dinero: 1250 };
       const docRef = await db.collection('cuentas').add(newUser);
       currentUser = { docId: docRef.id, ...newUser };
     }

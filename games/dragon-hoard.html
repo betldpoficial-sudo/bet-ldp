@@ -505,7 +505,7 @@
     if (!demoSnap.empty) {
       currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
     } else {
-      const newUser = { user: "Dragonslayer", correo: "dragonhunter@demo.com", clave: "hoard123", dinero: 2500, verificado: true };
+      const newUser = { user: "Dragonslayer", correo: "dragonhunter@demo.com", clave: "hoard123", dinero: 2500 };
       const docRef = await db.collection('cuentas').add(newUser);
       currentUser = { docId: docRef.id, ...newUser };
     }

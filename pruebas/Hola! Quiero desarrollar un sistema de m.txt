@@ -1,0 +1,25 @@
+Hola! Quiero desarrollar un sistema de manejo de usuarios para mi plataforma. Que este sistema este organizado de la siguiente manera:
+- Este sistema se encontrara en el archivo "./admin.html".
+- ¿Como se accedera?
+    Cuando el usuario se loguee con el modo admin, en el menu: "menu-account", se mostrara un boton que dira: "💻 Modo Admin".
+- El sistema contara con las siguientes funciones:
+    - Filtrar por usuario: habra una barra de busqueda donde el administrador tendra que poner x cosa (mas adelante se explicara mejor).
+    - Tabla de TOPS dinero: habra una tabla que habran 3 TOPS, que seran 3 usuarios. Cuando el admin habra la pagina, el sistema comparara los 3 usuarios con mayor dinero y los pondra en la tabla.
+- ¿Como se loguea con el modo admin?
+    - Cuando el usaurio se loguee, el sistema de login se fijara si en: "Base de Datos > cuentas > [ID del documento del usuario que se logueo correctamente] > verificado > "
+        - Si ahi esta en "true": se activara el modo admin.
+        - Si ahi esta en "false": no se activara nada.
+
+En el Sistema de Filtrado habra esta barra:
+[un INPUT][un SELECTOR]
+En el input agregan lo que quieren buscar y en el selector, ponen donde se debe de buscar. Las opciones seran:
+|==============|================|
+|  Op. Select  |  Dnd se busca  |
+|==============|================|
+|  MAIL        | X > correo >   |
+|  USUARIO     | X > user >     |
+|==============|================|
+Significado de palabras abreviadas: 
+- "X" = "Base de Datos (firebase) > cuentas > [ID del DOCUMENTO] > ".
+- "Op." = "Opcion".
+- "Dnd" = "Donde".
