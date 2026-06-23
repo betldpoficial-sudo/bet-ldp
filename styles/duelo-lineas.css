@@ -13,7 +13,6 @@
       flex-direction: column;
     }
 
-    /* contenedor principal con centrado vertical perfecto */
     .game-master {
       flex: 1;
       display: flex;
@@ -35,7 +34,6 @@
       transition: all 0.2s;
     }
 
-    /* reutilizar estilos originales del juego con un toque premium */
     h1 {
       font-family: 'Cinzel', serif;
       text-align: center;

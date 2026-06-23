@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Bet LDP — Inicia Sesión</title>
-  <link rel="icon" type="image/png" href="./logo3.png">
+  <link rel="icon" type="image/png" href="./assets/logo3.png">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
 <nav id="navbar">
   <div id="navbar-left">
     <button id="logo-btn" onclick="goHome()">
-      <img src="./logo1.png" alt="Bet LDP Logo" style="height:32px; width:auto; margin-right:8px;">
+      <img src="./assets/logo1.png" alt="Bet LDP Logo" style="height:32px; width:auto; margin-right:8px;">
     </button>
   </div>
   
@@ -154,7 +154,6 @@
       s.classList.remove('active');
       s.style.display = 'none';
     });
-    
     const el = document.getElementById('tab-' + name);
     if (el) {
       el.classList.add('active');
@@ -162,9 +161,7 @@
     }
   }
 
-  function goHome() {
-    showTab('login');
-  }
+  function goHome() { showTab('login'); }
 
   async function login() {
     const email = document.getElementById('login-email').value.trim();
@@ -196,16 +193,12 @@
         return;
       }
 
-      // Guardar sesión
       localStorage.setItem('betldp_user_id', doc.id);
       localStorage.setItem('betldp_user_email', data.correo);
       localStorage.setItem('betldp_user_name', data.user);
       showMsg('login-msg', 'success', '¡Bienvenido/a, ' + data.user + '!');
 
-      // Redirigir a app.html después de 1 segundo
-      setTimeout(() => {
-        window.location.href = './app.html';
-      }, 1000);
+      setTimeout(() => { window.location.href = './app.html'; }, 1000);
     } catch(e) {
       showMsg('login-msg', 'error', 'Error al iniciar sesión. Intentá nuevamente.');
       console.error(e);
@@ -214,15 +207,11 @@
     }
   }
 
-    async function autoLogin() {
+  async function autoLogin() {
     const savedUserId = localStorage.getItem('betldp_user_id');
     const savedEmail = localStorage.getItem('betldp_user_email');
-    
-    if (!savedUserId || !savedEmail) {
-      showTab('login');
-      return false;
-    }
-    
+    if (!savedUserId || !savedEmail) { showTab('login'); return false; }
+
     try {
       const doc = await db.collection('cuentas').doc(savedUserId).get();
       if (doc.exists) {
@@ -230,17 +219,13 @@
         if (data.correo === savedEmail) {
           currentUser = { docId: doc.id, ...data };
           window.location.href = './app.html';
-          
-          setMoneyDisplay(data.dinero);
-          startMoneyPolling();
-          
+          setMoneyDisplay && setMoneyDisplay(data.dinero);
+          startMoneyPolling && startMoneyPolling();
           return true;
         }
       }
-    } catch(e) {
-      console.warn('AutoLogin error:', e);
-    }
-    
+    } catch(e) { console.warn('AutoLogin error:', e); }
+
     showTab('login');
     return false;
   }
@@ -252,7 +237,7 @@
     clearMsg('reg-msg');
 
     if (!name || !email || !pass) { showMsg('reg-msg', 'error', 'Completá todos los campos.'); return; }
-    if (pass.length < 6)          { showMsg('reg-msg', 'error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+    if (pass.length < 6) { showMsg('reg-msg', 'error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
 
     const btn = document.getElementById('btn-reg-submit');
     btn.innerHTML = '<span class="spinner"></span>Creando cuenta...';
@@ -306,18 +291,12 @@
         return;
       }
 
-      codigoEnviado      = Math.floor(100000 + Math.random() * 900000).toString();
-      emailRecuperacion  = email;
+      codigoEnviado = Math.floor(100000 + Math.random() * 900000).toString();
+      emailRecuperacion = email;
 
       try {
-        await emailjs.send('service_jwbttvy', 'template_meurz27', {
-          email: email,
-          codigo: codigoEnviado,
-          nombre: nombre
-        });
-      } catch(e) {
-        console.error('Error enviando email:', e);
-      }
+        await emailjs.send('service_jwbttvy', 'template_meurz27', { email, codigo: codigoEnviado, nombre });
+      } catch(e) { console.error('Error enviando email:', e); }
 
       showMsg('rec-msg1', 'success', `Código enviado a ${email}`);
       document.getElementById('rec-step2').style.display = 'block';
@@ -332,7 +311,7 @@
   }
 
   function verificarCodigo() {
-    const chars  = document.querySelectorAll('.code-char');
+    const chars = document.querySelectorAll('.code-char');
     const ingresado = Array.from(chars).map(c => c.value).join('');
     clearMsg('rec-msg2');
 
@@ -343,7 +322,7 @@
       setTimeout(() => showTab('new-pass'), 900);
     } else {
       showMsg('rec-msg2', 'error', 'Código incorrecto. Intentá nuevamente.');
-    } 
+    }
   }
 
   function onCodeInput(el) {
@@ -365,8 +344,8 @@
     const p2 = document.getElementById('new-pass-2').value;
     clearMsg('new-pass-msg');
 
-    if (!p1 || !p2)    { showMsg('new-pass-msg', 'error', 'Completá ambos campos.'); return; }
-    if (p1 !== p2)     { showMsg('new-pass-msg', 'error', 'Las contraseñas no coinciden.'); return; }
+    if (!p1 || !p2) { showMsg('new-pass-msg', 'error', 'Completá ambos campos.'); return; }
+    if (p1 !== p2) { showMsg('new-pass-msg', 'error', 'Las contraseñas no coinciden.'); return; }
     if (p1.length < 6) { showMsg('new-pass-msg', 'error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
     if (!emailRecuperacion) { showMsg('new-pass-msg', 'error', 'Sesión expirada. Volvé al login.'); return; }
 
@@ -379,10 +358,7 @@
         emailRecuperacion = '';
         setTimeout(() => showTab('login'), 1500);
       }
-    } catch(e) {
-      showMsg('new-pass-msg', 'error', 'Error al actualizar contraseña. Intentá nuevamente.');
-      console.error(e);
-    }
+    } catch(e) { showMsg('new-pass-msg', 'error', 'Error al actualizar contraseña. Intentá nuevamente.'); console.error(e); }
   }
 
   (function(){ emailjs.init({ publicKey: "TSm2szahK3vNCAvH7" }); })();
@@ -393,8 +369,8 @@
     for (let i = 0; i < 22; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      p.style.setProperty('--dur',   (7 + Math.random() * 8) + 's');
-      p.style.setProperty('--delay', (Math.random() * 10)    + 's');
+      p.style.setProperty('--dur', (7 + Math.random() * 8) + 's');
+      p.style.setProperty('--delay', (Math.random() * 10) + 's');
       p.style.setProperty('--drift', ((Math.random() - 0.5) * 60) + 'px');
       p.style.left = (Math.random() * 100) + '%';
       p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';

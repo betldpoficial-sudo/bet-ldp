@@ -100,8 +100,8 @@
       filter: brightness(1.2);
     }
 
-    /* ====== CLAVE: CENTRADO PERFECTO EN PANTALLA (vertical + horizontal) ====== */
-    /* contenedor maestro: ocupar todo el viewport menos espacio para nav y margen elegante */
+    
+    
     .master-center {
       flex: 1;
       display: flex;
@@ -111,7 +111,7 @@
       min-height: calc(100vh - 80px); /* descuenta altura aprox del nav */
     }
 
-    /* bj-container exactamente centrado y con ancho responsivo */
+    
     .bj-container {
       max-width: 1000px;
       width: 100%;
@@ -120,7 +120,7 @@
       transition: all 0.2s;
     }
 
-    /* resto de estilos específicos de blackjack (manteniendo fidelidad al original) */
+    
     .bj-table {
       background: linear-gradient(145deg, #1a472a 0%, #0d2818 100%);
       border-radius: 60px 60px 30px 30px;

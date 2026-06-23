@@ -14,7 +14,6 @@
       flex-direction: column;
     }
 
-    /* centrado vertical maestro */
     .game-master {
       flex: 1;
       display: flex;

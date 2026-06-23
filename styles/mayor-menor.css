@@ -14,7 +14,6 @@
       flex-direction: column;
     }
 
-    /* Contenedor principal que centra vertical y horizontalmente */
     .game-master {
       flex: 1;
       display: flex;

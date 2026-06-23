@@ -15,7 +15,7 @@
       flex-direction: column;
     }
 
-    /* Partículas decorativas */
+    
     .particles {
       position: fixed;
       top: 0;
@@ -28,7 +28,7 @@
       background-size: 32px 32px;
     }
 
-    /* Navbar */
+    
     nav {
       position: fixed;
       top: 0;
@@ -57,7 +57,7 @@
       filter: drop-shadow(0 0 4px rgba(212,175,55,0.5));
     }
 
-    /* Contenedor principal: lista de recuadros arriba y área de respuesta abajo (centrada) */
+    
     .support-wrapper {
       flex: 1;
       display: flex;
@@ -71,7 +71,7 @@
       gap: 2.5rem;
     }
 
-    /* SECCIÓN SUPERIOR: Lista de recuadros (preguntas) */
+    
     .faq-section {
       width: 100%;
     }
@@ -132,7 +132,7 @@
       transition: transform 0.2s;
       font-weight: 300;
     }
-    /* ÁREA DE RESPUESTA DEL PERSONAJE (grande, centrada, abajo) */
+    
 .character-response-area {
     background: rgba(5, 7, 15, 0.65);
     backdrop-filter: blur(16px);
@@ -145,26 +145,26 @@
     box-shadow: 0 20px 35px -15px black;
 }
 
-/* --- NUEVA ESTRUCTURA: Avatar al lado del texto --- */
+    
 .response-inner {
     display: flex;
-    flex-direction: row;      /* Cambiado de column a row */
-    align-items: center;      /* Centra verticalmente */
+    flex-direction: row;
+    align-items: center;
     gap: 1.5rem;
 }
 
-/* Estilo para el contenedor del personaje (avatar) */
+    
 .tutorial-character {
     flex-shrink: 0;
-    width: 120px;             /* Ajusta el ancho */
+    width: 120px;
     background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,0,0,0.3));
     display: flex;
     align-items: flex-end;
     justify-content: center;
     position: relative;
     overflow: hidden;
-    border-radius: 28px;      /* Bordes redondeados */
-    border: 2px solid rgba(212, 175, 55, 0.7); /* NUEVO: Borde dorado */
+    border-radius: 28px;
+    border: 2px solid rgba(212, 175, 55, 0.7);
     transition: border 0.2s ease;
 }
 
@@ -180,12 +180,12 @@
 }
 
 .tutorial-character:hover {
-    border-color: #ffd700;    /* Efecto hover para el borde */
+    border-color: #ffd700;
 }
 
 .response-bubble {
-    flex: 1;                  /* Ocupa el espacio restante */
-    max-width: none;          /* Elimina el max-width previo */
+    flex: 1;
+    max-width: none;
     background: rgba(0, 0, 0, 0.6);
     border-radius: 42px;
     padding: 1.2rem 1.8rem;
@@ -193,10 +193,10 @@
     border-right: 1px solid rgba(212,175,55,0.3);
 }
 
-/* Ajustes responsivos para pantallas pequeñas */
+    
 @media (max-width: 650px) {
     .response-inner {
-        flex-direction: column;   /* En móvil vuelve a columna */
+        flex-direction: column;
         text-align: center;
         gap: 1rem;
     }
@@ -215,7 +215,7 @@
     }
 }
 
-    /* Botón volver */
+    
     .back-link {
       text-align: center;
       margin-top: 1rem;
@@ -246,7 +246,7 @@
       letter-spacing: 1px;
     }
 
-    /* Modal de selección de personajes */
+    
     .character-selector-overlay {
       position: fixed;
       top: 0;
@@ -360,7 +360,7 @@
       letter-spacing: 0.5px;
     }
 
-    /* Responsive */
+    
     @media (max-width: 650px) {
       .character-selector-modal {
         padding: 1.5rem;
@@ -417,7 +417,7 @@
         height: 65px;
       }
     }
-    /* Media para pantallas medianas */
+    
     @media (min-width: 601px) and (max-width: 900px) {
       .tutorial-character {
         width: 150px;

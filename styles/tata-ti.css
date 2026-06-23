@@ -14,7 +14,6 @@
       flex-direction: column;
     }
 
-    /* contenedor maestro con centrado vertical perfecto */
     .game-master {
       flex: 1;
       display: flex;
