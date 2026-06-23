@@ -199,6 +199,7 @@
       // Guardar sesión
       localStorage.setItem('betldp_user_id', doc.id);
       localStorage.setItem('betldp_user_email', data.correo);
+      localStorage.setItem('betldp_user_name', data.user);
       showMsg('login-msg', 'success', '¡Bienvenido/a, ' + data.user + '!');
 
       // Redirigir a app.html después de 1 segundo
@@ -401,8 +402,9 @@
     }
   })();
 
-  document.addEventListener('DOMContentLoaded', function() {
-    showTab('login');
+  document.addEventListener('DOMContentLoaded', async function() {
+    const logged = await autoLogin();
+    if (!logged) showTab('login');
   });
 </script>
 </body>

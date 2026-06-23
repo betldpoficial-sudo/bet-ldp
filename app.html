@@ -274,6 +274,7 @@
     currentUser = null;
     localStorage.removeItem('betldp_user_id');
     localStorage.removeItem('betldp_user_email');
+    localStorage.removeItem('betldp_user_name');
   
     if (moneyInterval) { clearInterval(moneyInterval); moneyInterval = null; }
     document.getElementById('money-display').style.opacity = '0';
