@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Póker Texas Hold'em — Bet LDP</title>
+  <link rel="icon" type="image/png" href="../assets/logo3.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/casino-games.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../assets/logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🂡 PÓKER TEXAS HOLD'EM</h1>
+    <p class="game-description">Compite contra otros jugadores combinando tus dos cartas con cinco comunitarias. El mejor juego de cinco cartas gana.</p>
+
+    <div id="bet-selection" class="card">
+      <div class="status-row">
+        <div>💰 Saldo disponible</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options">
+        <button class="bet-btn" onclick="setBet(500)">$500</button>
+        <button class="bet-btn" onclick="setBet(5000)">$5000</button>
+        <button class="bet-btn" onclick="setBet(10000)">$10000</button>
+        <button class="bet-btn" onclick="setAllInBet()">Apostar todo</button>
+      </div>
+      <button class="btn-primary" onclick="startGame()">✨ COMENZAR PARTIDA</button>
+      <div id="msg" class="alert"></div>
+    </div>
+
+    <div id="game-play" class="card" style="display:none;">
+      <div class="status-row">
+        <div>🎯 Apuesta</div>
+        <div id="bet-amount-display">$0</div>
+      </div>
+      <div class="cards-board">
+        <div class="player-block">
+          <strong>Tu mano</strong>
+          <div id="player-cards" class="card-place"></div>
+        </div>
+        <div class="house-block">
+          <strong>Rival</strong>
+          <div id="rival-cards" class="card-place"></div>
+        </div>
+      </div>
+      <div class="board-block">
+        <strong>Cartas comunitarias</strong>
+        <div id="community-cards" class="card-place"></div>
+      </div>
+      <button class="btn-primary" onclick="revealResult()">🔎 REVELAR RESULTADO</button>
+      <button class="btn-secondary" style="margin-top:12px;" onclick="cancelGame()">🚪 RETIRARSE</button>
+      <div id="play-msg" class="alert"></div>
+    </div>
+
+    <div id="result-screen" class="card" style="display:none; text-align:center;">
+      <h2 id="result-title" style="color:#f3cd81;">RESULTADO</h2>
+      <div id="result-detail" style="margin: 20px 0; font-size: 1.05rem; line-height:1.6;"></div>
+      <div class="result-actions">
+        <button class="btn-primary" onclick="playSameBet()">Jugar de nuevo (con la misma apuesta)</button>
+        <button class="btn-primary" onclick="resetToMenu()">Jugar de nuevo (con diferente apuesta)</button>
+        <button class="btn-secondary" onclick="window.location.href='../app.html'">Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951551213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 500;
+  let lastBet = 500;
+  let gameState = { player: [], rival: [], community: [] };
+
+  function showMsg(id, type, message) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'alert ' + type;
+    el.textContent = message;
+    el.style.display = 'block';
+    setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
+  }
+
+  async function init() {
+    await loadUser();
+    renderHeader();
+  }
+
+  async function loadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) {
+        currentUser = { docId: doc.id, ...doc.data() };
+        return;
+      }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo','==','poker_texas@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const demo = { user:'TexasPlayer', correo:'poker_texas@demo.com', clave:'texas123', dinero: 20000 };
+      const docRef = await db.collection('cuentas').add(demo);
+      currentUser = { docId: docRef.id, ...demo };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+  }
+
+  async function syncBalance() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  function renderHeader() {
+    const moneySpan = document.getElementById('money-display');
+    const saldoSpan = document.getElementById('saldo-display');
+    if (moneySpan && currentUser) moneySpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+    if (saldoSpan && currentUser) saldoSpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+  }
+
+  function setBet(amount) {
+    if (!currentUser) return;
+    currentBet = amount;
+    lastBet = amount;
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showMsg('msg', 'success', `Apuesta seleccionada: $${amount}`);
+  }
+
+  function setAllInBet() {
+    if (!currentUser) return;
+    currentBet = currentUser.dinero;
+    lastBet = currentBet;
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showMsg('msg', 'success', `Apuesta todo: $${currentBet}`);
+  }
+
+  async function startGame() {
+    if (!currentUser) { showMsg('msg','error','No se encontró tu usuario. Recarga la página.'); return; }
+    if (currentBet <= 0) { showMsg('msg','error','Selecciona una apuesta válida.'); return; }
+    if (currentBet > currentUser.dinero) { showMsg('msg','error',`Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`); return; }
+    lastBet = currentBet;
+    currentUser.dinero -= currentBet;
+    await syncBalance();
+    renderHeader();
+    gameState = dealTexasHands();
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showBoard();
+  }
+
+  function dealTexasHands() {
+    const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    const suits = ['♠','♥','♦','♣'];
+    let deck = [];
+    ranks.forEach(rank => suits.forEach(suit => deck.push({ rank, suit })));
+    deck = shuffle(deck);
+    const player = deck.splice(0,2);
+    const rival = deck.splice(0,2);
+    const community = deck.splice(0,5);
+    return { player, rival, community };
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function showBoard() {
+    document.getElementById('bet-selection').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    renderCards('player-cards', gameState.player);
+    renderCards('rival-cards', gameState.rival);
+    renderCards('community-cards', gameState.community);
+    document.getElementById('play-msg').style.display = 'none';
+  }
+
+  function renderCards(containerId, cards) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = cards.map(card => `<div class="card-chip">${card.rank}${card.suit}</div>`).join('');
+  }
+
+  function evaluateHoldem(cards) {
+    const rankOrder = { '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14 };
+    const count = {};
+    cards.forEach(card => { count[card.rank] = (count[card.rank] || 0) + 1; });
+    const values = Object.values(count).sort((a,b) => b-a);
+    const kinds = Object.entries(count).map(([rank,val]) => ({ rank, val })).sort((a,b) => b.val - a.val || rankOrder[b.rank] - rankOrder[a.rank]);
+    let scoreType = 1;
+    if (values[0] === 4) scoreType = 7;
+    else if (values[0] === 3 && values[1] === 2) scoreType = 6;
+    else if (values[0] === 3) scoreType = 5;
+    else if (values[0] === 2 && values[1] === 2) scoreType = 4;
+    else if (values[0] === 2) scoreType = 3;
+    else scoreType = 2;
+    const topRank = rankOrder[kinds[0].rank];
+    return scoreType * 100 + topRank;
+  }
+
+  function revealResult() {
+    const playerScore = evaluateHoldem([...gameState.player, ...gameState.community]);
+    const rivalScore = evaluateHoldem([...gameState.rival, ...gameState.community]);
+    let title = '😔 DERROTA';
+    let detail = `La mesa ganó con una mano mejor.`;
+    let type = 'error';
+    let payout = 0;
+    if (playerScore > rivalScore) {
+      title = '🎉 ¡VICTORIA!';
+      payout = currentBet * 2.2;
+      detail = `Ganaste $${payout.toFixed(2)} con tu mejor combinación.`;
+      type = 'success';
+    } else if (playerScore === rivalScore) {
+      title = '🤝 EMPATE';
+      payout = currentBet;
+      detail = `Empataste. Se devuelve tu apuesta de $${currentBet}.`;
+      type = 'info';
+    }
+    if (payout > 0) {
+      currentUser.dinero += payout;
+      syncBalance();
+      renderHeader();
+    }
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-detail').innerHTML = `
+      <div>${detail}</div>
+      <div style="margin-top:12px;">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+    `;
+    const playMsg = document.getElementById('play-msg');
+    if (playMsg) playMsg.style.display = 'none';
+  }
+
+  function cancelGame() {
+    currentUser.dinero += currentBet;
+    syncBalance();
+    renderHeader();
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-title').textContent = '🚪 TE RETIRASTE';
+    document.getElementById('result-detail').innerHTML = `
+      <div>Has recuperado tu apuesta de $${currentBet.toFixed(2)}.</div>
+      <div style="margin-top:12px;">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+    `;
+  }
+
+  function playSameBet() {
+    currentBet = lastBet;
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('bet-selection').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    startGame();
+  }
+
+  function resetToMenu() {
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('bet-selection').style.display = 'block';
+    document.getElementById('msg').style.display = 'none';
+  }
+
+  init();
+</script>
+</body>
+</html>

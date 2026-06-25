@@ -128,6 +128,33 @@
         <button class="btn-gold" style="margin-top:10px;" onclick="goToGame('dice-duel')">Jugar</button>
       </div>
     </div>
+    <div class="inicio-cards">
+      <div class="game-card">
+        <span class="icon">🂡</span>
+        <div class="name">Póker Texas</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="goToGame('poker-texas')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🀄</span>
+        <div class="name">Baccarat</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="goToGame('baccarat')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🎱</span>
+        <div class="name">Bingo</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="goToGame('bingo')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">♣️</span>
+        <div class="name">Póker 3 Cartas</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="goToGame('poker-tres-cartas')">Jugar</button>
+      </div>
+      <div class="game-card">
+        <span class="icon">🎯</span>
+        <div class="name">Keno</div>
+        <button class="btn-gold" style="margin-top:10px;" onclick="goToGame('keno')">Jugar</button>
+      </div>
+    </div>
   </section>
   
   <section class="tab-section" id="tab-recarga">
@@ -229,10 +256,74 @@
       <p>© 2026 BetLDP · Todos los derechos reservados</p>
       <button class="btn-secondary" onclick="window.location.href='./support.html'">Solicitar Soporte</button>
     </div>
-  <script src="./scripts/app.js"></script>
-      }
-    }, 10000);
-  }});
+  </div>
+</footer>
+
+<script src="./scripts/script.js"></script>
+<script src="./scripts/app.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.firestore();
+
+  async function logout() {
+    localStorage.removeItem('betldp_user_id');
+    localStorage.removeItem('betldp_user_email');
+    localStorage.removeItem('betldp_user_name');
+    location.replace('./index.html');
+  }
+  function goToGame(game) {
+    location.href = `./games/${game}.html`;
+  }
+  
+  async function loadCurrentUser() {
+    const userId = localStorage.getItem('betldp_user_id');
+    const userEmail = localStorage.getItem('betldp_user_email');
+    if (!userId || !userEmail) return false;
+
+    try {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (!doc.exists) return false;
+
+      const data = doc.data();
+      if (!data || data.correo !== userEmail) return false;
+
+      const menuUserInfo = document.getElementById('menu-user-info');
+      const menuUname = document.getElementById('menu-uname');
+      const menuUemail = document.getElementById('menu-uemail');
+      const logoutBtn = document.getElementById('btn-logout');
+      const goLoginBtn = document.getElementById('btn-go-login');
+
+      if (menuUserInfo) menuUserInfo.style.display = 'flex';
+      if (menuUname) menuUname.textContent = data.user || localStorage.getItem('betldp_user_name') || 'Usuario';
+      if (menuUemail) menuUemail.textContent = data.correo;
+      if (logoutBtn) logoutBtn.style.display = 'block';
+      if (goLoginBtn) goLoginBtn.style.display = 'none';
+      if (typeof setMoneyDisplay === 'function') setMoneyDisplay(data.dinero ?? 0);
+
+      return true;
+    } catch (err) {
+      console.warn('App auto-login error:', err);
+      return false;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const validSession = await loadCurrentUser();
+    if (!validSession) {
+      location.replace('./index.html');
+    }
+  });
 </script>
 </body>
 </html>

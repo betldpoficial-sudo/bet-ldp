@@ -1,14 +1,3 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
-  authDomain: "tuesa-oficial.firebaseapp.com",
-  projectId: "tuesa-oficial",
-  storageBucket: "tuesa-oficial.firebasestorage.app",
-  messagingSenderId: "447951557213",
-  appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 let currentUser = null;
 let moneyInterval = null;
 let emailDestinatarioTransferencia = '';
@@ -32,19 +21,6 @@ async function fetchMoney() {
 function startMoneyPolling() {
   if (moneyInterval) clearInterval(moneyInterval);
   moneyInterval = setInterval(fetchMoney, 120000);
-}
-
-function logout() {
-  currentUser = null;
-  localStorage.removeItem('betldp_user_id');
-  localStorage.removeItem('betldp_user_email');
-  localStorage.removeItem('betldp_user_name');
-  if (moneyInterval) { clearInterval(moneyInterval); moneyInterval = null; }
-  document.getElementById('money-display').style.opacity = '0';
-  document.getElementById('menu-user-info').style.display = 'none';
-  document.getElementById('btn-logout').style.display = 'none';
-  closeMenuAccount();
-  window.location.href = './index.html';
 }
 
 async function autoLogin() {

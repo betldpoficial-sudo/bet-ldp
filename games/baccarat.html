@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Baccarat — Bet LDP</title>
+  <link rel="icon" type="image/png" href="../assets/logo3.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/casino-games.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../assets/logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🀄 BACCARAT</h1>
+    <p class="game-description">Adivina si la mano del Punto o de la Banca se acerca más al nueve. El empate devuelve la apuesta.</p>
+
+    <div id="bet-selection" class="card">
+      <div class="status-row">
+        <div>💰 Saldo disponible</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options">
+        <button class="bet-btn" onclick="setBet(500)">$500</button>
+        <button class="bet-btn" onclick="setBet(5000)">$5000</button>
+        <button class="bet-btn" onclick="setBet(10000)">$10000</button>
+        <button class="bet-btn" onclick="setAllInBet()">Apostar todo</button>
+      </div>
+      <div style="margin: 1rem 0;">
+        <label style="display:block; margin-bottom: 0.5rem; font-weight:700;">Selecciona tu apuesta</label>
+        <select id="bet-choice" style="width:100%; padding:1rem; border-radius:16px; border:1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color:#f4f1e6;">
+          <option value="punto">Punto</option>
+          <option value="banca">Banca</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="startGame()">✨ REPARTIR CARTAS</button>
+      <div id="msg" class="alert"></div>
+    </div>
+
+    <div id="game-play" class="card" style="display:none;">
+      <div class="status-row">
+        <div>🎯 Apuesta</div>
+        <div id="bet-amount-display">$0</div>
+      </div>
+      <div class="cards-board">
+        <div class="player-block">
+          <strong>Punto</strong>
+          <div id="punto-cards" class="card-place"></div>
+          <div id="punto-total" style="margin-top:0.8rem; font-weight:700;">Total: 0</div>
+        </div>
+        <div class="house-block">
+          <strong>Banca</strong>
+          <div id="banca-cards" class="card-place"></div>
+          <div id="banca-total" style="margin-top:0.8rem; font-weight:700;">Total: 0</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="revealResult()">🔎 VER RESULTADO</button>
+      <button class="btn-secondary" style="margin-top:12px;" onclick="cancelGame()">🚪 RETIRARSE</button>
+      <div id="play-msg" class="alert"></div>
+    </div>
+
+    <div id="result-screen" class="card" style="display:none; text-align:center;">
+      <h2 id="result-title" style="color:#f3cd81;">RESULTADO</h2>
+      <div id="result-detail" style="margin: 20px 0; font-size: 1.05rem; line-height:1.6;"></div>
+      <div class="result-actions">
+        <button class="btn-primary" onclick="playSameBet()">Jugar de nuevo (con la misma apuesta)</button>
+        <button class="btn-primary" onclick="resetToMenu()">Jugar de nuevo (con diferente apuesta)</button>
+        <button class="btn-secondary" onclick="window.location.href='../app.html'">Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 500;
+  let lastBet = 500;
+  let lastChoice = 'punto';
+  let gameState = { punto: [], banca: [], totals: { punto: 0, banca: 0 } };
+
+  function showMsg(id, type, message) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'alert ' + type;
+    el.textContent = message;
+    el.style.display = 'block';
+    setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
+  }
+
+  async function init() {
+    await loadUser();
+    renderHeader();
+  }
+
+  async function loadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) { currentUser = { docId: doc.id, ...doc.data() }; return; }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo','==','baccarat@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const demo = { user:'BaccaratFan', correo:'baccarat@demo.com', clave:'baccarat123', dinero: 18000 };
+      const docRef = await db.collection('cuentas').add(demo);
+      currentUser = { docId: docRef.id, ...demo };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+  }
+
+  async function syncBalance() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  function renderHeader() {
+    const moneySpan = document.getElementById('money-display');
+    const saldoSpan = document.getElementById('saldo-display');
+    if (moneySpan && currentUser) moneySpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+    if (saldoSpan && currentUser) saldoSpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+  }
+
+  function setBet(amount) {
+    if (!currentUser) return;
+    currentBet = amount;
+    lastBet = amount;
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showMsg('msg','success',`Apuesta seleccionada: $${amount}`);
+  }
+
+  function setAllInBet() {
+    if (!currentUser) return;
+    currentBet = currentUser.dinero;
+    lastBet = currentBet;
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showMsg('msg','success',`Apostar todo: $${currentBet}`);
+  }
+
+  function dealBaccarat() {
+    const cards = [];
+    const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    const suits = ['♠','♥','♦','♣'];
+    ranks.forEach(rank => suits.forEach(suit => cards.push({ rank, suit, value: getBaccaratValue(rank) })));
+    const deck = shuffle(cards);
+    return { punto: deck.slice(0,2), banca: deck.slice(2,4) };
+  }
+
+  function getBaccaratValue(rank) {
+    if (['10','J','Q','K'].includes(rank)) return 0;
+    if (rank === 'A') return 1;
+    return parseInt(rank, 10);
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function calculateTotal(hand) {
+    return hand.reduce((sum, card) => sum + card.value, 0) % 10;
+  }
+
+  async function startGame() {
+    if (!currentUser) { showMsg('msg','error','No se encontró tu usuario.'); return; }
+    const choice = document.getElementById('bet-choice').value;
+    lastChoice = choice;
+    if (currentBet <= 0) { showMsg('msg','error','Selecciona una apuesta válida.'); return; }
+    if (currentBet > currentUser.dinero) { showMsg('msg','error',`Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`); return; }
+    lastBet = currentBet;
+    currentUser.dinero -= currentBet;
+    await syncBalance();
+    renderHeader();
+    gameState = dealBaccarat();
+    gameState.totals = { punto: calculateTotal(gameState.punto), banca: calculateTotal(gameState.banca) };
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showBoard();
+  }
+
+  function showBoard() {
+    document.getElementById('bet-selection').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    renderCards('punto-cards', gameState.punto);
+    renderCards('banca-cards', gameState.banca);
+    document.getElementById('punto-total').textContent = `Total: ${gameState.totals.punto}`;
+    document.getElementById('banca-total').textContent = `Total: ${gameState.totals.banca}`;
+    document.getElementById('play-msg').style.display = 'none';
+  }
+
+  function renderCards(containerId, hand) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = hand.map(card => `<div class="card-chip">${card.rank}${card.suit}</div>`).join('');
+  }
+
+  function revealResult() {
+    const choice = lastChoice;
+    const punto = gameState.totals.punto;
+    const banca = gameState.totals.banca;
+    let winner = 'empate';
+    if (punto > banca) winner = 'punto';
+    if (banca > punto) winner = 'banca';
+    let title = '😔 PERDISTE';
+    let detail = `Resultado: Punto ${punto} - Banca ${banca}.`;
+    let payout = 0;
+    let type = 'error';
+    if (winner === choice) {
+      title = '🎉 ¡GANASTE!';
+      payout = currentBet * (choice === 'banca' ? 1.95 : 2);
+      detail = `¡Acierto! ${choice === 'punto' ? 'Punto' : 'Banca'} ganó. Ganaste $${payout.toFixed(2)}.`;
+      type = 'success';
+    } else if (winner === 'empate') {
+      title = '🤝 EMPATE';
+      payout = currentBet;
+      detail = `Empate a ${punto}. Se devuelve tu apuesta de $${currentBet}.`;
+      type = 'info';
+    } else {
+      detail = `Resultado: Punto ${punto} - Banca ${banca}. Perdías tu apuesta.`;
+      type = 'error';
+    }
+    if (payout > 0) {
+      currentUser.dinero += payout;
+      syncBalance();
+      renderHeader();
+    }
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-detail').innerHTML = `
+      <div>${detail}</div>
+      <div style="margin-top:12px;">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+    `;
+  }
+
+  function cancelGame() {
+    currentUser.dinero += currentBet;
+    syncBalance();
+    renderHeader();
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-title').textContent = '🚪 RETIRO';
+    document.getElementById('result-detail').innerHTML = `
+      <div>Has retirado tu apuesta de $${currentBet.toFixed(2)}.</div>
+      <div style="margin-top:12px;">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+    `;
+  }
+
+  function playSameBet() {
+    currentBet = lastBet;
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('bet-selection').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    startGame();
+  }
+
+  function resetToMenu() {
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('bet-selection').style.display = 'block';
+    document.getElementById('msg').style.display = 'none';
+  }
+
+  init();
+</script>
+</body>
+</html>

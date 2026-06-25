@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Bingo — Bet LDP</title>
+  <link rel="icon" type="image/png" href="../assets/logo3.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/casino-games.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<nav id="navbar">
+  <div id="navbar-left">
+    <button id="logo-btn" onclick="window.location.href='../app.html'">
+      <img src="../assets/logo1.png" alt="BetLDP Logo">
+    </button>
+  </div>
+  <div id="navbar-right">
+    <span id="money-display">$0.00</span>
+  </div>
+</nav>
+
+<div class="game-master">
+  <div class="game-container">
+    <h1>🎱 BINGO</h1>
+    <p class="game-description">Marca tus números y espera el llamado. Si tus cinco números aparecen entre los llamados, ¡ganas grande!</p>
+
+    <div id="bet-selection" class="card">
+      <div class="status-row">
+        <div>💰 Saldo disponible</div>
+        <div id="saldo-display">$0.00</div>
+      </div>
+      <div class="bet-options">
+        <button class="bet-btn" onclick="setBet(500)">$500</button>
+        <button class="bet-btn" onclick="setBet(5000)">$5000</button>
+        <button class="bet-btn" onclick="setBet(10000)">$10000</button>
+        <button class="bet-btn" onclick="setAllInBet()">Apostar todo</button>
+      </div>
+      <div class="status-row" style="margin-top:1rem;">
+        <div>Selecciona 5 números</div>
+        <div id="selection-count">0 / 5</div>
+      </div>
+      <div id="number-grid" class="number-grid"></div>
+      <button class="btn-primary" onclick="startGame()">✨ COMENZAR</button>
+      <div id="msg" class="alert"></div>
+    </div>
+
+    <div id="game-play" class="card" style="display:none;">
+      <div class="status-row">
+        <div>🎯 Apuesta</div>
+        <div id="bet-amount-display">$0</div>
+      </div>
+      <div class="status-row" style="grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center;">
+        <div>
+          <strong>Tus números</strong>
+          <div id="selected-numbers" class="card-place"></div>
+        </div>
+        <div>
+          <strong>Números llamados</strong>
+          <div id="drawn-numbers" class="card-place"></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="revealResult()">🔎 VER RESULTADO</button>
+      <button class="btn-secondary" style="margin-top:12px;" onclick="cancelGame()">🚪 RETIRARSE</button>
+      <div id="play-msg" class="alert"></div>
+    </div>
+
+    <div id="result-screen" class="card" style="display:none; text-align:center;">
+      <h2 id="result-title" style="color:#f3cd81;">RESULTADO</h2>
+      <div id="result-detail" style="margin: 20px 0; font-size: 1.05rem; line-height:1.6;"></div>
+      <div class="result-actions">
+        <button class="btn-primary" onclick="playSameBet()">Jugar de nuevo (con la misma apuesta)</button>
+        <button class="btn-primary" onclick="resetToMenu()">Jugar de nuevo (con diferente apuesta)</button>
+        <button class="btn-secondary" onclick="window.location.href='../app.html'">Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC8jSaP8e1UvLDn2sDdIyo2Z9o_KNhSEro",
+    authDomain: "tuesa-oficial.firebaseapp.com",
+    projectId: "tuesa-oficial",
+    storageBucket: "tuesa-oficial.firebasestorage.app",
+    messagingSenderId: "447951557213",
+    appId: "1:447951557213:web:293e062ae3fe474c1cb3b4"
+  };
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentBet = 500;
+  let lastBet = 500;
+  let selectedNumbers = [];
+  let drawnNumbers = [];
+
+  function showMsg(id, type, message) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'alert ' + type;
+    el.textContent = message;
+    el.style.display = 'block';
+    setTimeout(() => { if (el) el.style.display = 'none'; }, 3500);
+  }
+
+  async function init() {
+    await loadUser();
+    renderHeader();
+    renderNumberGrid();
+  }
+
+  async function loadUser() {
+    let userId = localStorage.getItem('betldp_user_id');
+    if (userId) {
+      const doc = await db.collection('cuentas').doc(userId).get();
+      if (doc.exists) { currentUser = { docId: doc.id, ...doc.data() }; return; }
+    }
+    const demoSnap = await db.collection('cuentas').where('correo','==','bingo@demo.com').get();
+    if (!demoSnap.empty) {
+      currentUser = { docId: demoSnap.docs[0].id, ...demoSnap.docs[0].data() };
+    } else {
+      const demo = { user:'BingoFan', correo:'bingo@demo.com', clave:'bingo123', dinero: 16000 };
+      const docRef = await db.collection('cuentas').add(demo);
+      currentUser = { docId: docRef.id, ...demo };
+    }
+    localStorage.setItem('betldp_user_id', currentUser.docId);
+  }
+
+  async function syncBalance() {
+    if (!currentUser) return;
+    await db.collection('cuentas').doc(currentUser.docId).update({ dinero: currentUser.dinero });
+  }
+
+  function renderHeader() {
+    const moneySpan = document.getElementById('money-display');
+    const saldoSpan = document.getElementById('saldo-display');
+    if (moneySpan && currentUser) moneySpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+    if (saldoSpan && currentUser) saldoSpan.textContent = `$${currentUser.dinero.toFixed(2)}`;
+  }
+
+  function setBet(amount) {
+    if (!currentUser) return;
+    currentBet = amount;
+    lastBet = amount;
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showMsg('msg','success',`Apuesta seleccionada: $${amount}`);
+  }
+
+  function setAllInBet() {
+    if (!currentUser) return;
+    currentBet = currentUser.dinero;
+    lastBet = currentBet;
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showMsg('msg','success',`Apostar todo: $${currentBet}`);
+  }
+
+  function renderNumberGrid() {
+    const grid = document.getElementById('number-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let number = 1; number <= 25; number++) {
+      const cell = document.createElement('div');
+      cell.className = 'number-cell';
+      cell.textContent = number;
+      cell.onclick = () => toggleNumber(number, cell);
+      grid.appendChild(cell);
+    }
+  }
+
+  function toggleNumber(number, cell) {
+    if (selectedNumbers.includes(number)) {
+      selectedNumbers = selectedNumbers.filter(n => n !== number);
+      cell.classList.remove('selected');
+    } else if (selectedNumbers.length < 5) {
+      selectedNumbers.push(number);
+      cell.classList.add('selected');
+    }
+    updateSelectionDisplay();
+  }
+
+  function updateSelectionDisplay() {
+    const count = document.getElementById('selection-count');
+    const selectedContainer = document.getElementById('selected-numbers');
+    if (count) count.textContent = `${selectedNumbers.length} / 5`;
+    if (selectedContainer) selectedContainer.innerHTML = selectedNumbers.map(num => `<div class="number-cell selected">${num}</div>`).join('');
+  }
+
+  function getRandomNumbers(max, count) {
+    const numbers = Array.from({ length: max }, (_, i) => i + 1);
+    const result = [];
+    while (result.length < count) {
+      const index = Math.floor(Math.random() * numbers.length);
+      result.push(numbers.splice(index, 1)[0]);
+    }
+    return result;
+  }
+
+  async function startGame() {
+    if (!currentUser) { showMsg('msg','error','No se encontró tu usuario. Recarga la página.'); return; }
+    if (selectedNumbers.length !== 5) { showMsg('msg','error','Selecciona exactamente 5 números antes de jugar.'); return; }
+    if (currentBet <= 0) { showMsg('msg','error','Selecciona una apuesta válida.'); return; }
+    if (currentBet > currentUser.dinero) { showMsg('msg','error',`Saldo insuficiente. Tienes $${currentUser.dinero.toFixed(2)}`); return; }
+    lastBet = currentBet;
+    currentUser.dinero -= currentBet;
+    await syncBalance();
+    renderHeader();
+    drawnNumbers = getRandomNumbers(25, 15);
+    document.getElementById('bet-amount-display').textContent = `$${currentBet}`;
+    showBoard();
+  }
+
+  function showBoard() {
+    document.getElementById('bet-selection').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    renderDrawnNumbers();
+    updateSelectionDisplay();
+    document.getElementById('play-msg').style.display = 'none';
+  }
+
+  function renderDrawnNumbers() {
+    const container = document.getElementById('drawn-numbers');
+    if (!container) return;
+    container.innerHTML = drawnNumbers.map(num => `<div class="number-cell">${num}</div>`).join('');
+  }
+
+  function revealResult() {
+    const matched = selectedNumbers.filter(num => drawnNumbers.includes(num));
+    let title = '😔 PERDISTE';
+    let detail = `Solo coincidieron ${matched.length} de 5 números.`;
+    let payout = 0;
+    let type = 'error';
+    if (matched.length === 5) {
+      title = '🎉 ¡BINGO!';
+      payout = currentBet * 4;
+      detail = `¡Perfecto! Has acertado los 5 números y ganas $${payout.toFixed(2)}.`;
+      type = 'success';
+    } else if (matched.length >= 3) {
+      title = '🎉 ¡Ganaste!';
+      payout = currentBet * (matched.length === 4 ? 2.5 : 1.8);
+      detail = `Acertaste ${matched.length}. Ganaste $${payout.toFixed(2)}.`;
+      type = 'info';
+    } else {
+      detail = `Aciertos: ${matched.length}. No alcanzaste la combinación ganadora.`;
+    }
+    if (payout > 0) {
+      currentUser.dinero += payout;
+      syncBalance();
+      renderHeader();
+    }
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-detail').innerHTML = `
+      <div>${detail}</div>
+      <div style="margin-top:12px;">Números acertados: ${matched.join(', ') || '—'}</div>
+      <div style="margin-top:12px;">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+    `;
+  }
+
+  function cancelGame() {
+    currentUser.dinero += currentBet;
+    syncBalance();
+    renderHeader();
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-title').textContent = '🚪 TE RETIRASTE';
+    document.getElementById('result-detail').innerHTML = `
+      <div>Has recuperado tu apuesta de $${currentBet.toFixed(2)}.</div>
+      <div style="margin-top:12px;">Saldo actual: $${currentUser.dinero.toFixed(2)}</div>
+    `;
+  }
+
+  function playSameBet() {
+    currentBet = lastBet;
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('bet-selection').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    startGame();
+  }
+
+  function resetToMenu() {
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('bet-selection').style.display = 'block';
+    document.getElementById('msg').style.display = 'none';
+    selectedNumbers = [];
+    renderNumberGrid();
+    updateSelectionDisplay();
+  }
+
+  init();
+</script>
+</body>
+</html>
