@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Pico Minero — BetLDP</title>
+    <link rel="icon" type="image/png" href="../../logo2.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<nav id="navbar">
+    <div id="navbar-left">
+        <button id="logo-btn" onclick="window.location.href='../../app.html'">
+            <img src="../../logo2.png" alt="BetLDP Logo" />
+        </button>
+    </div>
+    <div id="navbar-right">
+        <span id="money-display">$0.00</span>
+    </div>
+</nav>
+
+<div class="master-center">
+    <div class="game-container">
+        <h2>PICO MINERO</h2>
+
+        <div class="info-panel">
+            <div class="info-card"><div class="info-label">SALDO</div><div class="info-value" id="game-balance">$0.00</div></div>
+            <div class="info-card"><div class="info-label">MULTIPLICADOR</div><div class="info-value" id="game-multiplier">0.9x</div></div>
+            <div class="info-card"><div class="info-label">COSTO</div><div class="info-value" id="game-cost">$0</div></div>
+        </div>
+
+        <div id="game-selection" class="bet-controls">
+            <div class="info-label" style="margin-bottom:8px;">SELECCIONA TU PICO</div>
+            <div class="pickaxe-options">
+                <div class="pickaxe-btn" data-pick="wooden" onclick="selectPickaxe('wooden')">Madera - Gratis</div>
+                <div class="pickaxe-btn" data-pick="stone" onclick="selectPickaxe('stone')">Piedra - $200</div>
+                <div class="pickaxe-btn" data-pick="iron" onclick="selectPickaxe('iron')">Hierro - $500</div>
+                <div class="pickaxe-btn" data-pick="diamond" onclick="selectPickaxe('diamond')">Diamante - $1000</div>
+            </div>
+            <div style="margin:12px 0; font-size:14px; color:#aaa;">Pico actual: <span id="current-pickaxe-name">Madera</span></div>
+
+            <div class="info-label" style="margin-bottom:8px;">SELECCIONA TU APUESTA (MULTIPLICADOR)</div>
+            <div style="font-size:12px; color:#888; margin-bottom:10px; text-align:center;">El costo del multiplicador es lo que arriesgas. Si ganas, se multiplica por el valor seleccionado.</div>
+            <div class="multiplier-options">
+                <div class="multiplier-btn" data-mult="0.9x" onclick="selectMultiplier('0.9x')" style="background:#4a4a4a;">0.9x - $0</div>
+                <div class="multiplier-btn" data-mult="1.0x" onclick="selectMultiplier('1.0x')" style="background:#2a5a3a;">1.0x - $1000</div>
+                <div class="multiplier-btn" data-mult="1.5x" onclick="selectMultiplier('1.5x')" style="background:#3a5a8a;">1.5x - $2250</div>
+                <div class="multiplier-btn" data-mult="2.25x" onclick="selectMultiplier('2.25x')" style="background:#8a7a2a;">2.25x - $3000</div>
+                <div class="multiplier-btn" data-mult="5.0x" onclick="selectMultiplier('5.0x')" style="background:#8a2a5a;">5.0x - $6000</div>
+            </div>
+            <div style="margin:12px 0; font-size:14px; color:#aaa;">Multiplicador actual: <span id="current-multiplier-name" style="color:#f5d97f;">GRATIS (0.9x)</span></div>
+
+            <button class="btn-primary" style="margin-top:20px;" onclick="startGame()">INICIAR MINA</button>
+            <div id="game-msg-selection" class="alert" style="margin-top:14px; display:none;"></div>
+        </div>
+
+        <div id="buy-popup" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:#16212e; border-radius:32px; padding:30px; max-width:400px; width:90%; border:2px solid #f5d97f;">
+                <h3 style="color:#f5d97f; text-align:center; margin-bottom:16px;">COMPRAR PICO</h3>
+                <p style="text-align:center; margin-bottom:8px;" id="buy-popup-text">¿Deseas comprar el pico de Piedra por $200?</p>
+                <p style="text-align:center; font-size:14px; color:#aaa; margin-bottom:20px;">Tu saldo: <span id="buy-popup-balance">$0.00</span></p>
+                <div style="display:flex; gap:12px; justify-content:center;">
+                    <button class="btn-secondary" onclick="closeBuyPopup()">Cancelar</button>
+                    <button class="btn-primary" onclick="confirmBuy()" style="width:auto; padding:12px 30px;">Comprar</button>
+                </div>
+                <div id="buy-popup-msg" style="margin-top:12px; text-align:center; font-weight:500; display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Botón de salir FUERA del canvas -->
+        <div id="exit-button-container" style="display:none; margin-top:12px; text-align:center;">
+            <button id="exit-btn" onclick="startExitTimer()" style="background:#f44336; color:white; border:none; padding:12px 24px; border-radius:30px; font-weight:bold; cursor:pointer; font-size:16px; box-shadow:0 4px 15px rgba(244,67,54,0.4); transition:0.3s; width:100%;">
+                SALIR Y RECLAMAR
+            </button>
+            <div id="exit-timer" style="display:none; background:rgba(0,0,0,0.8); color:#f5d97f; padding:10px 16px; border-radius:20px; margin-top:8px; text-align:center; font-weight:bold; font-size:18px; border:2px solid #f5d97f;">
+                ⏱️ <span id="exit-countdown">5</span>s
+            </div>
+        </div>
+
+        <div id="game-area" style="display:none; position:relative; width:100%; aspect-ratio:9/16; background:#1a1a2e; border-radius:24px; overflow:hidden; border:2px solid #f5d97f; margin-top:12px;">
+            <canvas id="gameCanvas"></canvas>
+            <div id="pickaxe-hp-overlay" style="position:absolute; pointer-events:none; color:#fff; font-weight:bold; text-shadow:2px 2px 4px #000; font-size:20px; display:none; background:rgba(0,0,0,0.6); padding:4px 16px; border-radius:30px; border:1px solid rgba(255,255,255,0.2);"></div>
+
+            <div id="touch-controls" style="position:absolute; bottom:20px; left:0; right:0; display:flex; justify-content:center; gap:40px; pointer-events:none;">
+                <button id="btn-left" style="pointer-events:auto; width:70px; height:70px; border-radius:50%; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.5); color:#fff; font-size:32px; backdrop-filter:blur(4px);">◀</button>
+                <button id="btn-right" style="pointer-events:auto; width:70px; height:70px; border-radius:50%; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.5); color:#fff; font-size:32px; backdrop-filter:blur(4px);">▶</button>
+            </div>
+        </div>
+
+        <div id="game-result" style="display:none; text-align:center; margin-top:12px;">
+            <div style="background:#0f1a17aa; border-radius:24px; padding:20px;">
+                <h3 id="game-result-title" style="color:#f5d97f;">Resultado</h3>
+                <div id="game-result-detail" style="margin:16px 0; font-size:16px;"></div>
+                <button class="btn-primary" onclick="backToMenu()">Volver al menú</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
