@@ -1,0 +1,127 @@
+/* ====== styles.css ====== */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #0b0e14;
+  font-family: 'Raleway', sans-serif;
+  color: #e0e0e0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+#navbar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  background:#0f1a17;
+  border-bottom:2px solid #f5d97f;
+}
+#navbar-left button { background:none; border:none; cursor:pointer; }
+#navbar-left img { height:40px; }
+#navbar-right { color:#f5d97f; font-weight:bold; font-size:18px; }
+.master-center {
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.game-container {
+  max-width:520px;
+  width:100%;
+  background:#16212e;
+  border-radius:32px;
+  padding:24px 20px;
+  border:1px solid #2a3a4a;
+  box-shadow:0 12px 40px rgba(0,0,0,0.7);
+}
+h2 { text-align:center; color:#f5d97f; font-family:'Cinzel',serif; margin-bottom:16px; }
+.info-panel {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  background:#0f1a17aa;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.info-card { flex:1; min-width:60px; text-align:center; }
+.info-label { font-size:11px; color:#aaa; text-transform:uppercase; letter-spacing:1px; }
+.info-value { font-size:18px; font-weight:bold; color:#f5d97f; }
+.bet-controls { background:#0f1a17aa; border-radius:20px; padding:16px; }
+.pickaxe-options, .multiplier-options {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+}
+.pickaxe-btn, .multiplier-btn {
+  background:#1e2e3a;
+  padding:8px 16px;
+  border-radius:30px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.2s;
+  border:1px solid #3a4a5a;
+  color:#ccc;
+  font-size:14px;
+  flex:1;
+  min-width:80px;
+  text-align:center;
+}
+.pickaxe-btn:hover, .multiplier-btn:hover { background:#2a3a4a; border-color:#f5d97f; }
+.pickaxe-btn.active, .multiplier-btn.active { background:#f5d97f; color:#0b0e14; border-color:#f5d97f; }
+.pickaxe-btn.owned { border-color:#4caf50; }
+.pickaxe-btn.locked { opacity:0.6; }
+.multiplier-btn { min-width:70px; flex:1; }
+.btn-primary {
+  background:#f5d97f;
+  color:#0b0e14;
+  border:none;
+  padding:12px 24px;
+  border-radius:40px;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+  transition:0.2s;
+  width:100%;
+}
+.btn-primary:hover { background:#e8c95a; transform:scale(1.02); }
+.btn-secondary {
+  background:#2a3a4a;
+  color:#e0e0e0;
+  border:none;
+  padding:10px 20px;
+  border-radius:40px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
+}
+.btn-secondary:hover { background:#3a4a5a; }
+.alert { padding:10px 14px; border-radius:12px; margin-top:8px; font-weight:500; }
+.alert.success { background:#1a3a2a; color:#8fdb9a; border:1px solid #2a5a3a; }
+.alert.error { background:#3a1a1a; color:#db8f8f; border:1px solid #5a2a2a; }
+.alert.info { background:#1a2a3a; color:#8fcbdb; border:1px solid #2a4a5a; }
+#game-area { position:relative; width:100%; aspect-ratio:9/16; background:#1a1a2e; border-radius:24px; overflow:hidden; border:2px solid #f5d97f; margin-top:12px; }
+#gameCanvas { width:100%; height:100%; display:block; }
+#touch-controls button { pointer-events:auto; width:70px; height:70px; border-radius:50%; background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.3); color:#fff; font-size:32px; backdrop-filter:blur(4px); touch-action:none; user-select:none; }
+#touch-controls button:active { background:rgba(255,255,255,0.35); }
+#pickaxe-hp-overlay { position:absolute; pointer-events:none; color:#fff; font-weight:bold; text-shadow:2px 2px 4px #000; font-size:20px; display:none; background:rgba(0,0,0,0.6); padding:4px 16px; border-radius:30px; border:1px solid rgba(255,255,255,0.2); }
+
+#buy-popup { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center; }
+#buy-popup.active { display:flex; }
+
+#exit-btn:hover {
+  transform:scale(1.05);
+  background:#d32f2f;
+}
+
+#exit-timer {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity:1; }
+  50% { opacity:0.6; }
+}
